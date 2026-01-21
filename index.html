@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <title>GENZCTF | Ritesh Ekbote</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="favicon.png">
   <style>
     body {
       margin: 0;
-      background: black;
+      background: #000;
       color: #00ff9c;
       font-family: 'Courier New', monospace;
       overflow: hidden;
@@ -22,21 +23,21 @@
 
     .terminal {
       padding: 40px;
-      max-width: 900px;
+      max-width: 1000px;
       margin: auto;
     }
 
     .glitch {
-      font-size: 48px;
+      font-size: 52px;
       font-weight: bold;
-      color: #00ff9c;
-      text-shadow: 0 0 5px #00ff9c;
+      letter-spacing: 3px;
+      text-shadow: 0 0 10px #00ff9c;
     }
 
     .type {
       font-size: 18px;
       white-space: pre-line;
-      line-height: 1.6;
+      line-height: 1.7;
     }
 
     .cursor::after {
@@ -62,18 +63,20 @@
 
 <script>
 const text = `
-[ Booting genzctf.xyz ... ]
-[ Initializing exploit framework ... ]
-[ Loading CTF modules ... ]
-[ Connecting to vulnerability research database ... ]
+[ System Boot Sequence Initiated... ]
+[ Loading Cyber Warfare Modules... ]
+[ Mapping Attack Surface... ]
+[ Establishing Secure Research Environment... ]
 
-> Name: Ritesh Ekbote
-> Role: Cybersecurity Researcher | Bug Bounty Hunter | CTF Player
-> Focus: Web Exploitation, Auth Bypass, Subdomain Takeover, JS Reverse Engineering
-> Mission: Breaking systems to make them unbreakable.
+> Operator      : Ritesh Ekbote
+> Codename      : GENZCTF
+> Specialization: Web Exploitation | Bug Bounty | CTF Operations
+> Expertise     : Authentication Bypass, Subdomain Takeover, JS Reverse Engineering, Recon Automation
+> Objective     : Identify, Exploit, and Secure Real-World Systems
 
-> Status: ONLINE
-> Access Level: ELITE
+> Network Status : ONLINE
+> Threat Level   : HIGH
+> Clearance      : ELITE ACCESS GRANTED
 `;
 
 let i = 0;
@@ -81,12 +84,12 @@ function typeWriter() {
   if (i < text.length) {
     document.getElementById("type").innerHTML += text.charAt(i);
     i++;
-    setTimeout(typeWriter, 35);
+    setTimeout(typeWriter, 32);
   }
 }
 typeWriter();
 
-// Matrix Rain
+// Matrix Rain Effect
 const canvas = document.getElementById("matrix");
 const ctx = canvas.getContext("2d");
 
@@ -106,8 +109,8 @@ function draw() {
   ctx.font = fontSize + "px monospace";
 
   for (let i = 0; i < drops.length; i++) {
-    const text = letters.charAt(Math.floor(Math.random() * letters.length));
-    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+    const char = letters.charAt(Math.floor(Math.random() * letters.length));
+    ctx.fillText(char, i * fontSize, drops[i] * fontSize);
 
     if (drops[i] * fontSize > canvas.height && Math.random() > 0.975)
       drops[i] = 0;
