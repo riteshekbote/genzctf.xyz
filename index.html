@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GENZCTF | Ritesh Ekbote</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: #00ff9c;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    .terminal {
+      padding: 40px;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .glitch {
+      font-size: 48px;
+      font-weight: bold;
+      color: #00ff9c;
+      text-shadow: 0 0 5px #00ff9c;
+    }
+
+    .type {
+      font-size: 18px;
+      white-space: pre-line;
+      line-height: 1.6;
+    }
+
+    .cursor::after {
+      content: "_";
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 50%, 100% { opacity: 1; }
+      25%, 75% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+
+<div class="terminal">
+  <div class="glitch">GENZCTF</div>
+  <br>
+  <div class="type cursor" id="type"></div>
+</div>
+
+<script>
+const text = `
+[ Booting genzctf.xyz ... ]
+[ Initializing exploit framework ... ]
+[ Loading CTF modules ... ]
+[ Connecting to vulnerability research database ... ]
+
+> Name: Ritesh Ekbote
+> Role: Cybersecurity Researcher | Bug Bounty Hunter | CTF Player
+> Focus: Web Exploitation, Auth Bypass, Subdomain Takeover, JS Reverse Engineering
+> Mission: Breaking systems to make them unbreakable.
+
+> Status: ONLINE
+> Access Level: ELITE
+`;
+
+let i = 0;
+function typeWriter() {
+  if (i < text.length) {
+    document.getElementById("type").innerHTML += text.charAt(i);
+    i++;
+    setTimeout(typeWriter, 35);
+  }
+}
+typeWriter();
+
+// Matrix Rain
+const canvas = document.getElementById("matrix");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const letters = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ#$%&@";
+const fontSize = 14;
+const columns = canvas.width / fontSize;
+const drops = Array.from({ length: columns }).fill(1);
+
+function draw() {
+  ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "#00ff9c";
+  ctx.font = fontSize + "px monospace";
+
+  for (let i = 0; i < drops.length; i++) {
+    const text = letters.charAt(Math.floor(Math.random() * letters.length));
+    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975)
+      drops[i] = 0;
+
+    drops[i]++;
+  }
+}
+setInterval(draw, 33);
+</script>
+
+</body>
+</html>
