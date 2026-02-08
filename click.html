@@ -1,32 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Full Screen iFrame</title>
-
-<style>
-    /* Remove default margin */
-    html, body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
+  <meta charset="UTF-8">
+  <title>Clickjacking Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
     }
-
     iframe {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;     /* full width */
-        height: 100vh;    /* full height */
-        border: none;
+      width: 100%;
+      height: 600px;
+      border: 2px solid red;
     }
-</style>
+  </style>
 </head>
-
 <body>
 
-<iframe src="https://www.ijsred.com/"></iframe>
+<h2>Clickjacking Test – iframe load check</h2>
+
+<iframe src="https://www.anduril.com/"></iframe>
 
 </body>
 </html>
