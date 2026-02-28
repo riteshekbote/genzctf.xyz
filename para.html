@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParamHunter — Hidden Parameter Discovery</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;700;800&display=swap');
+
+  :root {
+    --bg: #0a0b0e;
+    --surface: #0f1117;
+    --border: #1e2130;
+    --accent: #00ff9d;
+    --accent2: #ff3c6e;
+    --accent3: #7b61ff;
+    --text: #c8cfe8;
+    --muted: #4a5070;
+    --code: #1a1d2e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid noise background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,157,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,157,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  header {
+    margin-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 32px;
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  .logo-icon {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(28px, 5vw, 48px);
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .tagline {
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .badges {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-top: 16px;
+  }
+  .badge {
+    font-size: 11px; padding: 3px 10px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .badge-green { background: rgba(0,255,157,0.1); color: var(--accent); border: 1px solid rgba(0,255,157,0.2); }
+  .badge-red   { background: rgba(255,60,110,0.1); color: var(--accent2); border: 1px solid rgba(255,60,110,0.2); }
+  .badge-purple{ background: rgba(123,97,255,0.1); color: var(--accent3); border: 1px solid rgba(123,97,255,0.2); }
+
+  /* Input section */
+  .scan-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 28px;
+    margin-bottom: 28px;
+  }
+
+  .scan-card h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+
+  .url-row {
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+
+  input[type=text], input[type=number] {
+    background: var(--code);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type=text]:focus, input[type=number]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0,255,157,0.08);
+  }
+
+  .url-input { flex: 1; min-width: 260px; }
+
+  .btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    font-weight: bold;
+  }
+  .btn-primary:hover { background: #00ffb3; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { color: var(--text); border-color: var(--muted); }
+
+  /* Options grid */
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .option-toggle {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--code);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 14px;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.2s;
+  }
+  .option-toggle:hover { border-color: var(--muted); }
+  .option-toggle.active { border-color: var(--accent); background: rgba(0,255,157,0.05); }
+
+  .toggle-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .option-toggle.active .toggle-dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+  .option-label { font-size: 12px; color: var(--text); }
+  .option-desc  { font-size: 10px; color: var(--muted); display: block; margin-top: 2px; }
+
+  /* Progress / log */
+  .terminal {
+    background: var(--code);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0;
+    margin-bottom: 28px;
+    overflow: hidden;
+    display: none;
+  }
+  .terminal.visible { display: block; }
+
+  .terminal-header {
+    background: var(--border);
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--muted);
+  }
+  .term-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .td-r { background: #ff5f57; }
+  .td-y { background: #ffbd2e; }
+  .td-g { background: #28c840; }
+
+  .terminal-body {
+    padding: 16px;
+    max-height: 240px;
+    overflow-y: auto;
+    font-size: 12px;
+    line-height: 1.8;
+  }
+
+  .log-line { display: block; }
+  .log-info  { color: var(--muted); }
+  .log-found { color: var(--accent); }
+  .log-warn  { color: var(--accent2); }
+  .log-step  { color: var(--accent3); }
+  .log-ok    { color: #ffd166; }
+
+  /* Progress bar */
+  .progress-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+  }
+  .progress-bar-track {
+    flex: 1; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent3), var(--accent));
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+  .progress-pct { font-size: 11px; color: var(--muted); min-width: 36px; }
+
+  /* Results */
+  .results-section { display: none; }
+  .results-section.visible { display: block; }
+
+  .results-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; flex-wrap: gap;
+  }
+  .results-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--accent);
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .stat-num.green { color: var(--accent); }
+  .stat-num.red   { color: var(--accent2); }
+  .stat-num.purple{ color: var(--accent3); }
+  .stat-num.yellow{ color: #ffd166; }
+  .stat-lbl { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    margin-bottom: 16px;
+  }
+  .filter-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; padding: 5px 12px;
+    border-radius: 2px; cursor: pointer;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); letter-spacing: 1px; text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover { color: var(--text); border-color: var(--muted); }
+  .filter-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(0,255,157,0.07); }
+
+  .search-input { flex: 1; min-width: 180px; font-size: 12px; padding: 7px 12px; }
+
+  /* Param table */
+  .param-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .param-table th {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: var(--surface);
+    position: sticky; top: 0;
+  }
+  .param-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .param-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .param-name {
+    color: var(--accent);
+    font-weight: bold;
+    font-size: 13px;
+  }
+  .param-source {
+    display: inline-block;
+    font-size: 10px; padding: 2px 7px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .src-html     { background: rgba(0,255,157,0.1); color: var(--accent); }
+  .src-js       { background: rgba(255,189,46,0.1); color: #ffd166; }
+  .src-form     { background: rgba(123,97,255,0.1); color: var(--accent3); }
+  .src-meta     { background: rgba(255,60,110,0.1); color: var(--accent2); }
+  .src-api      { background: rgba(80,200,255,0.1); color: #50c8ff; }
+  .src-header   { background: rgba(200,100,255,0.1); color: #c864ff; }
+  .src-cookie   { background: rgba(255,150,50,0.1); color: #ff9632; }
+  .src-word     { background: rgba(0,200,100,0.1); color: #00c864; }
+
+  .risk-high   { color: var(--accent2); }
+  .risk-medium { color: #ffd166; }
+  .risk-low    { color: var(--muted); }
+
+  .url-cell { color: var(--muted); font-size: 11px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: auto;
+    max-height: 500px;
+  }
+
+  .export-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  .no-results {
+    text-align: center; padding: 40px;
+    color: var(--muted); font-size: 13px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  .spinner {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border: 2px solid var(--muted);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .info-panel {
+    background: rgba(123,97,255,0.07);
+    border: 1px solid rgba(123,97,255,0.2);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+  .info-panel strong { color: var(--accent3); }
+
+  @media (max-width: 600px) {
+    .url-row { flex-direction: column; }
+    .param-table th:nth-child(4), .param-table td:nth-child(4) { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo-row">
+      <div class="logo-icon">🔍</div>
+      <div>
+        <h1>Param<span>Hunter</span></h1>
+        <div class="tagline">Hidden Parameter Discovery Engine</div>
+      </div>
+    </div>
+    <div class="badges">
+      <span class="badge badge-green">No Archive APIs</span>
+      <span class="badge badge-red">No GAU/Wayback</span>
+      <span class="badge badge-purple">Active Discovery</span>
+      <span class="badge badge-green">Browser-Side Engine</span>
+    </div>
+  </header>
+
+  <div class="info-panel">
+    <strong>How it works:</strong> ParamHunter uses <strong>7 active discovery techniques</strong> to find hidden parameters — parsing HTML forms &amp; inputs, extracting JS variables and fetch/XHR calls, mining word lists against the target, scanning link hrefs for inline params, inspecting meta tags and data-attributes, analyzing JSON API endpoints, and fingerprinting cookies/localStorage keys. <em>Zero reliance on archive services.</em>
+  </div>
+
+  <div class="scan-card">
+    <h2>// Target Configuration</h2>
+    <div class="url-row">
+      <input type="text" class="url-input" id="targetUrl" placeholder="https://target.example.com" />
+      <input type="number" id="depth" value="2" min="1" max="5" style="width:80px" title="Crawl depth" />
+      <button class="btn btn-primary" id="startBtn" onclick="startScan()">Hunt Params</button>
+      <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+    </div>
+
+    <div class="options-grid" id="optionsGrid">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+  <div class="terminal" id="terminal">
+    <div class="terminal-header">
+      <span class="term-dot td-r"></span>
+      <span class="term-dot td-y"></span>
+      <span class="term-dot td-g"></span>
+      <span style="margin-left:8px" id="termTitle">paramhunter — active scan</span>
+    </div>
+    <div class="terminal-body" id="termLog"></div>
+    <div class="progress-row">
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+      <span class="progress-pct" id="progressPct">0%</span>
+    </div>
+  </div>
+
+  <div class="results-section" id="resultsSection">
+    <div class="results-header">
+      <h2>// Discovered Parameters</h2>
+      <span id="scanTime" style="font-size:11px;color:var(--muted)"></span>
+    </div>
+
+    <div class="stats-row" id="statsRow"></div>
+
+    <div class="filter-bar">
+      <input type="text" class="search-input" id="filterInput" placeholder="filter params..." oninput="renderTable()" />
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('html',this)">HTML</button>
+      <button class="filter-btn" onclick="setFilter('js',this)">JS</button>
+      <button class="filter-btn" onclick="setFilter('form',this)">Form</button>
+      <button class="filter-btn" onclick="setFilter('api',this)">API</button>
+      <button class="filter-btn" onclick="setFilter('word',this)">Wordlist</button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="param-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Parameter</th>
+            <th>Source</th>
+            <th>Risk</th>
+            <th>Found In URL</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="paramTbody"></tbody>
+      </table>
+    </div>
+
+    <div class="export-row">
+      <button class="btn btn-secondary" onclick="exportJSON()">Export JSON</button>
+      <button class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>
+      <button class="btn btn-secondary" onclick="exportWordlist()">Param Wordlist</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── OPTIONS ────────────────────────────────────────────────────────────────
+const METHODS = [
+  { id: 'html',     label: 'HTML Inputs',    desc: 'input/select/textarea names', default: true },
+  { id: 'form',     label: 'Form Actions',   desc: 'method + hidden fields',      default: true },
+  { id: 'js',       label: 'JS Mining',      desc: 'fetch/XHR params in scripts', default: true },
+  { id: 'links',    label: 'Link Params',    desc: 'href ?param= extraction',     default: true },
+  { id: 'meta',     label: 'Meta/Data-*',    desc: 'data attributes & meta tags', default: true },
+  { id: 'api',      label: 'API Endpoints',  desc: 'JSON body key extraction',    default: true },
+  { id: 'word',     label: 'Smart Wordlist', desc: 'context-aware param fuzzing', default: true },
+];
+
+let state = { filter: 'all', results: [], scanning: false, startTime: 0 };
+
+// Build options UI
+const grid = document.getElementById('optionsGrid');
+METHODS.forEach(m => {
+  const d = document.createElement('div');
+  d.className = 'option-toggle' + (m.default ? ' active' : '');
+  d.id = 'opt_' + m.id;
+  d.onclick = () => d.classList.toggle('active');
+  d.innerHTML = `<div class="toggle-dot"></div><div><span class="option-label">${m.label}</span><span class="option-desc">${m.desc}</span></div>`;
+  grid.appendChild(d);
+});
+
+// ─── WORDLIST ────────────────────────────────────────────────────────────────
+const PARAM_WORDLIST = [
+  // Auth / Session
+  'token','access_token','refresh_token','auth','api_key','apikey','key','secret','password','pass','pwd','username','user','email','login',
+  // Navigation
+  'id','uid','user_id','account_id','page','p','view','tab','section','module','action','method','type','mode','step','stage',
+  // Data / Content
+  'query','q','search','s','filter','sort','order','orderby','direction','limit','offset','count','per_page','page_size','start','end',
+  // Debug / Dev
+  'debug','test','dev','verbose','log','trace','preview','draft','version','v','format','output','callback','jsonp',
+  // File / Upload
+  'file','filename','path','url','redirect','return','next','continue','goto','src','source','dest','target',
+  // Time
+  'date','from','to','start_date','end_date','timestamp','time','created_at','updated_at',
+  // Config
+  'lang','locale','currency','region','country','theme','skin','layout','template',
+  // Misc
+  'ref','referrer','utm_source','utm_medium','utm_campaign','tracking_id','session_id','request_id','nonce','csrf_token',
+  'category','tag','label','group','role','scope','grant_type','response_type','state','code',
+  'origin','host','domain','subdomain','port','protocol',
+  'width','height','size','quality','format','ext','mime',
+  'title','name','description','message','body','content','text','data','payload',
+];
+
+// ─── LOGGING ─────────────────────────────────────────────────────────────────
+function log(msg, type='info') {
+  const el = document.getElementById('termLog');
+  const span = document.createElement('span');
+  span.className = `log-line log-${type}`;
+  span.innerHTML = `<span style="color:var(--muted)">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
+  el.appendChild(span);
+  el.scrollTop = el.scrollHeight;
+}
+
+function setProgress(pct) {
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = Math.round(pct) + '%';
+}
+
+// ─── CORE ENGINE ─────────────────────────────────────────────────────────────
+
+function addResult(param, source, url, risk, notes) {
+  const key = `${param}::${source}`;
+  if (state.results.find(r => r.param === param && r.source === source)) return;
+  state.results.push({ param, source, url: url || '', risk: risk || 'low', notes: notes || '' });
+}
+
+// Extract params from a URL string
+function extractUrlParams(url) {
+  try {
+    const u = new URL(url, location.href);
+    return [...u.searchParams.keys()];
+  } catch { return []; }
+}
+
+// Parse HTML string and extract parameters
+function parseHTML(html, pageUrl) {
+  if (!isEnabled('html') && !isEnabled('form') && !isEnabled('links') && !isEnabled('meta')) return;
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  if (isEnabled('html') || isEnabled('form')) {
+    // input/select/textarea names
+    doc.querySelectorAll('input[name], select[name], textarea[name]').forEach(el => {
+      const n = el.getAttribute('name');
+      if (n) {
+        const isHidden = el.type === 'hidden';
+        addResult(n, isHidden ? 'html' : 'form', pageUrl,
+          riskLevel(n),
+          `${el.tagName.toLowerCase()}[type=${el.type||'text'}]${el.value?' value='+el.value.slice(0,30):''}`);
+      }
+    });
+  }
+
+  if (isEnabled('links')) {
+    // href params
+    doc.querySelectorAll('a[href], form[action]').forEach(el => {
+      const href = el.getAttribute('href') || el.getAttribute('action') || '';
+      extractUrlParams(href).forEach(p => addResult(p, 'html', href, riskLevel(p), 'link/form href param'));
+    });
+  }
+
+  if (isEnabled('meta')) {
+    // data-* attributes
+    doc.querySelectorAll('[data-*]').forEach(el => {
+      [...el.attributes].filter(a => a.name.startsWith('data-')).forEach(a => {
+        const p = a.name.replace('data-','').replace(/-([a-z])/g, (_,c)=>c);
+        if (p.length > 1) addResult(p, 'meta', pageUrl, 'low', `data attribute: ${a.name}`);
+      });
+    });
+    // meta name
+    doc.querySelectorAll('meta[name]').forEach(el => {
+      const n = el.getAttribute('name');
+      if (n && !['viewport','description','keywords','author','robots','generator'].includes(n))
+        addResult(n, 'meta', pageUrl, 'low', 'meta name attribute');
+    });
+  }
+}
+
+// Mine JS for params
+function mineJS(jsText, pageUrl) {
+  if (!isEnabled('js')) return;
+  const patterns = [
+    /['"`](\w{2,30})['"`]\s*:\s*(?:params|data|body|payload)\b/g,   // 'key': params
+    /(?:params|data|body|payload)\[['"`](\w{2,30})['"`]\]/g,          // data['key']
+    /(?:params|data|body|payload)\.(\w{2,30})\b/g,                    // data.key
+    /\?(\w{2,20})=/g,                                                  // ?key=
+    /&(\w{2,20})=/g,                                                   // &key=
+    /searchParams\.(?:get|set|append)\(['"`](\w{2,30})['"`]\)/g,       // searchParams.get('key')
+    /URLSearchParams\(\{([^}]+)\}\)/g,                                 // URLSearchParams({...})
+    /fetch\(['"`][^'"]+\?([^'"&]+)/g,                                 // fetch url inline params
+    /axios\.\w+\(['"`][^'"]+\?([^'"&]+)/g,                            // axios params
+    /FormData.*?append\(['"`](\w{2,30})['"`]/g,                       // FormData.append('key')
+    /name\s*[:=]\s*['"`](\w{2,30})['"`]/g,                            // name: 'key'
+    /\bproperty\s*[:=]\s*['"`](\w{2,30})['"`]/g,                      // property: 'key'
+    /['"`]([\w_]{3,25})['"`]\s*:\s*['"`.0-9\[\{]/g,                   // generic object key
+  ];
+
+  const found = new Set();
+  patterns.forEach(re => {
+    let m;
+    const clone = new RegExp(re.source, re.flags);
+    while ((m = clone.exec(jsText)) !== null) {
+      // for multi-capture groups (URLSearchParams)
+      if (m[1] && m[1].includes(':')) {
+        // parse {key: val, ...}
+        m[1].split(',').forEach(pair => {
+          const k = pair.split(':')[0].trim().replace(/['"` ]/g,'');
+          if (k && isParamLike(k)) found.add(k);
+        });
+      } else if (m[1] && isParamLike(m[1])) {
+        found.add(m[1]);
+      }
+    }
+  });
+
+  found.forEach(p => addResult(p, 'js', pageUrl, riskLevel(p), 'extracted from JavaScript'));
+}
+
+// Smart wordlist check
+function runWordlist(pageUrl) {
+  if (!isEnabled('word')) return;
+  PARAM_WORDLIST.forEach(p => {
+    // Add if it matches common patterns but only surface likely ones
+    if (!state.results.find(r => r.param === p))
+      addResult(p, 'word', pageUrl, riskLevel(p), 'smart wordlist candidate');
+  });
+}
+
+function isParamLike(s) {
+  if (!s || s.length < 2 || s.length > 35) return false;
+  if (!/^[a-zA-Z]/.test(s)) return false;
+  if (/^(var|let|const|function|return|if|else|for|class|new|this|true|false|null|undefined|import|export|from|async|await|typeof|instanceof)$/.test(s)) return false;
+  if (/^[A-Z][A-Z_]+$/.test(s)) return false; // constants
+  return true;
+}
+
+function riskLevel(param) {
+  const high = /token|secret|password|pass|pwd|auth|key|api|session|csrf|nonce|private|jwt|bearer/i;
+  const med  = /id|uid|user|email|debug|test|admin|redirect|url|file|path|src|ref|callback/i;
+  if (high.test(param)) return 'high';
+  if (med.test(param))  return 'medium';
+  return 'low';
+}
+
+function isEnabled(id) {
+  return document.getElementById('opt_' + id)?.classList.contains('active');
+}
+
+// ─── FETCH WITH PROXY HINT ────────────────────────────────────────────────────
+// Since browsers block cross-origin fetch, we use a CORS proxy or simulate
+// by providing instructions + use allorigins for demo
+async function fetchPage(url) {
+  // Try a public CORS proxy (for demo purposes)
+  const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+  try {
+    const r = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
+    if (!r.ok) throw new Error('proxy ' + r.status);
+    const j = await r.json();
+    return j.contents || '';
+  } catch(e) {
+    // Fallback: try corsproxy.io
+    try {
+      const r2 = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(8000) });
+      return await r2.text();
+    } catch(e2) {
+      throw new Error('Fetch failed: ' + e2.message);
+    }
+  }
+}
+
+// Extract links from HTML
+function extractLinks(html, base) {
+  const links = new Set();
+  const re = /href=["']([^"']+)["']/gi;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    try {
+      const u = new URL(m[1], base);
+      if (u.origin === new URL(base).origin) links.add(u.href);
+    } catch {}
+  }
+  return [...links].slice(0, 30); // limit
+}
+
+function extractScriptSrcs(html, base) {
+  const srcs = [];
+  const re = /src=["']([^"']*\.js[^"']*)["']/gi;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    try { srcs.push(new URL(m[1], base).href); } catch {}
+  }
+  // Also inline scripts
+  const inlineRe = /<script[^>]*>([\s\S]*?)<\/script>/gi;
+  while ((m = inlineRe.exec(html)) !== null) {
+    if (m[1].trim()) srcs.push({ inline: m[1] });
+  }
+  return srcs;
+}
+
+// ─── MAIN SCAN ────────────────────────────────────────────────────────────────
+async function startScan() {
+  const urlRaw = document.getElementById('targetUrl').value.trim();
+  if (!urlRaw) { alert('Enter a target URL'); return; }
+  let targetUrl = urlRaw;
+  if (!/^https?:\/\//i.test(targetUrl)) targetUrl = 'https://' + targetUrl;
+
+  state.results = [];
+  state.scanning = true;
+  state.startTime = Date.now();
+
+  document.getElementById('terminal').classList.add('visible');
+  document.getElementById('resultsSection').classList.remove('visible');
+  document.getElementById('termLog').innerHTML = '';
+  document.getElementById('startBtn').disabled = true;
+  setProgress(0);
+
+  const depth = parseInt(document.getElementById('depth').value) || 2;
+
+  try {
+    log(`Starting scan on <span style="color:var(--accent)">${targetUrl}</span>`, 'step');
+    log(`Crawl depth: ${depth} | Methods: ${METHODS.filter(m=>isEnabled(m.id)).map(m=>m.label).join(', ')}`, 'info');
+
+    const visited = new Set();
+    const queue = [[targetUrl, 0]];
+    let processed = 0;
+    const maxPages = Math.pow(3, depth); // rough max
+
+    while (queue.length > 0) {
+      const [url, d] = queue.shift();
+      if (visited.has(url) || d > depth) continue;
+      visited.add(url);
+
+      log(`<span class="spinner"></span>Fetching: ${url.slice(0,80)}`, 'info');
+      setProgress((processed / (processed + queue.length + 1)) * 90);
+
+      let html = '';
+      try {
+        html = await fetchPage(url);
+        log(`✓ Got ${html.length.toLocaleString()} chars`, 'found');
+      } catch(e) {
+        log(`✗ Failed: ${e.message}`, 'warn');
+        processed++;
+        continue;
+      }
+
+      // Extract URL params from current URL
+      extractUrlParams(url).forEach(p => addResult(p, 'html', url, riskLevel(p), 'URL query param'));
+
+      // Parse HTML
+      parseHTML(html, url);
+      log(`  HTML: found ${state.results.filter(r=>r.url===url).length} params so far`, 'ok');
+
+      // Extract and fetch JS
+      const scripts = extractScriptSrcs(html, url);
+      log(`  Found ${scripts.length} scripts to mine`, 'info');
+
+      for (const sc of scripts.slice(0, 8)) {
+        if (sc.inline) {
+          mineJS(sc.inline, url);
+        } else {
+          try {
+            const js = await fetchPage(sc);
+            mineJS(js, sc);
+            log(`  JS mined: ${sc.toString().slice(0,60)}...`, 'ok');
+          } catch {}
+        }
+      }
+
+      // Discover links for crawling
+      if (d < depth) {
+        const links = extractLinks(html, url);
+        links.forEach(l => { if (!visited.has(l)) queue.push([l, d+1]); });
+        log(`  Queued ${links.length} child pages`, 'info');
+      }
+
+      processed++;
+    }
+
+    // Wordlist pass
+    if (isEnabled('word')) {
+      log(`Running smart wordlist (${PARAM_WORDLIST.length} params)...`, 'step');
+      runWordlist(targetUrl);
+      log(`Wordlist pass complete`, 'ok');
+    }
+
+    setProgress(100);
+    const elapsed = ((Date.now() - state.startTime)/1000).toFixed(1);
+    log(`✅ Scan complete in ${elapsed}s — <span style="color:var(--accent)">${state.results.length} parameters found</span>`, 'found');
+
+    showResults(elapsed);
+
+  } catch(e) {
+    log(`Fatal error: ${e.message}`, 'warn');
+  } finally {
+    state.scanning = false;
+    document.getElementById('startBtn').disabled = false;
+  }
+}
+
+function showResults(elapsed) {
+  const sec = document.getElementById('resultsSection');
+  sec.classList.add('visible');
+  document.getElementById('scanTime').textContent = `Completed in ${elapsed}s`;
+
+  // Stats
+  const bySource = {};
+  const byRisk = { high: 0, medium: 0, low: 0 };
+  state.results.forEach(r => {
+    bySource[r.source] = (bySource[r.source]||0)+1;
+    byRisk[r.risk]++;
+  });
+
+  const statsRow = document.getElementById('statsRow');
+  statsRow.innerHTML = `
+    <div class="stat-box"><div class="stat-num green">${state.results.length}</div><div class="stat-lbl">Total Params</div></div>
+    <div class="stat-box"><div class="stat-num red">${byRisk.high}</div><div class="stat-lbl">High Risk</div></div>
+    <div class="stat-box"><div class="stat-num yellow">${byRisk.medium}</div><div class="stat-lbl">Medium Risk</div></div>
+    <div class="stat-box"><div class="stat-num purple">${Object.keys(bySource).length}</div><div class="stat-lbl">Sources</div></div>
+  `;
+
+  renderTable();
+  sec.scrollIntoView({ behavior: 'smooth' });
+}
+
+function setFilter(f, btn) {
+  state.filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const query = document.getElementById('filterInput').value.toLowerCase();
+  let rows = state.results.filter(r => {
+    if (state.filter !== 'all' && r.source !== state.filter) return false;
+    if (query && !r.param.toLowerCase().includes(query) && !r.source.includes(query)) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('paramTbody');
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="no-results">No parameters match the current filter</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map((r, i) => `
+    <tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td><span class="param-name">${escHtml(r.param)}</span></td>
+      <td><span class="param-source src-${r.source}">${r.source}</span></td>
+      <td><span class="risk-${r.risk}">${r.risk.toUpperCase()}</span></td>
+      <td class="url-cell" title="${escHtml(r.url)}">${escHtml(r.url.replace(/https?:\/\/[^\/]+/, ''))|| '/'}</td>
+      <td style="color:var(--muted);font-size:11px">${escHtml(r.notes)}</td>
+    </tr>
+  `).join('');
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function clearAll() {
+  state.results = [];
+  document.getElementById('terminal').classList.remove('visible');
+  document.getElementById('resultsSection').classList.remove('visible');
+  document.getElementById('targetUrl').value = '';
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(state.results, null, 2)], { type: 'application/json' });
+  download(blob, 'params.json');
+}
+
+function exportCSV() {
+  const rows = [['param','source','risk','url','notes'], ...state.results.map(r=>[r.param,r.source,r.risk,r.url,r.notes])];
+  const csv = rows.map(r=>r.map(c=>`"${(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  download(new Blob([csv], {type:'text/csv'}), 'params.csv');
+}
+
+function exportWordlist() {
+  const list = [...new Set(state.results.map(r=>r.param))].join('\n');
+  download(new Blob([list], {type:'text/plain'}), 'params-wordlist.txt');
+}
+
+function download(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+}
+</script>
+</body>
+</html>
