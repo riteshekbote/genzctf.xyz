@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CYBER OPS // PORTFOLIO</title>
+
+<!-- FONTS -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<!-- THREE JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<style>
+body {
+  margin:0;
+  background:#000;
+  color:#00ff41;
+  font-family:'Share Tech Mono', monospace;
+  overflow:hidden;
+}
+
+/* TEXT */
+h1 {
+  font-family:'Orbitron', sans-serif;
+  font-size:4rem;
+  text-align:center;
+  margin-top:100px;
+  text-shadow:0 0 20px #00ff41;
+}
+
+p {
+  text-align:center;
+  color:#0f0;
+}
+
+/* TERMINAL */
+#terminal {
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#000;
+  border-top:1px solid #00ff41;
+  padding:10px;
+}
+
+#output {
+  height:150px;
+  overflow:auto;
+}
+
+input {
+  width:100%;
+  background:black;
+  border:none;
+  color:#00ff41;
+  font-family:inherit;
+}
+
+/* ALERT */
+#alert {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  color:red;
+  font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="bg"></canvas>
+
+<h1>RITESH.EXE</h1>
+<p>OFFENSIVE SECURITY INTERFACE</p>
+
+<div id="terminal">
+  <div id="output"></div>
+  <input id="cmd" placeholder="type command...">
+</div>
+
+<div id="alert"></div>
+
+<!-- SOUND -->
+<audio id="typing" src="https://assets.mixkit.co/sfx/preview/mixkit-keyboard-fast-typing-1386.mp3"></audio>
+
+<script>
+/* =========================
+   3D BACKGROUND (REAL)
+========================= */
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+
+const renderer = new THREE.WebGLRenderer({
+  canvas: document.getElementById("bg"),
+  alpha:true
+});
+renderer.setSize(innerWidth, innerHeight);
+
+const geo = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+const mat = new THREE.MeshBasicMaterial({
+  color:0x00ff41,
+  wireframe:true
+});
+
+const mesh = new THREE.Mesh(geo, mat);
+scene.add(mesh);
+
+camera.position.z = 30;
+
+function animate() {
+  requestAnimationFrame(animate);
+  mesh.rotation.x += 0.01;
+  mesh.rotation.y += 0.01;
+  renderer.render(scene, camera);
+}
+animate();
+
+/* =========================
+   TERMINAL SYSTEM
+========================= */
+const output = document.getElementById("output");
+const input = document.getElementById("cmd");
+
+const commands = {
+  help: "whoami, skills, hack, clear",
+  whoami: "ritesh_ekbote // ethical hacker",
+  skills: "web exploitation | osint | api hacking",
+  hack: "ACCESS GRANTED 😈",
+};
+
+input.addEventListener("keydown", e => {
+  document.getElementById("typing").play();
+
+  if(e.key === "Enter") {
+    const val = input.value;
+    print("> " + val);
+
+    if(commands[val]) {
+      print(commands[val]);
+    } else {
+      print("command not found");
+    }
+
+    input.value = "";
+  }
+});
+
+function print(text) {
+  const div = document.createElement("div");
+  div.innerText = text;
+  output.appendChild(div);
+  output.scrollTop = output.scrollHeight;
+}
+
+/* =========================
+   HACK MODE
+========================= */
+document.addEventListener("keydown", e => {
+  if(e.key === "h") {
+    document.body.style.filter = "hue-rotate(120deg)";
+    alert("⚠ HACK MODE ENABLED");
+  }
+});
+
+/* =========================
+   FAKE DETECTION
+========================= */
+setTimeout(() => {
+  document.getElementById("alert").innerText =
+    "⚠ Tracking IP: " + Math.floor(Math.random()*255) + "." +
+    Math.floor(Math.random()*255) + "." +
+    Math.floor(Math.random()*255) + "." +
+    Math.floor(Math.random()*255);
+}, 4000);
+
+/* =========================
+   CURSOR EFFECT
+========================= */
+document.addEventListener("mousemove", e => {
+  const dot = document.createElement("div");
+  dot.style.position="fixed";
+  dot.style.left=e.clientX+"px";
+  dot.style.top=e.clientY+"px";
+  dot.style.width="4px";
+  dot.style.height="4px";
+  dot.style.background="#00ff41";
+  document.body.appendChild(dot);
+
+  setTimeout(()=>dot.remove(),300);
+});
+</script>
+
+</body>
+</html>
