@@ -1,593 +1,500 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>SubSimulator | Smart Subdomain Enumeration Dashboard</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SubEnum Live · real subdomain discovery (frontend)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-      background: linear-gradient(145deg, #f0f4fa 0%, #e6edf4 100%);
-      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-      padding: 2rem 1.5rem;
-      color: #0a1c2f;
-    }
+        body {
+            background: #0b1120;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', monospace;
+            padding: 1.5rem;
+            color: #e2e8f0;
+        }
 
-    .dashboard-container {
-      max-width: 1440px;
-      margin: 0 auto;
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(2px);
-      border-radius: 2rem;
-      box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.03);
-      overflow: hidden;
-      padding: 1.8rem 2rem 2.2rem;
-      transition: all 0.2s;
-    }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
 
-    h1 {
-      font-size: 1.85rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #0f2b3d, #1b4f6e);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-      letter-spacing: -0.3px;
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-    }
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
 
-    h1 small {
-      font-size: 0.75rem;
-      font-weight: 500;
-      background: #d9e2ef;
-      color: #1e4a6b;
-      padding: 4px 12px;
-      border-radius: 40px;
-      letter-spacing: normal;
-      background-clip: unset;
-      -webkit-background-clip: unset;
-      color: #1e4a6b;
-    }
+        .badge {
+            font-size: 0.7rem;
+            background: #1e293b;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-weight: normal;
+            color: #94a3b8;
+        }
 
-    .sub {
-      color: #3a5e7a;
-      margin-top: 6px;
-      margin-bottom: 28px;
-      border-left: 3px solid #3b82f6;
-      padding-left: 16px;
-      font-weight: 500;
-      font-size: 0.9rem;
-    }
+        .card {
+            background: #1e293b;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #334155;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
 
-    .input-card {
-      background: white;
-      border-radius: 1.5rem;
-      padding: 1.25rem 1.5rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-      border: 1px solid #e2edf7;
-      transition: 0.2s;
-    }
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
 
-    .input-group {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      gap: 1rem;
-    }
+        input {
+            flex: 2;
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 0.8rem 1.2rem;
+            border-radius: 2rem;
+            font-size: 1rem;
+            color: #f1f5f9;
+            font-family: monospace;
+        }
 
-    .domain-field {
-      flex: 3;
-      min-width: 220px;
-    }
+        button {
+            background: #3b82f6;
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
 
-    label {
-      font-weight: 600;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #2c5a7a;
-      display: block;
-      margin-bottom: 6px;
-    }
+        button:hover { background: #2563eb; transform: scale(0.98); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    input {
-      width: 100%;
-      padding: 12px 18px;
-      font-size: 1rem;
-      border: 1.5px solid #cbdde9;
-      border-radius: 1.2rem;
-      background: #fefefe;
-      transition: all 0.2s;
-      font-family: 'Inter', monospace;
-      font-weight: 500;
-    }
+        .filters {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
 
-    input:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
-    }
+        select, .search-box {
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            color: #e2e8f0;
+        }
 
-    .badge-domain {
-      background: #eef3fc;
-      padding: 12px 18px;
-      border-radius: 1.2rem;
-      font-weight: 600;
-      font-size: 1rem;
-      color: #0f2b3d;
-      border: 1px solid #cbdde9;
-    }
+        .info-msg {
+            background: #0f172a;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            margin-top: 1rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
 
-    .filter-bar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 24px;
-      background: #ffffffc9;
-      padding: 12px 20px;
-      border-radius: 1.8rem;
-      backdrop-filter: blur(4px);
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
-    .filter-group {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
+        th, td {
+            text-align: left;
+            padding: 0.9rem 0.8rem;
+            border-bottom: 1px solid #334155;
+        }
 
-    .filter-select, .search-input {
-      padding: 8px 16px;
-      border-radius: 2rem;
-      border: 1px solid #cbdde9;
-      background: white;
-      font-size: 0.85rem;
-      font-weight: 500;
-      font-family: 'Inter', monospace;
-      cursor: pointer;
-    }
+        th {
+            color: #94a3b8;
+            font-weight: 500;
+        }
 
-    .search-input {
-      min-width: 200px;
-      padding: 8px 16px;
-    }
+        .risk-high { background: #7f1a1a20; color: #fca5a5; border-left: 3px solid #ef4444; }
+        .risk-medium { background: #854d0e20; color: #fde047; border-left: 3px solid #eab308; }
+        .risk-low { color: #86efac; }
 
-    .stats {
-      font-size: 0.85rem;
-      background: #eef2f7;
-      padding: 6px 14px;
-      border-radius: 30px;
-      font-weight: 500;
-    }
+        .copy-btn {
+            background: #334155;
+            border: none;
+            padding: 0.2rem 0.7rem;
+            border-radius: 1rem;
+            font-size: 0.7rem;
+            cursor: pointer;
+            color: white;
+        }
 
-    .table-wrapper {
-      overflow-x: auto;
-      border-radius: 1.2rem;
-      background: white;
-      border: 1px solid #e9f0f5;
-      box-shadow: 0 6px 12px -8px rgba(0, 0, 0, 0.05);
-    }
+        .status-badge {
+            font-family: monospace;
+            font-weight: bold;
+        }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
-    }
+        .progress-bar {
+            height: 4px;
+            background: #3b82f6;
+            width: 0%;
+            transition: width 0.2s;
+            border-radius: 4px;
+        }
 
-    th {
-      text-align: left;
-      padding: 1rem 1rem;
-      background: #f8fbfe;
-      font-weight: 700;
-      color: #1e4a6b;
-      border-bottom: 1px solid #e2edf4;
-    }
-
-    td {
-      padding: 0.9rem 1rem;
-      border-bottom: 1px solid #ecf3f9;
-      vertical-align: middle;
-    }
-
-    tr:hover td {
-      background-color: #fafcff;
-    }
-
-    .subdomain-name {
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      font-weight: 600;
-      color: #0a2e44;
-    }
-
-    .highlight {
-      background: #fef7e0;
-      border-left: 3px solid #f59e0b;
-      font-weight: 700;
-    }
-
-    .risk-badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 12px;
-      border-radius: 30px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      text-transform: uppercase;
-    }
-
-    .risk-high { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
-    .risk-medium { background: #fff3e3; color: #b45309; border: 1px solid #ffedd5; }
-    .risk-low { background: #e6f7ec; color: #15803d; border: 1px solid #bbf7d0; }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 4px 12px;
-      border-radius: 30px;
-      background: #f1f5f9;
-    }
-
-    .status-active { background: #dff9e6; color: #166534; }
-    .status-inactive { background: #f1f3f4; color: #4b5563; }
-    .status-vulnerable { background: #ffe4e0; color: #9b2c1d; }
-
-    .high-value-badge {
-      background: #ffedd5;
-      color: #c2410c;
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 30px;
-      margin-left: 8px;
-      white-space: nowrap;
-    }
-
-    .empty-msg {
-      padding: 2.5rem;
-      text-align: center;
-      color: #6c8dae;
-      font-weight: 500;
-    }
-
-    footer {
-      margin-top: 24px;
-      text-align: center;
-      font-size: 0.7rem;
-      color: #5e7e9c;
-    }
-
-    @media (max-width: 700px) {
-      .dashboard-container { padding: 1rem; }
-      th, td { padding: 0.7rem 0.6rem; font-size: 0.8rem; }
-    }
-  </style>
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            td, th { font-size: 0.75rem; padding: 0.6rem 0.4rem; }
+        }
+    </style>
 </head>
 <body>
-<div class="dashboard-container">
-  <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
+<div class="container">
     <h1>
-      🔍 SubEnum · Simulator
-      <small>learning / pattern-based</small>
+        🔍 SubEnum · Live
+        <span class="badge">real subdomains · CORS proxy</span>
     </h1>
-  </div>
-  <div class="sub">
-    🧠 Smart subdomain generation | risk analysis | simulated status (active / inactive / potentially vulnerable)
-  </div>
-
-  <div class="input-card">
-    <div class="input-group">
-      <div class="domain-field">
-        <label>🎯 target domain</label>
-        <input type="text" id="domainInput" placeholder="example.com" value="example.com">
-      </div>
-      <div style="flex: 0;">
-        <label style="visibility: hidden;">⚡</label>
-        <div class="badge-domain">⚡ instant generation</div>
-      </div>
+    <div class="card">
+        <div class="input-group">
+            <input type="text" id="domain" placeholder="example.com" value="example.com">
+            <button id="startBtn">🚀 Start Real Scan</button>
+        </div>
+        <div class="info-msg" id="statusMsg">⚡ Ready — enter a domain. Uses crt.sh + bufferover + HTTP probing via CORS proxy.</div>
+        <div class="progress-bar" id="progressBar"></div>
     </div>
-    <p style="font-size: 0.7rem; margin-top: 12px; color: #4f7a9e;">✅ patterns: api, dev, test, staging, admin, beta, auth, internal + smart combos (api-dev, staging-admin, etc.) + low-risk extras</p>
-  </div>
 
-  <div class="filter-bar">
-    <div class="filter-group">
-      <input type="text" id="searchInput" class="search-input" placeholder="🔎 filter subdomain...">
-      <select id="riskFilter" class="filter-select">
-        <option value="all">🏷️ All risks</option>
-        <option value="high">⚠️ High risk</option>
-        <option value="medium">📌 Medium risk</option>
-        <option value="low">✅ Low risk</option>
-      </select>
-      <select id="statusFilter" class="filter-select">
-        <option value="all">🌀 All status</option>
-        <option value="active">🟢 Active</option>
-        <option value="inactive">⚪ Inactive</option>
-        <option value="vulnerable">🔴 Potentially vulnerable</option>
-      </select>
-      <button id="resetFilters" style="background:#f0f4fa; border:1px solid #cbdde9; border-radius:2rem; padding:6px 18px; font-weight:500; cursor:pointer;">⟳ Reset</button>
+    <div class="card">
+        <div class="filters">
+            <input type="text" id="searchFilter" placeholder="🔎 filter subdomain..." class="search-box">
+            <select id="statusFilter">
+                <option value="all">All status</option>
+                <option value="2xx">✅ 2xx</option>
+                <option value="3xx">↪️ 3xx</option>
+                <option value="4xx">⚠️ 4xx</option>
+                <option value="5xx">🔥 5xx</option>
+                <option value="error">❌ No response</option>
+            </select>
+            <select id="riskFilter">
+                <option value="all">All risks</option>
+                <option value="high">🔴 High (admin/api/auth)</option>
+                <option value="medium">🟡 Medium (dev/test/staging)</option>
+                <option value="low">🟢 Low</option>
+            </select>
+            <span id="resultCount">0 results</span>
+            <button id="exportBtn" class="copy-btn" style="margin-left: auto;">📎 Export JSON</button>
+        </div>
+        <div style="overflow-x: auto;">
+            <table id="resultsTable">
+                <thead>
+                    <tr><th>Subdomain</th><th>Status</th><th>Title</th><th>Server</th><th>Risk</th><th>Copy</th></tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="6" style="text-align:center">✨ Click Start to enumerate live subdomains</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div class="stats" id="resultStats">0 subdomains</div>
-  </div>
-
-  <div class="table-wrapper">
-    <table id="resultsTable">
-      <thead>
-        <tr><th>🌐 Possible subdomain</th><th>⚡ Risk level</th><th>📡 Simulated status</th></tr>
-      </thead>
-      <tbody id="tableBody">
-        <tr><td colspan="3" class="empty-msg">✨ Enter a domain to generate enumeration patterns</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <footer>
-    🧪 Simulation-only • no DNS queries • smart filtering & prioritization (admin, api, auth, internal = high-value)
-  </footer>
 </div>
 
 <script>
-  // ----------------------------
-  // 1. Pattern definitions & generation rules
-  // ----------------------------
-  const CORE_PATTERNS = ["api", "dev", "test", "staging", "admin", "beta", "auth", "internal"];
-  // Additional low-risk demonstration examples (meaningful but low exposure)
-  const LOW_RISK_EXAMPLES = ["static", "mail", "assets"];  // shows low risk category for learning
-  
-  // High-value keywords (highlight & risk high)
-  const HIGH_VALUE_KEYWORDS = ["admin", "api", "auth", "internal"];
-  // Medium-risk keywords (dev, test, staging, beta)
-  const MEDIUM_KEYWORDS = ["dev", "test", "staging", "beta"];
-  
-  // Helper: compute risk level based on subdomain label (without domain)
-  function computeRiskLevel(subdomainLabel) {
-    const lower = subdomainLabel.toLowerCase();
-    for (let kw of HIGH_VALUE_KEYWORDS) {
-      if (lower.includes(kw)) return "high";
+    // ------------------- CONFIG -------------------
+    const CORS_PROXY = "https://corsproxy.io/?";  // free, no API key
+    const MAX_CONCURRENT_PROBES = 8;              // respect rate limits
+    let currentResults = [];
+    let isScanning = false;
+    let abortController = null;
+
+    // DOM elements
+    const domainInput = document.getElementById('domain');
+    const startBtn = document.getElementById('startBtn');
+    const statusDiv = document.getElementById('statusMsg');
+    const progressBar = document.getElementById('progressBar');
+    const searchFilter = document.getElementById('searchFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const riskFilter = document.getElementById('riskFilter');
+    const resultCountSpan = document.getElementById('resultCount');
+    const tableBody = document.getElementById('tableBody');
+    const exportBtn = document.getElementById('exportBtn');
+
+    // ------------------- Helper: Risk detection -------------------
+    function getRisk(subdomain) {
+        const name = subdomain.split('.')[0].toLowerCase();
+        const highSet = new Set(['admin', 'api', 'auth', 'internal', 'portal', 'dashboard', 'vpn', 'secure', 'console', 'manage']);
+        const mediumSet = new Set(['dev', 'test', 'staging', 'uat', 'qa', 'beta', 'stage', 'demo', 'sandbox']);
+        if (highSet.has(name)) return 'high';
+        if (mediumSet.has(name) || Array.from(mediumSet).some(k => name.includes(k))) return 'medium';
+        return 'low';
     }
-    for (let kw of MEDIUM_KEYWORDS) {
-      if (lower.includes(kw)) return "medium";
-    }
-    return "low";
-  }
-  
-  // Helper: deterministic status simulation based on subdomain + risk (stable across renders)
-  // returns "active", "inactive", or "vulnerable" (potentially vulnerable)
-  function simulateStatus(subdomainLabel, riskLevel) {
-    // deterministic hash from subdomain (stable, no randomness)
-    let hash = 0;
-    for (let i = 0; i < subdomainLabel.length; i++) {
-      hash = ((hash << 5) - hash) + subdomainLabel.charCodeAt(i);
-      hash |= 0;
-    }
-    const normalized = Math.abs(hash) % 100;
-    // risk-based distribution: realistic security simulation
-    if (riskLevel === "high") {
-      // high-value subdomains: often active or vulnerable
-      if (normalized < 55) return "active";
-      if (normalized < 80) return "vulnerable";
-      return "inactive";
-    } else if (riskLevel === "medium") {
-      // medium: mixed, but some vulnerable misconfigurations
-      if (normalized < 40) return "active";
-      if (normalized < 70) return "vulnerable";
-      return "inactive";
-    } else {
-      // low risk: mostly inactive or legacy
-      if (normalized < 20) return "active";
-      if (normalized < 40) return "vulnerable";
-      return "inactive";
-    }
-  }
-  
-  // Generate all subdomain candidates (without domain suffix)
-  function generateSubdomainCandidates() {
-    const candidatesSet = new Set();
-    
-    // 1. single core patterns
-    for (let p of CORE_PATTERNS) {
-      candidatesSet.add(p);
-    }
-    
-    // 2. ordered pairwise combinations (prefix1-prefix2) where i != j
-    for (let i = 0; i < CORE_PATTERNS.length; i++) {
-      for (let j = 0; j < CORE_PATTERNS.length; j++) {
-        if (i !== j) {
-          const combined = `${CORE_PATTERNS[i]}-${CORE_PATTERNS[j]}`;
-          candidatesSet.add(combined);
+
+    // ------------------- SOURCE 1: crt.sh (CORS enabled) -------------------
+    async function fetchCrtsh(domain) {
+        const url = `https://crt.sh/?q=%25.${domain}&output=json`;
+        try {
+            const resp = await fetch(url);
+            if (!resp.ok) return new Set();
+            const data = await resp.json();
+            const subs = new Set();
+            for (let entry of data) {
+                let name = entry.name_value;
+                if (name) {
+                    for (let part of name.split('\n')) {
+                        part = part.trim().toLowerCase();
+                        if (part.endsWith(`.${domain}`) && !part.startsWith('*.') && !part.includes(' ')) {
+                            subs.add(part);
+                        }
+                    }
+                }
+            }
+            return subs;
+        } catch (e) {
+            console.warn("crt.sh error", e);
+            return new Set();
         }
-      }
     }
-    
-    // 3. add low-risk demonstration examples for educational coverage
-    for (let ex of LOW_RISK_EXAMPLES) {
-      candidatesSet.add(ex);
+
+    // ------------------- SOURCE 2: bufferover.run (CORS friendly) -------------------
+    async function fetchBufferover(domain) {
+        const url = `https://dns.bufferover.run/dns?q=.${domain}`;
+        try {
+            const resp = await fetch(url);
+            if (!resp.ok) return new Set();
+            const data = await resp.json();
+            const subs = new Set();
+            // results in FDNS_A or RDNS
+            const records = data.FDNS_A || [];
+            for (let record of records) {
+                const parts = record.split(',');
+                const sub = parts[1]?.toLowerCase();
+                if (sub && sub.endsWith(`.${domain}`) && !sub.startsWith('*')) {
+                    subs.add(sub);
+                }
+            }
+            return subs;
+        } catch (e) {
+            console.warn("bufferover error", e);
+            return new Set();
+        }
     }
-    
-    // optional: extra meaningful combos are already generated via pairwise
-    // filter out any extremely long or noise? not needed, all meaningful.
-    return Array.from(candidatesSet);
-  }
-  
-  // Build full list with domain, risk, status, highlight flag
-  function buildSubdomainList(domain) {
-    const rawLabels = generateSubdomainCandidates();
-    const results = [];
-    for (let label of rawLabels) {
-      const fullSubdomain = `${label}.${domain}`;
-      const risk = computeRiskLevel(label);
-      const status = simulateStatus(label, risk);
-      const isHighValue = HIGH_VALUE_KEYWORDS.some(kw => label.toLowerCase().includes(kw));
-      results.push({
-        label: label,
-        full: fullSubdomain,
-        risk: risk,
-        status: status,
-        highlight: isHighValue
-      });
+
+    // ------------------- combine subdomains -------------------
+    async function getAllSubdomains(domain) {
+        statusDiv.innerText = `🔍 Fetching subdomains from crt.sh & bufferover...`;
+        const [crtSet, bufSet] = await Promise.all([fetchCrtsh(domain), fetchBufferover(domain)]);
+        const combined = new Set([...crtSet, ...bufSet]);
+        return Array.from(combined).sort();
     }
-    // sort: high-risk first then alphabetically for readability
-    results.sort((a,b) => {
-      const riskOrder = { high: 0, medium: 1, low: 2 };
-      if (riskOrder[a.risk] !== riskOrder[b.risk]) return riskOrder[a.risk] - riskOrder[b.risk];
-      return a.label.localeCompare(b.label);
-    });
-    return results;
-  }
-  
-  // ---------- UI State & Rendering ----------
-  let currentSubdomains = [];       // full generated objects
-  let currentDomain = "example.com";
-  
-  // filter values
-  let searchText = "";
-  let riskFilterValue = "all";
-  let statusFilterValue = "all";
-  
-  // DOM elements
-  const domainInput = document.getElementById("domainInput");
-  const searchInput = document.getElementById("searchInput");
-  const riskFilterSelect = document.getElementById("riskFilter");
-  const statusFilterSelect = document.getElementById("statusFilter");
-  const resetBtn = document.getElementById("resetFilters");
-  const tableBody = document.getElementById("tableBody");
-  const resultStatsSpan = document.getElementById("resultStats");
-  
-  // apply filters to currentSubdomains
-  function getFilteredSubdomains() {
-    let filtered = [...currentSubdomains];
-    
-    if (searchText.trim() !== "") {
-      const lowerSearch = searchText.trim().toLowerCase();
-      filtered = filtered.filter(item => 
-        item.full.toLowerCase().includes(lowerSearch) || 
-        item.label.toLowerCase().includes(lowerSearch)
-      );
+
+    // ------------------- HTTP Probe via CORS proxy -------------------
+    async function probeSubdomain(subdomain, semaphore) {
+        await semaphore.acquire();
+        try {
+            // try https first, then http
+            for (const scheme of ['https', 'http']) {
+                const targetUrl = `${scheme}://${subdomain}`;
+                const proxyUrl = CORS_PROXY + encodeURIComponent(targetUrl);
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 7000);
+                    const resp = await fetch(proxyUrl, {
+                        signal: controller.signal,
+                        headers: { 'X-Requested-With': 'SubEnum' }
+                    });
+                    clearTimeout(timeoutId);
+                    const status = resp.status;
+                    if (status === 0) continue;
+                    // get title from HTML (limited)
+                    let html = '';
+                    try {
+                        html = await resp.text();
+                    } catch (e) {}
+                    let title = '-';
+                    const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+                    if (titleMatch) title = titleMatch[1].trim().slice(0, 100);
+                    const server = resp.headers.get('server') || '-';
+                    return {
+                        subdomain,
+                        status,
+                        title: title || '-',
+                        server: server.slice(0, 60),
+                        risk: getRisk(subdomain),
+                        url: targetUrl
+                    };
+                } catch (err) {
+                    // try next scheme
+                    continue;
+                }
+            }
+            // if both fail
+            return null;
+        } finally {
+            semaphore.release();
+        }
     }
-    
-    if (riskFilterValue !== "all") {
-      filtered = filtered.filter(item => item.risk === riskFilterValue);
+
+    // Semaphore for concurrency control
+    class Semaphore {
+        constructor(max) { this.max = max; this.count = 0; this.waiting = []; }
+        acquire() {
+            return new Promise((resolve) => {
+                if (this.count < this.max) {
+                    this.count++;
+                    resolve();
+                } else {
+                    this.waiting.push(resolve);
+                }
+            });
+        }
+        release() {
+            if (this.waiting.length > 0) {
+                const next = this.waiting.shift();
+                next();
+            } else {
+                this.count--;
+            }
+        }
     }
-    
-    if (statusFilterValue !== "all") {
-      filtered = filtered.filter(item => item.status === statusFilterValue);
+
+    // ------------------- Main scan -------------------
+    async function startScan() {
+        if (isScanning) {
+            if (abortController) abortController.abort();
+            return;
+        }
+        const domain = domainInput.value.trim();
+        if (!domain) {
+            alert("Enter a domain (e.g. example.com)");
+            return;
+        }
+        isScanning = true;
+        abortController = new AbortController();
+        startBtn.textContent = "⏹️ Stop Scan";
+        currentResults = [];
+        renderTable();
+        progressBar.style.width = "0%";
+
+        try {
+            // 1. collect subdomains
+            const subdomains = await getAllSubdomains(domain);
+            if (subdomains.length === 0) {
+                statusDiv.innerText = `⚠️ No subdomains found via crt.sh/bufferover for ${domain}. Try another domain.`;
+                return;
+            }
+            statusDiv.innerText = `📡 Discovered ${subdomains.length} subdomains. Probing HTTP(s) via CORS proxy...`;
+
+            const sem = new Semaphore(MAX_CONCURRENT_PROBES);
+            let completed = 0;
+            const total = subdomains.length;
+            const probePromises = subdomains.map(async (sub) => {
+                if (abortController.signal.aborted) return null;
+                const result = await probeSubdomain(sub, sem);
+                completed++;
+                const percent = (completed / total) * 100;
+                progressBar.style.width = `${percent}%`;
+                if (result) {
+                    currentResults.push(result);
+                    renderTable();  // live update
+                }
+                return result;
+            });
+            await Promise.allSettled(probePromises);
+            statusDiv.innerText = `✅ Scan finished. Found ${currentResults.length} live subdomains out of ${total} candidates.`;
+        } catch (err) {
+            statusDiv.innerText = `❌ Error: ${err.message}`;
+        } finally {
+            isScanning = false;
+            startBtn.textContent = "🚀 Start Real Scan";
+            progressBar.style.width = "100%";
+            setTimeout(() => { progressBar.style.width = "0%"; }, 1000);
+        }
     }
-    
-    return filtered;
-  }
-  
-  // render table with highlight and badges
-  function renderTable() {
-    const filtered = getFilteredSubdomains();
-    resultStatsSpan.innerText = `${filtered.length} subdomains`;
-    
-    if (filtered.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="3" class="empty-msg">🔎 No matching subdomains. Try adjusting filters.</td></tr>`;
-      return;
+
+    // ------------------- Render table with filters -------------------
+    function renderTable() {
+        let filtered = [...currentResults];
+        const search = searchFilter.value.toLowerCase();
+        if (search) filtered = filtered.filter(r => r.subdomain.includes(search));
+        const statusVal = statusFilter.value;
+        if (statusVal !== 'all') {
+            if (statusVal === 'error') filtered = filtered.filter(r => !r.status || r.status === 0);
+            else {
+                const digit = parseInt(statusVal[0]);
+                filtered = filtered.filter(r => r.status && Math.floor(r.status / 100) === digit);
+            }
+        }
+        const riskVal = riskFilter.value;
+        if (riskVal !== 'all') filtered = filtered.filter(r => r.risk === riskVal);
+        resultCountSpan.innerText = `${filtered.length} results`;
+        if (filtered.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center">No matching subdomains</td></tr>`;
+            return;
+        }
+        let html = '';
+        for (let r of filtered) {
+            let riskClass = r.risk === 'high' ? 'risk-high' : (r.risk === 'medium' ? 'risk-medium' : 'risk-low');
+            let statusText = r.status ? r.status : '❌ timeout/refused';
+            html += `<tr class="${riskClass}">
+                <td><code>${escapeHtml(r.subdomain)}</code></td>
+                <td class="status-badge">${statusText}</td>
+                <td>${escapeHtml(r.title)}</td>
+                <td>${escapeHtml(r.server)}</td>
+                <td>${r.risk.toUpperCase()}</td>
+                <td><button class="copy-btn" data-sub="${escapeHtml(r.subdomain)}">📋 Copy</button></td>
+            </tr>`;
+        }
+        tableBody.innerHTML = html;
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const sub = btn.getAttribute('data-sub');
+                navigator.clipboard.writeText(sub);
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => btn.textContent = '📋 Copy', 1000);
+            });
+        });
     }
-    
-    let html = "";
-    for (let item of filtered) {
-      // risk badge class
-      let riskClass = "";
-      if (item.risk === "high") riskClass = "risk-high";
-      else if (item.risk === "medium") riskClass = "risk-medium";
-      else riskClass = "risk-low";
-      
-      let statusClass = "";
-      let statusText = "";
-      if (item.status === "active") { statusClass = "status-active"; statusText = "🟢 ACTIVE"; }
-      else if (item.status === "inactive") { statusClass = "status-inactive"; statusText = "⚪ INACTIVE"; }
-      else { statusClass = "status-vulnerable"; statusText = "⚠️ POTENTIALLY VULNERABLE"; }
-      
-      const highlightBadge = item.highlight ? `<span class="high-value-badge">⭐ high-value</span>` : "";
-      
-      html += `<tr ${item.highlight ? 'class="highlight"' : ''}>
-        <td class="subdomain-name">${escapeHtml(item.full)}${highlightBadge}</td>
-        <td><span class="risk-badge ${riskClass}">${item.risk.toUpperCase()}</span></td>
-        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-      </tr>`;
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
     }
-    tableBody.innerHTML = html;
-  }
-  
-  // simple XSS escape
-  function escapeHtml(str) {
-    return str.replace(/[&<>]/g, function(m) {
-      if (m === '&') return '&amp;';
-      if (m === '<') return '&lt;';
-      if (m === '>') return '&gt;';
-      return m;
-    }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-      return c;
-    });
-  }
-  
-  // refresh generation based on domain
-  function refreshData() {
-    let domain = domainInput.value.trim();
-    if (domain === "") {
-      domain = "example.com";
-      domainInput.value = "example.com";
+
+    // Export JSON
+    function exportJSON() {
+        const dataStr = JSON.stringify(currentResults, null, 2);
+        const blob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `subenum_${domainInput.value}_${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
     }
-    // clean domain: remove possible protocol
-    domain = domain.replace(/^https?:\/\//i, "").replace(/\/$/, "");
-    currentDomain = domain;
-    currentSubdomains = buildSubdomainList(currentDomain);
-    // re-apply filters
+
+    // Event listeners
+    startBtn.addEventListener('click', startScan);
+    searchFilter.addEventListener('input', renderTable);
+    statusFilter.addEventListener('change', renderTable);
+    riskFilter.addEventListener('change', renderTable);
+    exportBtn.addEventListener('click', exportJSON);
+
+    // initial dummy to show instructions
     renderTable();
-  }
-  
-  // event handlers for filters
-  function updateFiltersAndRender() {
-    searchText = searchInput.value;
-    riskFilterValue = riskFilterSelect.value;
-    statusFilterValue = statusFilterSelect.value;
-    renderTable();
-  }
-  
-  // reset filters to default
-  function resetFilters() {
-    searchInput.value = "";
-    riskFilterSelect.value = "all";
-    statusFilterSelect.value = "all";
-    searchText = "";
-    riskFilterValue = "all";
-    statusFilterValue = "all";
-    renderTable();
-  }
-  
-  // domain change triggers full regeneration and keep filters (but reset filter visual not needed)
-  function onDomainChange() {
-    refreshData();
-  }
-  
-  // attach events
-  domainInput.addEventListener("input", () => {
-    refreshData();
-  });
-  
-  searchInput.addEventListener("input", updateFiltersAndRender);
-  riskFilterSelect.addEventListener("change", updateFiltersAndRender);
-  statusFilterSelect.addEventListener("change", updateFiltersAndRender);
-  resetBtn.addEventListener("click", resetFilters);
-  
-  // initial load
-  refreshData();
-  
-  // optional: show helpful console info
-  console.log("✅ SubEnum simulation ready — pattern generation, risk & status simulation, no real DNS");
 </script>
 </body>
 </html>
