@@ -3,124 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>GenZCTF | 3D Core Team</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <title>GenZCTF | Cyber Core — Advanced 3D Experience</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Segoe UI', 'Orbitron', 'Inter', monospace;
+            background-color: black;
         }
-
-        /* Small UI hint for orbit controls */
+        /* UI overlay controls */
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 12px;
+            padding: 10px 18px;
+            color: #0ff;
+            font-family: monospace;
+            font-size: 12px;
+            border-left: 3px solid #0ff;
+            pointer-events: none;
+            z-index: 100;
+            letter-spacing: 1px;
+            box-shadow: 0 0 20px rgba(0,255,255,0.2);
+        }
         .controls-hint {
             position: absolute;
             bottom: 20px;
             left: 20px;
-            color: rgba(255,255,255,0.6);
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
-            padding: 6px 12px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            padding: 6px 14px;
             border-radius: 30px;
+            color: #ccf;
             font-size: 12px;
-            font-weight: 400;
-            letter-spacing: 0.5px;
-            pointer-events: none;
-            z-index: 10;
             font-family: monospace;
-            border-left: 3px solid #00f2ff;
+            pointer-events: none;
+            z-index: 100;
+            border: 1px solid rgba(0,255,255,0.4);
         }
-
-        /* Optional: a subtle loading indicator, but not needed */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        @keyframes pulse {
+            0% { opacity: 0.6; text-shadow: 0 0 0px cyan; }
+            100% { opacity: 1; text-shadow: 0 0 10px cyan; }
         }
-        
-        /* CSS2D labels styling (glassmorphic cards) */
-        .member-label {
-            background: rgba(12, 20, 35, 0.75);
-            backdrop-filter: blur(12px);
+        .status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #0ff;
+            font-family: monospace;
+            font-size: 12px;
+            background: rgba(0,0,0,0.5);
+            padding: 4px 12px;
             border-radius: 20px;
-            padding: 12px 24px;
-            text-align: center;
-            color: white;
-            font-weight: 600;
-            font-size: 1.2rem;
-            letter-spacing: 0.5px;
-            border: 1px solid rgba(0, 242, 255, 0.4);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3), 0 0 15px rgba(0,242,255,0.2);
-            transition: transform 0.2s ease;
-            white-space: nowrap;
-            font-family: 'Inter', sans-serif;
+            z-index: 100;
+            backdrop-filter: blur(4px);
+            pointer-events: none;
         }
-        
-        .member-label:hover {
-            transform: scale(1.05);
-            border-color: #00f2ff;
-            box-shadow: 0 0 25px rgba(0,242,255,0.5);
-        }
-        
-        .member-name {
-            font-size: 1.4rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #fff, #aaffff);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            letter-spacing: 1px;
-        }
-        
-        .member-role {
-            font-size: 0.75rem;
-            font-weight: 400;
-            color: #b0e0ff;
-            margin-top: 4px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            opacity: 0.9;
-        }
-        
-        .title-label {
-            background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,20,40,0.8));
-            backdrop-filter: blur(16px);
-            border-radius: 60px;
-            padding: 16px 36px;
-            border: 1px solid rgba(0, 255, 255, 0.6);
-            box-shadow: 0 0 40px rgba(0, 210, 255, 0.3);
-            text-align: center;
-            white-space: nowrap;
-        }
-        
-        .title-name {
-            font-size: 2.2rem;
-            font-weight: 800;
-            background: linear-gradient(45deg, #00f2ff, #ff00e0);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            letter-spacing: 3px;
-        }
-        
-        .title-tag {
-            font-size: 0.7rem;
-            color: #ccddff;
-            letter-spacing: 2px;
-            margin-top: 5px;
-        }
-        
         @media (max-width: 700px) {
-            .member-label { padding: 8px 16px; white-space: nowrap; transform: scale(0.85); }
-            .member-name { font-size: 1rem; }
-            .title-name { font-size: 1.4rem; }
-            .title-label { padding: 10px 20px; }
+            .info-panel { font-size: 8px; padding: 6px 12px; }
+            .controls-hint { font-size: 8px; }
         }
     </style>
 </head>
 <body>
-    <div class="controls-hint">✨ Drag to orbit • GenZCTF Core ✨</div>
+    <div class="status">⚡ GENZCTF // CORE NEXUS ⚡</div>
+    <div class="controls-hint">🖱️ DRAG to orbit • SCROLL to zoom • FULL 3D IMMERSION</div>
+    <div class="info-panel">🔐 CYBER TASK FORCE • RITESH | NIDHI | MUJAHID 🔐</div>
 
-    <!-- Import Three.js core and add-ons -->
+    <!-- Import Three.js core and add-ons with post-processing -->
     <script type="importmap">
         {
             "imports": {
@@ -134,397 +87,473 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        
         // --- Setup Scene, Camera, Renderers ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x050b1a);
-        scene.fog = new THREE.FogExp2(0x050b1a, 0.008); // subtle fog for depth
-
-        // Camera: positioned for dramatic view
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(5, 3, 8);
-        camera.lookAt(0, 0, 0);
-
+        scene.background = new THREE.Color(0x010118);
+        scene.fog = new THREE.FogExp2(0x010118, 0.006);
+        
+        // Camera: dramatic perspective
+        const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(6, 3.5, 9);
+        camera.lookAt(0, 0.5, 0);
+        
         // WebGL Renderer
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true; // shadows for depth
         renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.toneMapping = THREE.ReinhardToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
-
-        // CSS2 Renderer for high-quality text labels
+        
+        // CSS2DRenderer for high-quality labels
         const labelRenderer = new CSS2DRenderer();
         labelRenderer.setSize(window.innerWidth, window.innerHeight);
         labelRenderer.domElement.style.position = 'absolute';
         labelRenderer.domElement.style.top = '0px';
         labelRenderer.domElement.style.left = '0px';
-        labelRenderer.domElement.style.pointerEvents = 'none'; // allow clicking through to canvas
+        labelRenderer.domElement.style.pointerEvents = 'none';
         document.body.appendChild(labelRenderer.domElement);
-
-        // --- Controls for interactivity ---
+        
+        // --- Post Processing (Bloom & Glow) ---
+        const renderScene = new RenderPass(scene, camera);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.2, 0.4, 0.85);
+        bloomPass.threshold = 0.1;
+        bloomPass.strength = 0.85;
+        bloomPass.radius = 0.5;
+        const effectComposer = new EffectComposer(renderer);
+        effectComposer.addPass(renderScene);
+        effectComposer.addPass(bloomPass);
+        
+        // --- Controls with auto-rotate and damping ---
         const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;      // smooth inertia
-        controls.dampingFactor = 0.05;
-        controls.autoRotate = false;
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.06;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 1.2;
         controls.enableZoom = true;
         controls.enablePan = true;
         controls.zoomSpeed = 1.2;
         controls.rotateSpeed = 1.0;
-        controls.target.set(0, 0.5, 0);
-
-        // --- Lighting System (rich and dramatic) ---
-        // Ambient fill
-        const ambientLight = new THREE.AmbientLight(0x111122);
-        scene.add(ambientLight);
+        controls.target.set(0, 0.6, 0);
         
-        // Main directional light (shadow casting)
+        // --- Dynamic Lighting System (Advanced) ---
+        // Ambient with subtle color
+        const ambient = new THREE.AmbientLight(0x111122);
+        scene.add(ambient);
+        
+        // Main directional light with shadows
         const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
-        mainLight.position.set(3, 5, 2);
+        mainLight.position.set(4, 6, 3);
         mainLight.castShadow = true;
         mainLight.receiveShadow = false;
         mainLight.shadow.mapSize.width = 1024;
         mainLight.shadow.mapSize.height = 1024;
+        mainLight.shadow.camera.near = 0.5;
+        mainLight.shadow.camera.far = 12;
         scene.add(mainLight);
         
-        // Fill light from below (cyber glow)
-        const fillLight = new THREE.PointLight(0x2266ff, 0.5);
-        fillLight.position.set(0, -2, 0);
+        // Fill light (purple/blue)
+        const fillLight = new THREE.PointLight(0x3366ff, 0.7);
+        fillLight.position.set(-2, 1, 3);
         scene.add(fillLight);
         
-        // Back rim light
-        const rimLight = new THREE.PointLight(0xff44aa, 0.6);
-        rimLight.position.set(-2, 1, -3);
+        // Back rim light (hot pink)
+        const rimLight = new THREE.PointLight(0xff44aa, 0.9);
+        rimLight.position.set(1, 2, -4);
         scene.add(rimLight);
         
-        // Dynamic moving colored lights for energy
-        const colorLight1 = new THREE.PointLight(0xff00cc, 0.4);
-        colorLight1.position.set(2, 1, 2);
-        scene.add(colorLight1);
+        // Dynamic color cycling lights
+        const colorLightA = new THREE.PointLight(0xff00aa, 0.6);
+        colorLightA.position.set(2.5, 1.2, 2);
+        scene.add(colorLightA);
         
-        const colorLight2 = new THREE.PointLight(0x00ccff, 0.4);
-        colorLight2.position.set(-2, 1.5, 2.5);
-        scene.add(colorLight2);
+        const colorLightB = new THREE.PointLight(0x00ccff, 0.6);
+        colorLightB.position.set(-2.2, 1.5, 2.8);
+        scene.add(colorLightB);
         
-        // Central glow point light
-        const coreGlow = new THREE.PointLight(0x3399ff, 0.8, 8);
-        coreGlow.position.set(0, 0.2, 0);
+        // Central core glow
+        const coreGlow = new THREE.PointLight(0x33aaff, 1.2, 12);
+        coreGlow.position.set(0, 0.3, 0);
         scene.add(coreGlow);
         
-        // --- Helper: Particle Starfield (background depth) ---
-        const starGeometry = new THREE.BufferGeometry();
-        const starCount = 1500;
-        const starPositions = new Float32Array(starCount * 3);
-        for (let i = 0; i < starCount; i++) {
-            starPositions[i*3] = (Math.random() - 0.5) * 200;
-            starPositions[i*3+1] = (Math.random() - 0.5) * 100;
-            starPositions[i*3+2] = (Math.random() - 0.5) * 80 - 40;
-        }
-        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-        const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.12, transparent: true, opacity: 0.6 });
-        const stars = new THREE.Points(starGeometry, starMaterial);
-        scene.add(stars);
+        // Ground grid with advanced reflective look
+        const gridHelper = new THREE.GridHelper(18, 32, 0x33ccff, 0x2266aa);
+        gridHelper.position.y = -1.4;
+        gridHelper.material.transparent = true;
+        gridHelper.material.opacity = 0.35;
+        scene.add(gridHelper);
         
-        // --- Central 3D Artifact: Glowing Torus Knot + Icosahedron Core (representing CTF spirit)---
-        const knotGeo = new THREE.TorusKnotGeometry(1.1, 0.28, 180, 24, 3, 4);
+        // Circular neon floor ring
+        const ringFloorGeo = new THREE.RingGeometry(2.2, 4.8, 64);
+        const ringFloorMat = new THREE.MeshStandardMaterial({
+            color: 0x2288ff,
+            emissive: 0x1166cc,
+            emissiveIntensity: 0.4,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.5
+        });
+        const floorRing = new THREE.Mesh(ringFloorGeo, ringFloorMat);
+        floorRing.rotation.x = -Math.PI / 2;
+        floorRing.position.y = -1.35;
+        scene.add(floorRing);
+        
+        // --- Central Artifact: Hyper Torus Knot + Crystal + Floating Runes ---
+        const knotGeo = new THREE.TorusKnotGeometry(1.15, 0.28, 200, 32, 3, 4);
         const knotMat = new THREE.MeshStandardMaterial({
-            color: 0x3a86ff,
-            emissive: 0x113366,
-            emissiveIntensity: 0.7,
-            metalness: 0.85,
-            roughness: 0.25,
+            color: 0x2a6eff,
+            emissive: 0x1155aa,
+            emissiveIntensity: 0.9,
+            metalness: 0.9,
+            roughness: 0.2,
             flatShading: false
         });
-        const knot = new THREE.Mesh(knotGeo, knotMat);
-        knot.castShadow = true;
-        knot.receiveShadow = false;
-        scene.add(knot);
+        const centralKnot = new THREE.Mesh(knotGeo, knotMat);
+        centralKnot.castShadow = true;
+        scene.add(centralKnot);
         
-        // Inner crystal core (icosahedron)
-        const coreGeo = new THREE.IcosahedronGeometry(0.65, 0);
+        // Inner diamond icosahedron
+        const coreIcosa = new THREE.IcosahedronGeometry(0.68, 0);
         const coreMat = new THREE.MeshStandardMaterial({
             color: 0x88aaff,
-            emissive: 0x2266aa,
-            emissiveIntensity: 0.5,
-            metalness: 0.7,
+            emissive: 0x2288ff,
+            emissiveIntensity: 0.7,
+            metalness: 0.8,
             roughness: 0.3,
-            transparent: true,
-            opacity: 0.95
+            transparent: true
         });
-        const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-        coreMesh.castShadow = true;
-        scene.add(coreMesh);
+        const innerCore = new THREE.Mesh(coreIcosa, coreMat);
+        scene.add(innerCore);
         
-        // Outer wireframe shell for extra style
-        const wireframeGeo = new THREE.IcosahedronGeometry(0.82, 0);
-        const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x44ccff, wireframe: true, transparent: true, opacity: 0.35 });
-        const wireframeShell = new THREE.Mesh(wireframeGeo, wireframeMat);
-        scene.add(wireframeShell);
-        
-        // Floating particles ring around center
-        const particleRingCount = 400;
-        const ringGeo = new THREE.BufferGeometry();
-        const ringPositions = new Float32Array(particleRingCount * 3);
-        for (let i = 0; i < particleRingCount; i++) {
-            const angle = (i / particleRingCount) * Math.PI * 2;
-            const radius = 1.9;
-            const x = Math.cos(angle) * radius;
-            const z = Math.sin(angle) * radius;
-            const y = Math.sin(angle * 2) * 0.25;
-            ringPositions[i*3] = x;
-            ringPositions[i*3+1] = y;
-            ringPositions[i*3+2] = z;
+        // Orbiting particles around center (energy swarm)
+        const swarmCount = 800;
+        const swarmGeo = new THREE.BufferGeometry();
+        const swarmPositions = new Float32Array(swarmCount * 3);
+        for (let i = 0; i < swarmCount; i++) {
+            const radius = 1.7 + Math.random() * 0.6;
+            const angle = Math.random() * Math.PI * 2;
+            const height = (Math.random() - 0.5) * 1.2;
+            swarmPositions[i*3] = Math.cos(angle) * radius;
+            swarmPositions[i*3+1] = height;
+            swarmPositions[i*3+2] = Math.sin(angle) * radius;
         }
-        ringGeo.setAttribute('position', new THREE.BufferAttribute(ringPositions, 3));
-        const ringParticlesMat = new THREE.PointsMaterial({ color: 0x44aaff, size: 0.05, transparent: true, blending: THREE.AdditiveBlending });
-        const ringParticles = new THREE.Points(ringGeo, ringParticlesMat);
-        scene.add(ringParticles);
+        swarmGeo.setAttribute('position', new THREE.BufferAttribute(swarmPositions, 3));
+        const swarmMat = new THREE.PointsMaterial({ color: 0x44ddff, size: 0.045, blending: THREE.AdditiveBlending });
+        const swarmPoints = new THREE.Points(swarmGeo, swarmMat);
+        scene.add(swarmPoints);
         
-        // --- Create 3 Members with CSS2D Labels (Glass Cards)---
-        // Define team members data
-        const members = [
-            { name: "Ritesh", role: "Team Captain • Reverse Engineering", color: 0x3a86ff, accent: "#3a86ff" },
-            { name: "Nidhi", role: "Cryptography • Web Exploitation", color: 0xff006e, accent: "#ff006e" },
-            { name: "Mujahid", role: "Pwn • Forensics Master", color: 0x9c27b0, accent: "#b94eff" }
+        // --- Advanced Particle Systems: Starfield + Nebula Dust ---
+        const starCount = 2500;
+        const starGeo = new THREE.BufferGeometry();
+        const starPos = new Float32Array(starCount * 3);
+        for (let i = 0; i < starCount; i++) {
+            starPos[i*3] = (Math.random() - 0.5) * 180;
+            starPos[i*3+1] = (Math.random() - 0.5) * 80;
+            starPos[i*3+2] = (Math.random() - 0.5) * 100 - 50;
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 0.7 });
+        const starsField = new THREE.Points(starGeo, starMat);
+        scene.add(starsField);
+        
+        // Floating glowing dust particles
+        const dustCount = 1800;
+        const dustGeo = new THREE.BufferGeometry();
+        const dustPos = new Float32Array(dustCount * 3);
+        const dustColors = new Float32Array(dustCount * 3);
+        for (let i = 0; i < dustCount; i++) {
+            dustPos[i*3] = (Math.random() - 0.5) * 12;
+            dustPos[i*3+1] = (Math.random() - 0.5) * 5 + 0.5;
+            dustPos[i*3+2] = (Math.random() - 0.5) * 12;
+            const col = Math.random() > 0.6 ? new THREE.Color(0x88aaff) : new THREE.Color(0xff66cc);
+            dustColors[i*3] = col.r;
+            dustColors[i*3+1] = col.g;
+            dustColors[i*3+2] = col.b;
+        }
+        dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+        dustGeo.setAttribute('color', new THREE.BufferAttribute(dustColors, 3));
+        const dustMat = new THREE.PointsMaterial({ size: 0.05, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending });
+        const dustCloud = new THREE.Points(dustGeo, dustMat);
+        scene.add(dustCloud);
+        
+        // --- Advanced Feature: Floating Binary Runes (using CSS2D or sprites? Use canvas texture) ---
+        // Create a ring of floating digits around center
+        const runeGroup = new THREE.Group();
+        const runeCount = 36;
+        const runeTextures = [];
+        for (let i = 0; i < runeCount; i++) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#0ff';
+            ctx.font = 'Bold 28px "Courier New"';
+            ctx.fillStyle = '#0ff';
+            ctx.shadowBlur = 0;
+            ctx.fillText(Math.random() > 0.5 ? '1' : '0', 20, 42);
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMat = new THREE.SpriteMaterial({ map: texture, color: 0x44ccff, blending: THREE.AdditiveBlending });
+            const sprite = new THREE.Sprite(spriteMat);
+            const angle = (i / runeCount) * Math.PI * 2;
+            const radius = 2.2;
+            sprite.position.set(Math.cos(angle) * radius, Math.sin(angle * 2) * 0.3, Math.sin(angle) * radius);
+            sprite.scale.set(0.35, 0.35, 1);
+            runeGroup.add(sprite);
+            runeTextures.push(texture);
+        }
+        scene.add(runeGroup);
+        
+        // --- Team Members: Advanced 3D with Halo Orbits and CSS2D Glass Cards ---
+        const membersData = [
+            { name: "Ritesh", role: "Captain • Reverse Engineering", color: 0x3a86ff, accent: "#3a86ff", posAngle: 0 },
+            { name: "Nidhi", role: "Cryptography • Web Exploit", color: 0xff006e, accent: "#ff006e", posAngle: 120 },
+            { name: "Mujahid", role: "Pwn • Forensics Master", color: 0xaa44ff, accent: "#b94eff", posAngle: 240 }
         ];
         
-        // Orbit group that will rotate the members around center
-        const orbitGroup = new THREE.Group();
-        scene.add(orbitGroup);
+        const memberGroupRoot = new THREE.Group();
+        scene.add(memberGroupRoot);
         
-        const radius = 3.2;
-        const angles = [0, (Math.PI * 2) / 3, (Math.PI * 4) / 3];
+        const membersList = [];
+        const radiusOrbit = 3.6;
         
-        // Store member groups for potential animation (pulse)
-        const memberMeshes = [];
-        
-        members.forEach((member, idx) => {
-            // Create a group for each member (sphere + label container)
-            const memberGroup = new THREE.Group();
-            const angle = angles[idx];
-            const x = Math.cos(angle) * radius;
-            const z = Math.sin(angle) * radius;
-            memberGroup.position.set(x, 0, z);
+        membersData.forEach((member, idx) => {
+            const angleRad = (member.posAngle * Math.PI) / 180;
+            const x = Math.cos(angleRad) * radiusOrbit;
+            const z = Math.sin(angleRad) * radiusOrbit;
             
-            // 3D Sphere with emissive rim
-            const sphereGeo = new THREE.SphereGeometry(0.58, 64, 64);
+            const group = new THREE.Group();
+            group.position.set(x, 0, z);
+            
+            // Main sphere with glow effect
+            const sphereGeo = new THREE.SphereGeometry(0.68, 96, 96);
             const sphereMat = new THREE.MeshStandardMaterial({
                 color: member.color,
                 emissive: member.color,
-                emissiveIntensity: 0.25,
-                metalness: 0.7,
+                emissiveIntensity: 0.45,
+                metalness: 0.85,
                 roughness: 0.2,
                 flatShading: false
             });
             const sphere = new THREE.Mesh(sphereGeo, sphereMat);
             sphere.castShadow = true;
-            sphere.receiveShadow = false;
-            memberGroup.add(sphere);
+            group.add(sphere);
             
-            // Add a small orbiting ringlet around each sphere (decorative)
-            const ringletGeo = new THREE.TorusGeometry(0.72, 0.04, 32, 100);
-            const ringletMat = new THREE.MeshStandardMaterial({ color: member.color, emissive: member.color, emissiveIntensity: 0.4 });
-            const ringlet = new THREE.Mesh(ringletGeo, ringletMat);
-            ringlet.rotation.x = Math.PI / 2;
-            ringlet.rotation.z = Date.now() * 0.005;
-            memberGroup.add(ringlet);
+            // Halo ring around each member
+            const haloGeo = new THREE.TorusGeometry(0.85, 0.05, 64, 200);
+            const haloMat = new THREE.MeshStandardMaterial({ color: member.color, emissive: member.color, emissiveIntensity: 0.7 });
+            const halo = new THREE.Mesh(haloGeo, haloMat);
+            halo.rotation.x = Math.PI / 2;
+            group.add(halo);
             
-            // CSS2D Label (beautiful glass card)
+            // Second rotating ring
+            const ring2Geo = new THREE.TorusGeometry(0.98, 0.03, 64, 200);
+            const ring2Mat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: member.color, emissiveIntensity: 0.5 });
+            const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+            ring2.rotation.z = Math.PI / 3;
+            group.add(ring2);
+            
+            // CSS2D Label - glassmorphic advanced
             const div = document.createElement('div');
-            div.className = 'member-label';
+            div.style.background = `linear-gradient(135deg, rgba(10,20,40,0.85), rgba(0,0,0,0.7))`;
+            div.style.backdropFilter = 'blur(14px)';
+            div.style.borderRadius = '28px';
+            div.style.padding = '12px 24px';
+            div.style.border = `1px solid ${member.accent}`;
+            div.style.boxShadow = `0 0 25px ${member.accent}80, 0 8px 20px black`;
+            div.style.textAlign = 'center';
+            div.style.fontFamily = "'Orbitron', 'Inter', monospace";
+            div.style.transition = 'transform 0.2s';
             div.innerHTML = `
-                <div class="member-name">${member.name}</div>
-                <div class="member-role">${member.role}</div>
+                <div style="font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, #fff, ${member.accent}); background-clip: text; -webkit-background-clip: text; color: transparent;">${member.name}</div>
+                <div style="font-size: 0.7rem; color: #ccf; letter-spacing: 2px; margin-top: 5px;">${member.role}</div>
+                <div style="font-size: 0.6rem; color: ${member.accent}; margin-top: 6px;">⚡ GENZCTF CORE ⚡</div>
             `;
             const label = new CSS2DObject(div);
-            label.position.set(0, 1.15, 0); // float above sphere
-            memberGroup.add(label);
+            label.position.set(0, 1.25, 0);
+            group.add(label);
             
-            // Store reference for subtle animation
-            memberMeshes.push({ sphere, ringlet, label, originalY: 0, floatSpeed: 0.5 + idx * 0.2 });
+            memberGroupRoot.add(group);
             
-            orbitGroup.add(memberGroup);
+            // store for animation
+            membersList.push({ group, sphere, halo, ring2, angleOffset: idx, speed: 0.8 + idx * 0.2 });
         });
         
-        // --- Additional CSS2D Title: "GenZCTF" in the center above the knot ---
-        const titleDiv = document.createElement('div');
-        titleDiv.className = 'title-label';
-        titleDiv.innerHTML = `
-            <div class="title-name">GENZCTF</div>
-            <div class="title-tag">CYBER TASK FORCE</div>
-        `;
-        const titleLabel = new CSS2DObject(titleDiv);
-        titleLabel.position.set(0, 1.8, 0);
-        scene.add(titleLabel);
-        
-        // --- Floating Particles Field (enhancing 3D depth)---
-        const particleCount = 1200;
-        const particleGeo = new THREE.BufferGeometry();
-        const particlePositions = new Float32Array(particleCount * 3);
-        const particleColors = new Float32Array(particleCount * 3);
-        for (let i = 0; i < particleCount; i++) {
-            // Distribute in a sphere radius 6
-            const radiusP = 4 + Math.random() * 3.5;
-            const theta = Math.random() * Math.PI * 2;
-            const phi = Math.acos(2 * Math.random() - 1);
-            particlePositions[i*3] = radiusP * Math.sin(phi) * Math.cos(theta);
-            particlePositions[i*3+1] = radiusP * Math.sin(phi) * Math.sin(theta) * 0.8;
-            particlePositions[i*3+2] = radiusP * Math.cos(phi);
-            
-            const colorChoice = Math.random() > 0.6 ? new THREE.Color(0x88aaff) : new THREE.Color(0xff66cc);
-            particleColors[i*3] = colorChoice.r;
-            particleColors[i*3+1] = colorChoice.g;
-            particleColors[i*3+2] = colorChoice.b;
+        // --- Extra: Flying Particles between members (energy threads) ---
+        const lineParticles = [];
+        const particleCountLines = 150;
+        for (let i = 0; i < particleCountLines; i++) {
+            const particleGeo = new THREE.SphereGeometry(0.045, 8, 8);
+            const particleMat = new THREE.MeshStandardMaterial({ color: 0x44aaff, emissive: 0x2266aa, emissiveIntensity: 0.8 });
+            const particle = new THREE.Mesh(particleGeo, particleMat);
+            scene.add(particle);
+            lineParticles.push(particle);
         }
-        particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-        particleGeo.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
-        const particleMat = new THREE.PointsMaterial({ size: 0.08, vertexColors: true, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending });
-        const ambientParticles = new THREE.Points(particleGeo, particleMat);
-        scene.add(ambientParticles);
         
-        // --- Decorative Ground Glow Ring (ethereal)---
-        const glowRingGeo = new THREE.RingGeometry(2.8, 4.2, 32);
-        const glowRingMat = new THREE.MeshStandardMaterial({
-            color: 0x2266aa,
-            emissive: 0x1166aa,
-            emissiveIntensity: 0.3,
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: 0.4
-        });
-        const groundRing = new THREE.Mesh(glowRingGeo, glowRingMat);
-        groundRing.rotation.x = -Math.PI / 2;
-        groundRing.position.y = -1.2;
-        scene.add(groundRing);
-        
-        // Additional tiny floating orbs around center (energy orbs)
+        // --- Floating Digital Orbs (Advanced) ---
         const energyOrbs = [];
-        for (let i = 0; i < 12; i++) {
-            const orbGeo = new THREE.SphereGeometry(0.08, 8, 8);
-            const orbMat = new THREE.MeshStandardMaterial({ color: 0x44ccff, emissive: 0x44aaff, emissiveIntensity: 0.8 });
+        for (let i = 0; i < 24; i++) {
+            const orbGeo = new THREE.SphereGeometry(0.09, 16, 16);
+            const orbMat = new THREE.MeshStandardMaterial({ color: 0xff66cc, emissive: 0xff44aa, emissiveIntensity: 0.9 });
             const orb = new THREE.Mesh(orbGeo, orbMat);
             scene.add(orb);
             energyOrbs.push(orb);
         }
         
+        // --- Shimmering Ring (Advanced FX) ---
+        const shimmerRingGeo = new THREE.TorusGeometry(1.45, 0.04, 128, 300);
+        const shimmerMat = new THREE.MeshStandardMaterial({ color: 0x00ccff, emissive: 0x0088ff, emissiveIntensity: 1.0, transparent: true });
+        const shimmerRing = new THREE.Mesh(shimmerRingGeo, shimmerMat);
+        scene.add(shimmerRing);
+        
+        // --- Advanced: Camera Pulse effect on mouse move (light shift) ---
+        let mouseX = 0, mouseY = 0;
+        window.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = (event.clientY / window.innerHeight) * 2 - 1;
+        });
+        
         // --- Animation Variables ---
         let time = 0;
         
-        // Simple helper to animate rotating ringlet for each member
-        function animateMemberRinglets() {
-            memberMeshes.forEach((item, idx) => {
-                if (item.ringlet) {
-                    item.ringlet.rotation.z += 0.02;
-                    item.ringlet.rotation.x = Math.sin(time * 1.5 + idx) * 0.3;
-                }
-                // Gentle floating effect for sphere (vertical bob)
-                if (item.sphere) {
-                    const floatY = Math.sin(time * 1.2 + idx) * 0.05;
-                    item.sphere.position.y = floatY;
-                    // label also follows with same offset but label is child of memberGroup, no need to adjust label y separately
-                }
+        // --- Animations Loop: All advanced movements ---
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.016;
+            
+            // 1. Dynamic lighting color shift
+            colorLightA.intensity = 0.55 + Math.sin(time * 1.7) * 0.25;
+            colorLightB.intensity = 0.55 + Math.cos(time * 1.3) * 0.25;
+            coreGlow.intensity = 0.9 + Math.sin(time * 2.1) * 0.4;
+            rimLight.intensity = 0.7 + Math.sin(time * 1.9) * 0.3;
+            fillLight.intensity = 0.6 + Math.cos(time * 1.2) * 0.2;
+            
+            // 2. Central objects rotation
+            centralKnot.rotation.x += 0.008;
+            centralKnot.rotation.y += 0.012;
+            centralKnot.rotation.z += 0.005;
+            innerCore.rotation.x += 0.005;
+            innerCore.rotation.y += 0.007;
+            swarmPoints.rotation.y += 0.01;
+            swarmPoints.rotation.x = Math.sin(time * 0.7) * 0.1;
+            
+            // 3. Rune group rotation
+            runeGroup.rotation.y += 0.008;
+            runeGroup.rotation.x = Math.sin(time * 0.5) * 0.1;
+            
+            // 4. Member halo and ring rotations + floating effect
+            membersList.forEach((m, idx) => {
+                m.halo.rotation.z += 0.02;
+                m.ring2.rotation.x += 0.015;
+                m.ring2.rotation.y += 0.01;
+                const floatY = Math.sin(time * 1.2 + idx) * 0.07;
+                m.group.position.y = floatY;
             });
-        }
-        
-        // Rotate the entire orbit group for dynamic feel
-        let orbitRotationSpeed = 0.0025;
-        
-        // --- Animate dynamic lights & central objects ---
-        function animateLights() {
-            colorLight1.intensity = 0.45 + Math.sin(time * 1.8) * 0.2;
-            colorLight2.intensity = 0.45 + Math.cos(time * 1.5) * 0.2;
-            coreGlow.intensity = 0.7 + Math.sin(time * 2.2) * 0.3;
-            rimLight.intensity = 0.5 + Math.sin(time * 1.2) * 0.2;
-        }
-        
-        // --- Central objects rotation ---
-        function animateCenter() {
-            knot.rotation.x += 0.005;
-            knot.rotation.y += 0.008;
-            knot.rotation.z += 0.003;
-            coreMesh.rotation.x += 0.003;
-            coreMesh.rotation.y += 0.007;
-            wireframeShell.rotation.x += 0.004;
-            wireframeShell.rotation.y += 0.006;
-            ringParticles.rotation.y += 0.01;
-            ringParticles.rotation.x = Math.sin(time * 0.5) * 0.1;
-        }
-        
-        // Animate the orbiting group of members
-        function animateOrbit() {
-            orbitGroup.rotation.y += orbitRotationSpeed;
-            // slight tilt for dramatic effect
-            orbitGroup.rotation.x = Math.sin(time * 0.2) * 0.05;
-            orbitGroup.rotation.z = Math.cos(time * 0.23) * 0.03;
-        }
-        
-        // Stars slow drift
-        function animateStars() {
-            stars.rotation.y += 0.0005;
-            stars.rotation.x += 0.0003;
-            ambientParticles.rotation.y -= 0.0002;
-            ambientParticles.rotation.x += 0.0001;
-        }
-        
-        // Energy orbs moving around central knot
-        function animateEnergyOrbs() {
+            
+            // 5. Shimmer ring rotation & scale pulse
+            shimmerRing.rotation.x += 0.01;
+            shimmerRing.rotation.z += 0.005;
+            shimmerRing.scale.setScalar(1 + Math.sin(time * 3) * 0.03);
+            
+            // 6. Energy orbs movement around center
             energyOrbs.forEach((orb, i) => {
-                const angle = time * 1.2 + i * Math.PI * 2 / energyOrbs.length;
-                const radiusOrb = 1.6;
-                const x = Math.cos(angle) * radiusOrb;
-                const z = Math.sin(angle) * radiusOrb;
+                const angle = time * 1.5 + i * 0.5;
+                const rad = 1.9;
+                const x = Math.cos(angle) * rad;
+                const z = Math.sin(angle) * rad;
                 const y = Math.sin(angle * 2) * 0.5;
                 orb.position.set(x, y + 0.2, z);
             });
+            
+            // 7. Flying line particles: interpolate between members positions
+            const memberPositions = membersList.map(m => m.group.position.clone());
+            if (memberPositions.length >= 3) {
+                for (let i = 0; i < lineParticles.length; i++) {
+                    const t = (time * 0.4 + i * 0.02) % 1;
+                    const seg = Math.floor(t * 3) % 3;
+                    const segT = (t * 3) % 1;
+                    let p1, p2;
+                    if (seg === 0) { p1 = memberPositions[0]; p2 = memberPositions[1]; }
+                    else if (seg === 1) { p1 = memberPositions[1]; p2 = memberPositions[2]; }
+                    else { p1 = memberPositions[2]; p2 = memberPositions[0]; }
+                    const x = p1.x * (1 - segT) + p2.x * segT;
+                    const z = p1.z * (1 - segT) + p2.z * segT;
+                    const y = (p1.y + p2.y) / 2 + Math.sin(time * 5 + i) * 0.1;
+                    lineParticles[i].position.set(x, y + 0.2, z);
+                }
+            }
+            
+            // 8. Starfield slow rotation
+            starsField.rotation.y += 0.0003;
+            starsField.rotation.x += 0.0002;
+            dustCloud.rotation.y -= 0.0004;
+            
+            // 9. Floor ring pulsation
+            floorRing.material.emissiveIntensity = 0.35 + Math.sin(time * 1.2) * 0.15;
+            
+            // 10. Mouse parallax effect on ambient rotation (slight)
+            controls.target.lerp(new THREE.Vector3(mouseX * 0.2, mouseY * 0.1, 0), 0.05);
+            
+            // 11. CSS2D labels glow (implicit)
+            // 12. Auto-rotate controlled by orbit controls (if not interacting)
+            controls.update();
+            
+            // 13. Advanced bloom update
+            effectComposer.render();
+            
+            // 14. CSS2D render
+            labelRenderer.render(scene, camera);
         }
         
-        // Adjust camera and renderers on window resize
+        // Start the animation
+        animate();
+        
+        // Resize handler
         window.addEventListener('resize', onWindowResize, false);
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            effectComposer.setSize(window.innerWidth, window.innerHeight);
             labelRenderer.setSize(window.innerWidth, window.innerHeight);
         }
         
-        // Simple floating title effect
-        let titleBob = 0;
+        // Console Easter egg
+        console.log("%c🔥 GENZCTF ULTIMATE 3D NEXUS 🔥 | Ritesh | Nidhi | Mujahid | Next-Gen Cyber Core", "color: #0ff; font-size: 16px; font-family: monospace;");
         
-        // --- Main Animation Loop ---
-        function animate() {
-            requestAnimationFrame(animate);
-            time += 0.016; // smooth increment
-            
-            // Update various animations
-            animateMemberRinglets();
-            animateLights();
-            animateCenter();
-            animateOrbit();
-            animateStars();
-            animateEnergyOrbs();
-            
-            // Gentle floating for the title label
-            titleLabel.position.y = 1.8 + Math.sin(time * 1.5) * 0.05;
-            
-            // Slight rotation of ground ring
-            groundRing.rotation.z += 0.003;
-            
-            // Update controls (for smooth damping)
-            controls.update(); // only updates if damping or autoRotate, but we call to apply changes
-            
-            // Render WebGL content
-            renderer.render(scene, camera);
-            // Render CSS2D labels (always face camera)
-            labelRenderer.render(scene, camera);
-        }
-        
-        // Start animation
-        animate();
-        
-        // Additional small effect: Console greeting for CTF style
-        console.log("%c⚡ GenZCTF 3D Interface Loaded | Core: Ritesh, Nidhi, Mujahid ⚡", "color: #00f2ff; font-size: 14px; font-family: monospace;");
-        
-        // Small interactive tweak: Make CSS2D labels slightly interactive (pointer events auto for links? but not needed)
-        // Add a subtle background shimmer effect via CSS (global style already)
+        // Additional glow effect: add floating lens flare substitute (sprite)
+        const lensSpriteMap = (() => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#0ff';
+            ctx.beginPath();
+            ctx.arc(16, 16, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(16, 16, 3, 0, 2 * Math.PI);
+            ctx.fill();
+            return new THREE.CanvasTexture(canvas);
+        })();
+        const lensSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: lensSpriteMap, blending: THREE.AdditiveBlending, color: 0x88aaff }));
+        lensSprite.scale.set(0.5, 0.5, 1);
+        scene.add(lensSprite);
+        // animate lens flare to follow mouse?
+        window.addEventListener('mousemove', (e) => {
+            const v = new THREE.Vector3((e.clientX / window.innerWidth) * 2 - 1, (e.clientY / window.innerHeight) * -2 + 1, 0.5);
+            v.unproject(camera);
+            const dir = v.sub(camera.position).normalize();
+            const distance = -camera.position.z / dir.z;
+            const pos = camera.position.clone().add(dir.multiplyScalar(distance));
+            lensSprite.position.copy(pos);
+        });
     </script>
 </body>
 </html>
