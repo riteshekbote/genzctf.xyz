@@ -1,1565 +1,851 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ParamHunter v3 — by GenzCTF</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Bebas+Neue&family=Orbitron:wght@400;700;900&display=swap');
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ritesh Ekbote · 4D | 8D | 12D OffSec Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ----- EXISTING STYLES (preserved & enhanced) ----- */
+    :root {
+      --bg: #020408;
+      --bg2: #060c14;
+      --green: #00ff88;
+      --cyan: #00d4ff;
+      --pink: #ff006e;
+      --gold: #ffd700;
+      --white: #e8f0fe;
+      --dim: rgba(232,240,254,0.5);
+      --border: rgba(0,255,136,0.15);
+      --border2: rgba(0,212,255,0.15);
+      --card-bg: rgba(6,12,20,0.85);
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--green); }
 
-:root{
-  --bg:#040608;--surf:#080c14;--surf2:#0d1120;--surf3:#111828;
-  --b1:#161d30;--b2:#1e2840;--b3:#253050;
-  --g:#00ff9f;--g2:#00cc80;--g-d:rgba(0,255,159,0.1);--g-d2:rgba(0,255,159,0.06);
-  --r:#ff3060;--r-d:rgba(255,48,96,0.1);
-  --y:#ffcc00;--y-d:rgba(255,204,0,0.1);
-  --b:#3080ff;--b-d:rgba(48,128,255,0.1);
-  --p:#a060ff;--p-d:rgba(160,96,255,0.1);
-  --c:#00d4ff;--c-d:rgba(0,212,255,0.1);
-  --o:#ff8c00;--o-d:rgba(255,140,0,0.1);
-  --tx:#c0cce8;--tx2:#5a6888;--tx3:#2e3858;
-  --shadow:0 8px 32px rgba(0,0,0,0.6);
-}
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--font-display);
+      cursor: none;
+      overflow-x: hidden;
+    }
 
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+    #cursor-dot {
+      position: fixed; width: 6px; height: 6px;
+      background: var(--green); border-radius: 50%;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%,-50%);
+      transition: transform 0.05s;
+      box-shadow: 0 0 10px var(--green);
+    }
+    #cursor-ring {
+      position: fixed; width: 36px; height: 36px;
+      border: 1px solid rgba(0,255,136,0.5); border-radius: 50%;
+      pointer-events: none; z-index: 9998;
+      transform: translate(-50%,-50%);
+      transition: transform 0.18s ease, width 0.2s, height 0.2s, border-color 0.2s;
+    }
 
-body{
-  background:var(--bg);color:var(--tx);
-  font-family:'JetBrains Mono',monospace;
-  min-height:100vh;overflow-x:hidden;
-  cursor:default;
-}
+    #bg-canvas {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0; pointer-events: none;
+    }
 
-/* scanline */
-body::after{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
-  background:repeating-linear-gradient(0,transparent,transparent 3px,rgba(0,0,0,0.06) 3px,rgba(0,0,0,0.06) 4px);
-}
+    .grain-overlay {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      animation: grain 0.4s steps(1) infinite;
+    }
+    @keyframes grain {
+      0%,100%{background-position:0 0} 10%{background-position:-5% -10%}
+      20%{background-position:-15% 5%} 30%{background-position:7% -25%}
+      40%{background-position:-5% 25%} 50%{background-position:-15% 10%}
+      60%{background-position:15% 0%} 70%{background-position:0 15%}
+      80%{background-position:3% 35%} 90%{background-position:-10% 10%}
+    }
 
-/* matrix grid */
-body::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:
-    linear-gradient(rgba(0,255,159,0.018) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(0,255,159,0.018) 1px,transparent 1px);
-  background-size:48px 48px;
-}
+    .scanlines {
+      position: fixed; inset: 0; z-index: 2; pointer-events: none;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    }
 
-/* glow orbs */
-.orb{
-  position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0;opacity:0.15;
-}
-.orb1{width:500px;height:500px;top:-100px;left:-100px;background:radial-gradient(var(--g),transparent 70%)}
-.orb2{width:400px;height:400px;bottom:0;right:-100px;background:radial-gradient(var(--b),transparent 70%)}
-.orb3{width:300px;height:300px;top:50%;left:50%;background:radial-gradient(var(--p),transparent 70%);transform:translate(-50%,-50%)}
+    .orb {
+      position: fixed; border-radius: 50%; pointer-events: none;
+      z-index: 1; filter: blur(80px); animation: orbFloat 8s ease-in-out infinite;
+    }
+    .orb-1 { width:400px; height:400px; background:rgba(0,255,136,0.06); top:-10%; left:-10%; }
+    .orb-2 { width:350px; height:350px; background:rgba(0,212,255,0.05); top:30%; right:-5%; animation-delay:-3s; }
+    .orb-3 { width:300px; height:300px; background:rgba(255,0,110,0.04); bottom:10%; left:30%; animation-delay:-6s; }
+    @keyframes orbFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-30px)} }
 
-.wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:28px 20px 0}
+    main { position: relative; z-index: 10; }
+    section { position: relative; }
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 48px; }
 
-/* ══ HEADER ══════════════════════════════════════════════ */
-header{
-  padding:0 0 28px;
-  border-bottom:1px solid var(--b1);
-  margin-bottom:24px;
-}
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 20px 0; backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      background: rgba(2,4,8,0.7);
+    }
+    .nav-inner {
+      max-width: 1280px; margin: 0 auto; padding: 0 48px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: var(--font-mono); font-size: 1rem; color: var(--green);
+      text-decoration: none; letter-spacing: 0.05em;
+      text-shadow: 0 0 15px rgba(0,255,136,0.5);
+    }
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a {
+      font-family: var(--font-mono); font-size: 0.75rem; color: var(--dim);
+      text-decoration: none; text-transform: uppercase; letter-spacing: 0.12em;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--green); }
+    .nav-status {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono); font-size: 0.72rem; color: var(--green);
+      letter-spacing: 0.08em;
+    }
+    .pulse-dot {
+      width: 8px; height: 8px; background: var(--green); border-radius: 50%;
+      animation: pulse-anim 1.5s ease-in-out infinite;
+      box-shadow: 0 0 8px var(--green);
+    }
+    @keyframes pulse-anim { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
 
-.hdr-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+    #hero { min-height: 100vh; display: flex; align-items: center; padding: 120px 0 80px; }
+    .hero-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .hero-eyebrow { font-family: var(--font-mono); font-size: 0.72rem; color: var(--cyan); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 24px; opacity: 0.7; }
+    .hero-name { font-family: var(--font-display); font-weight: 800; line-height: 0.9; margin-bottom: 12px; }
+    .hero-name .solid { font-size: clamp(5rem, 9vw, 9rem); color: var(--white); display: block; animation: glitch 4s infinite; }
+    .hero-name .outline {
+      font-size: clamp(5rem, 9vw, 9rem); display: block; -webkit-text-stroke: 2px transparent;
+      background: linear-gradient(90deg, var(--green), var(--cyan), var(--pink), var(--green));
+      background-size: 300% 100%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; animation: gradientShift 4s linear infinite;
+    }
+    @keyframes gradientShift { 0%{background-position:0% 50%} 100%{background-position:300% 50%} }
+    @keyframes glitch {
+      0%,90%,100%{text-shadow:none;transform:none}
+      92%{text-shadow:-2px 0 var(--pink), 2px 0 var(--cyan);transform:skewX(-1deg)}
+      94%{text-shadow:2px 0 var(--pink), -2px 0 var(--cyan);transform:skewX(1deg)}
+      96%{text-shadow:-1px 0 var(--green);transform:none}
+    }
+    .hero-subtitle { font-family: var(--font-mono); font-size: 1rem; color: var(--cyan); margin-bottom: 20px; letter-spacing: 0.05em; }
+    .hero-bio { font-size: 1.05rem; color: var(--dim); line-height: 1.7; margin-bottom: 36px; max-width: 500px; }
+    .hero-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 40px; }
+    .stat-box { border: 1px solid var(--border); padding: 14px 12px; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)); background: rgba(0,255,136,0.03); text-align: center; }
+    .stat-box .stat-num { font-family: var(--font-mono); font-size: 1.3rem; font-weight: 700; color: var(--green); text-shadow: 0 0 12px rgba(0,255,136,0.5); }
+    .stat-box .stat-label { font-family: var(--font-mono); font-size: 0.62rem; color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
+    .hero-buttons { display: flex; gap: 16px; }
+    .btn-primary {
+      font-family: var(--font-mono); font-size: 0.82rem; font-weight: 700; color: var(--bg); background: var(--green);
+      padding: 14px 28px; border: none; cursor: none; text-decoration: none;
+      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+      transition: all 0.2s; letter-spacing: 0.08em; box-shadow: 0 0 20px rgba(0,255,136,0.3);
+      display: inline-flex; align-items: center;
+    }
+    .btn-primary:hover { background: var(--cyan); box-shadow: 0 0 30px rgba(0,212,255,0.5); transform: translateY(-2px); }
+    .btn-outline {
+      font-family: var(--font-mono); font-size: 0.82rem; font-weight: 500; color: var(--green); background: transparent;
+      padding: 14px 28px; border: 1px solid var(--green); cursor: none; text-decoration: none;
+      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+      transition: all 0.2s; letter-spacing: 0.08em; display: inline-flex; align-items: center;
+    }
+    .btn-outline:hover { background: rgba(0,255,136,0.08); box-shadow: 0 0 20px rgba(0,255,136,0.2); transform: translateY(-2px); }
 
-.brand{display:flex;align-items:center;gap:18px}
+    .badge-container { display: flex; align-items: center; justify-content: center; position: relative; height: 420px; }
+    .badge-float { animation: floatBadge 4s ease-in-out infinite; position: relative; display: flex; align-items: center; justify-content: center; }
+    @keyframes floatBadge { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
+    .badge-core {
+      width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(0,255,136,0.2), rgba(2,4,8,0.95));
+      border: 2px solid rgba(0,255,136,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: relative; z-index: 2; box-shadow: 0 0 40px rgba(0,255,136,0.2), inset 0 0 40px rgba(0,255,136,0.05);
+    }
+    .badge-icon { font-size: 2.5rem; margin-bottom: 6px; }
+    .badge-rank { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--gold); text-shadow: 0 0 15px rgba(255,215,0,0.6); }
+    .badge-label { font-family: var(--font-mono); font-size: 0.62rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.12em; }
+    .orbit { position: absolute; border-radius: 50%; border: 1px solid transparent; animation: spin linear infinite; }
+    .orbit-1 { width: 220px; height: 220px; border-color: rgba(0,255,136,0.3); animation-duration: 6s; border-style: dashed; }
+    .orbit-2 { width: 300px; height: 300px; border-color: rgba(0,212,255,0.2); animation-duration: 10s; animation-direction: reverse; }
+    .orbit-3 { width: 380px; height: 380px; border-color: rgba(255,0,110,0.15); animation-duration: 16s; }
+    .orbit::before { content: ''; position: absolute; top: -4px; left: 50%; width: 8px; height: 8px; border-radius: 50%; transform: translateX(-50%); }
+    .orbit-1::before { background: var(--green); box-shadow: 0 0 10px var(--green); }
+    .orbit-2::before { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+    .orbit-3::before { background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 
-.brand-shield{
-  position:relative;width:64px;height:64px;flex-shrink:0;
-  background:linear-gradient(135deg,#001a0f,#003020);
-  border:1px solid var(--g);border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 0 30px rgba(0,255,159,0.35),inset 0 0 20px rgba(0,255,159,0.05);
-}
-.brand-shield::before{
-  content:'';position:absolute;inset:-1px;border-radius:8px;
-  background:linear-gradient(135deg,var(--g),transparent,var(--b));
-  z-index:-1;opacity:0.4;
-}
-.brand-shield span{font-size:30px;filter:drop-shadow(0 0 8px var(--g))}
+    .section-header { margin-bottom: 60px; }
+    .section-tag {
+      font-family: var(--font-mono); font-size: 0.72rem; color: var(--green); letter-spacing: 0.2em; text-transform: uppercase;
+      margin-bottom: 12px; display: flex; align-items: center; gap: 12px;
+    }
+    .section-tag::before { content: ''; display: inline-block; width: 24px; height: 1px; background: var(--green); }
+    .section-title { font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 800; line-height: 1.1; color: var(--white); }
+    .section-title span { color: var(--green); }
 
-.brand-name h1{
-  font-family:'Orbitron',monospace;font-weight:900;
-  font-size:clamp(22px,4vw,42px);letter-spacing:2px;
-  color:#fff;line-height:1;
-}
-.brand-name h1 em{color:var(--g);font-style:normal;text-shadow:0 0 20px rgba(0,255,159,0.5)}
-.brand-name .ver{
-  font-size:10px;letter-spacing:3px;color:var(--g);
-  background:var(--g-d);border:1px solid rgba(0,255,159,0.25);
-  padding:2px 8px;border-radius:2px;margin-left:4px;
-  vertical-align:middle;
-}
-.brand-name .tagline{
-  font-size:10px;letter-spacing:3px;text-transform:uppercase;
-  color:var(--tx2);margin-top:6px;
-}
+    #featured, #ctf, #bounties, #services, #skills, #certs, #contact { padding: 100px 0; }
+    #featured { border-top: 1px solid var(--border); }
 
-/* Live status pill */
-.status-pill{
-  display:flex;align-items:center;gap:8px;
-  background:var(--surf);border:1px solid var(--b1);
-  border-radius:20px;padding:8px 16px;font-size:11px;
-}
-.status-dot{
-  width:8px;height:8px;border-radius:50%;background:var(--tx3);
-  transition:all 0.3s;
-}
-.status-dot.live{background:var(--g);box-shadow:0 0 8px var(--g);animation:pulse 1.5s infinite}
-.status-dot.err{background:var(--r);box-shadow:0 0 8px var(--r)}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+    .featured-card {
+      background: linear-gradient(135deg, rgba(255,215,0,0.05) 0%, rgba(6,12,20,0.95) 40%);
+      border: 1px solid rgba(255,215,0,0.3);
+      clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+      padding: 48px; display: grid; grid-template-columns: 1fr auto; gap: 48px; align-items: center; position: relative; overflow: hidden;
+    }
+    .featured-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at top left, rgba(255,215,0,0.06), transparent 60%); }
+    .featured-tag { font-family: var(--font-mono); font-size: 0.72rem; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .featured-tag .dot { width: 6px; height: 6px; background: var(--gold); border-radius: 50%; animation: pulse-anim 1.5s ease-in-out infinite; }
+    .featured-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; color: var(--white); }
+    .featured-subtitle { font-family: var(--font-mono); font-size: 0.85rem; color: var(--cyan); margin-bottom: 20px; }
+    .featured-desc { color: var(--dim); line-height: 1.7; max-width: 560px; margin-bottom: 24px; }
+    .featured-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag-chip { font-family: var(--font-mono); font-size: 0.68rem; padding: 4px 12px; border: 1px solid var(--border2); color: var(--cyan); background: rgba(0,212,255,0.05); letter-spacing: 0.08em; }
+    .featured-rank { text-align: center; }
+    .rank-num { font-family: var(--font-mono); font-size: 7rem; font-weight: 700; line-height: 0.9; color: var(--gold); text-shadow: 0 0 40px rgba(255,215,0,0.4); }
+    .rank-label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.12em; }
+    .rank-pts { font-family: var(--font-mono); font-size: 0.85rem; color: var(--gold); margin-top: 8px; }
 
-/* Method chips */
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}
-.chip{
-  font-size:9px;padding:3px 10px;border-radius:12px;
-  letter-spacing:1.5px;text-transform:uppercase;border:1px solid;
-  font-family:'JetBrains Mono',monospace;
-}
-.cg{color:var(--g);border-color:rgba(0,255,159,0.3);background:var(--g-d2)}
-.cr{color:var(--r);border-color:rgba(255,48,96,0.3);background:var(--r-d)}
-.cb{color:var(--b);border-color:rgba(48,128,255,0.3);background:var(--b-d)}
-.cy{color:var(--y);border-color:rgba(255,204,0,0.3);background:var(--y-d)}
-.cp{color:var(--p);border-color:rgba(160,96,255,0.3);background:var(--p-d)}
-.cc{color:var(--c);border-color:rgba(0,212,255,0.3);background:var(--c-d)}
-.co{color:var(--o);border-color:rgba(255,140,0,0.3);background:var(--o-d)}
+    .ctf-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .ctf-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+      padding: 28px 24px; position: relative; overflow: hidden; transition: border-color 0.2s, transform 0.2s;
+    }
+    .ctf-card:hover { transform: translateY(-4px); }
+    .ctf-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: currentColor; opacity: 0.4; }
+    .ctf-card.gold { color: var(--gold); border-color: rgba(255,215,0,0.25); }
+    .ctf-card.gold:hover { border-color: rgba(255,215,0,0.5); }
+    .ctf-card.green { color: var(--green); border-color: rgba(0,255,136,0.25); }
+    .ctf-card.green:hover { border-color: rgba(0,255,136,0.5); }
+    .ctf-card.cyan { color: var(--cyan); border-color: rgba(0,212,255,0.25); }
+    .ctf-card.cyan:hover { border-color: rgba(0,212,255,0.5); }
+    .ctf-rank { font-family: var(--font-mono); font-size: 2.5rem; font-weight: 700; text-shadow: 0 0 20px currentColor; margin-bottom: 4px; }
+    .ctf-name { font-weight: 700; font-size: 1rem; color: var(--white); margin-bottom: 6px; }
+    .ctf-detail { font-family: var(--font-mono); font-size: 0.72rem; color: var(--dim); line-height: 1.6; }
+    .ctf-badge { position: absolute; top: 20px; right: 20px; font-family: var(--font-mono); font-size: 0.62rem; padding: 3px 8px; background: currentColor; color: var(--bg); font-weight: 700; letter-spacing: 0.08em; }
 
-/* ══ LAYOUT: 2-COLUMN ════════════════════════════════════ */
-.layout{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
-@media(max-width:900px){.layout{grid-template-columns:1fr}}
+    .bounties-table { width: 100%; border-collapse: collapse; }
+    .bounties-table thead tr { border-bottom: 1px solid rgba(0,255,136,0.3); }
+    .bounties-table th { font-family: var(--font-mono); font-size: 0.68rem; color: var(--green); text-transform: uppercase; letter-spacing: 0.15em; padding: 12px 16px; text-align: left; font-weight: 500; }
+    .bounties-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.2s; }
+    .bounties-table tbody tr:hover { background: rgba(0,255,136,0.03); }
+    .bounties-table td { padding: 20px 16px; vertical-align: top; font-family: var(--font-mono); font-size: 0.8rem; color: var(--dim); }
+    .vuln-id { color: var(--green); font-weight: 700; }
+    .vuln-company { color: var(--white); font-weight: 600; }
+    .vuln-type { color: var(--cyan); font-size: 0.72rem; }
+    .result-badge { font-size: 0.68rem; padding: 3px 10px; border-radius: 0; letter-spacing: 0.08em; font-weight: 700; display: inline-block; }
+    .result-hof { background: rgba(255,215,0,0.15); color: var(--gold); border: 1px solid rgba(255,215,0,0.3); }
+    .result-bounty { background: rgba(0,255,136,0.15); color: var(--green); border: 1px solid rgba(0,255,136,0.3); }
+    .result-ack { background: rgba(0,212,255,0.1); color: var(--cyan); border: 1px solid rgba(0,212,255,0.25); }
 
-/* ══ PANEL / CARD ════════════════════════════════════════ */
-.panel{
-  background:var(--surf);border:1px solid var(--b1);border-radius:10px;
-  overflow:hidden;margin-bottom:16px;
-}
-.panel-head{
-  display:flex;align-items:center;gap:10px;
-  padding:14px 18px;border-bottom:1px solid var(--b1);
-  background:var(--surf2);
-}
-.ph-bar{width:3px;height:16px;border-radius:2px}
-.ph-title{
-  font-size:9px;letter-spacing:3px;text-transform:uppercase;flex:1;
-}
-.panel-body{padding:16px 18px}
+    .services-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+    .service-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+      padding: 32px 28px; position: relative; overflow: hidden; transition: all 0.25s;
+    }
+    .service-card:hover { border-color: rgba(0,255,136,0.4); transform: translateY(-4px); background: rgba(0,255,136,0.04); }
+    .service-card::after { content: ''; position: absolute; top: 0; right: 0; width: 16px; height: 16px; background: var(--green); clip-path: polygon(0 0, 100% 100%, 100% 0); opacity: 0.5; }
+    .service-num { font-family: var(--font-mono); font-size: 0.7rem; color: var(--green); opacity: 0.5; margin-bottom: 16px; letter-spacing: 0.1em; }
+    .service-icon { font-size: 1.8rem; margin-bottom: 14px; }
+    .service-name { font-size: 1.05rem; font-weight: 700; color: var(--white); margin-bottom: 8px; }
+    .service-note { font-size: 0.82rem; color: var(--dim); line-height: 1.6; margin-bottom: 16px; }
+    .service-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .service-tag { font-family: var(--font-mono); font-size: 0.65rem; padding: 3px 8px; background: rgba(0,255,136,0.06); color: var(--green); border: 1px solid rgba(0,255,136,0.15); letter-spacing: 0.05em; }
 
-/* ══ INPUTS ══════════════════════════════════════════════ */
-input[type=text],input[type=number]{
-  background:var(--surf2);border:1px solid var(--b2);
-  color:var(--tx);font-family:'JetBrains Mono',monospace;font-size:12px;
-  padding:10px 13px;border-radius:5px;outline:none;width:100%;
-  transition:border-color 0.2s,box-shadow 0.2s;
-}
-input[type=text]:focus,input[type=number]:focus{
-  border-color:var(--g);box-shadow:0 0 0 3px rgba(0,255,159,0.07);
-}
-input::placeholder{color:var(--tx3)}
+    .skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; }
+    .skill-group-title { font-family: var(--font-mono); font-size: 0.75rem; color: var(--green); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 36px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .skill-item { margin-bottom: 24px; }
+    .skill-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .skill-name { font-family: var(--font-mono); font-size: 0.82rem; color: var(--white); letter-spacing: 0.05em; }
+    .skill-pct { font-family: var(--font-mono); font-size: 0.78rem; color: var(--green); }
+    .skill-bar-bg { height: 4px; background: rgba(255,255,255,0.06); position: relative; overflow: hidden; }
+    .skill-bar-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--cyan)); width: 0; transition: width 1.2s cubic-bezier(0.4,0,0.2,1); position: relative; }
+    .skill-bar-fill::after { content: ''; position: absolute; right: 0; top: -2px; width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 8px var(--green); }
 
-.inp-row{display:flex;gap:8px;margin-bottom:10px}
-.inp-row input[type=text]{flex:1}
+    .certs-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+    .cert-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+      padding: 24px 20px; transition: all 0.2s;
+    }
+    .cert-card:hover { border-color: rgba(0,212,255,0.4); transform: translateY(-3px); background: rgba(0,212,255,0.04); }
+    .cert-icon { font-size: 1.6rem; margin-bottom: 12px; }
+    .cert-name { font-size: 0.9rem; font-weight: 700; color: var(--white); margin-bottom: 4px; line-height: 1.3; }
+    .cert-issuer { font-family: var(--font-mono); font-size: 0.68rem; color: var(--cyan); opacity: 0.7; }
 
-/* Buttons */
-.btn{
-  font-family:'JetBrains Mono',monospace;font-size:11px;
-  padding:10px 16px;border:none;border-radius:5px;cursor:pointer;
-  transition:all 0.15s;letter-spacing:1px;text-transform:uppercase;
-  white-space:nowrap;display:inline-flex;align-items:center;gap:6px;
-}
-.btn-hunt{
-  background:linear-gradient(135deg,var(--g),var(--g2));
-  color:#000;font-weight:700;width:100%;justify-content:center;
-  font-size:12px;padding:13px;margin-top:6px;
-  box-shadow:0 0 24px rgba(0,255,159,0.3);
-}
-.btn-hunt:hover{box-shadow:0 0 36px rgba(0,255,159,0.5);transform:translateY(-1px)}
-.btn-hunt:disabled{background:var(--b1);color:var(--tx3);box-shadow:none;cursor:not-allowed;transform:none}
-.btn-g{background:var(--g-d);color:var(--g);border:1px solid rgba(0,255,159,0.3)}
-.btn-g:hover{background:rgba(0,255,159,0.2)}
-.btn-r{background:var(--r-d);color:var(--r);border:1px solid rgba(255,48,96,0.3)}
-.btn-r:hover{background:rgba(255,48,96,0.2)}
-.btn-b{background:var(--b-d);color:var(--b);border:1px solid rgba(48,128,255,0.3)}
-.btn-b:hover{background:rgba(48,128,255,0.2)}
-.btn-p{background:var(--p-d);color:var(--p);border:1px solid rgba(160,96,255,0.3)}
-.btn-p:hover{background:rgba(160,96,255,0.2)}
-.btn-y{background:var(--y-d);color:var(--y);border:1px solid rgba(255,204,0,0.3)}
-.btn-y:hover{background:rgba(255,204,0,0.2)}
-.btn-sm{padding:6px 11px;font-size:10px}
-.btn-xs{padding:4px 8px;font-size:9px}
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .contact-pitch { font-size: 1.1rem; color: var(--dim); line-height: 1.8; margin-bottom: 40px; }
+    .why-list { list-style: none; display: flex; flex-direction: column; gap: 20px; }
+    .why-item { display: flex; align-items: flex-start; gap: 16px; padding: 20px; background: rgba(0,255,136,0.03); border: 1px solid var(--border); clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%); }
+    .why-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+    .why-text strong { color: var(--white); display: block; margin-bottom: 2px; font-size: 0.9rem; }
+    .why-text span { font-size: 0.82rem; color: var(--dim); line-height: 1.5; }
 
-/* Row of buttons */
-.btn-row{display:flex;gap:6px;flex-wrap:wrap}
+    .terminal-panel {
+      background: #040810; border: 1px solid rgba(0,255,136,0.25);
+      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+      overflow: hidden;
+    }
+    .terminal-header { background: rgba(0,255,136,0.06); border-bottom: 1px solid rgba(0,255,136,0.15); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+    .terminal-title { font-family: var(--font-mono); font-size: 0.78rem; color: var(--green); letter-spacing: 0.1em; }
+    .terminal-status { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 0.68rem; color: var(--green); }
+    .terminal-body { padding: 28px; }
+    .email-btn { display: flex; align-items: center; justify-content: space-between; background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.3); padding: 18px 22px; margin-bottom: 24px; text-decoration: none; transition: all 0.2s; cursor: none; }
+    .email-btn:hover { background: rgba(0,255,136,0.15); border-color: var(--green); box-shadow: 0 0 20px rgba(0,255,136,0.15); }
+    .email-btn span { font-family: var(--font-mono); font-size: 0.92rem; color: var(--green); font-weight: 700; }
+    .email-btn .arrow { color: var(--green); font-size: 1.1rem; }
+    .services-check { list-style: none; margin-bottom: 24px; display: flex; flex-direction: column; gap: 10px; }
+    .services-check li { font-family: var(--font-mono); font-size: 0.78rem; color: var(--dim); display: flex; align-items: center; gap: 10px; }
+    .services-check li::before { content: '✓'; color: var(--green); font-weight: 700; }
+    .terminal-note { font-family: var(--font-mono); font-size: 0.72rem; color: rgba(232,240,254,0.3); padding-top: 16px; border-top: 1px solid var(--border); letter-spacing: 0.05em; }
 
-/* ══ OPTION TOGGLES ══════════════════════════════════════ */
-.opts{display:flex;flex-direction:column;gap:6px}
-.opt{
-  display:flex;align-items:center;gap:10px;
-  background:var(--surf2);border:1px solid var(--b1);
-  border-radius:5px;padding:8px 12px;cursor:pointer;user-select:none;
-  transition:all 0.15s;
-}
-.opt:hover{border-color:var(--b2)}
-.opt.on{border-color:var(--g);background:var(--g-d2)}
-.opt-led{
-  width:7px;height:7px;border-radius:50%;
-  background:var(--b2);flex-shrink:0;transition:all 0.15s;
-}
-.opt.on .opt-led{background:var(--g);box-shadow:0 0 6px var(--g)}
-.opt-txt{flex:1}
-.opt-name{font-size:11px;color:var(--tx)}
-.opt-desc{font-size:9px;color:var(--tx2);margin-top:1px;display:block;letter-spacing:0.5px}
+    .cmd-terminal {
+      position: fixed; bottom: 30px; right: 30px; width: 420px;
+      background: rgba(4,8,16,0.97); border: 1px solid rgba(0,255,136,0.3);
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+      z-index: 200; backdrop-filter: blur(20px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      transform: translateY(calc(100% + 30px));
+      transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+    }
+    .cmd-terminal.open { transform: translateY(0); }
+    .cmd-terminal-header { background: rgba(0,255,136,0.07); border-bottom: 1px solid rgba(0,255,136,0.15); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
+    .cmd-terminal-title { font-family: var(--font-mono); font-size: 0.72rem; color: var(--green); letter-spacing: 0.1em; }
+    .cmd-close-btn { background: none; border: none; cursor: none; font-family: var(--font-mono); font-size: 0.72rem; color: var(--dim); transition: color 0.2s; }
+    .cmd-close-btn:hover { color: var(--pink); }
+    .cmd-terminal-body { padding: 16px; height: 240px; overflow-y: auto; font-family: var(--font-mono); font-size: 0.75rem; line-height: 1.8; }
+    .cmd-terminal-body::-webkit-scrollbar { width: 2px; }
+    .cmd-terminal-body::-webkit-scrollbar-thumb { background: var(--green); }
+    .cmd-line-green { color: var(--green); }
+    .cmd-line-cyan { color: var(--cyan); }
+    .cmd-line-dim { color: var(--dim); }
+    .cmd-line-pink { color: var(--pink); }
+    .cmd-line-gold { color: var(--gold); }
+    .cmd-input-row { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-top: 1px solid rgba(0,255,136,0.1); }
+    .cmd-prompt { font-family: var(--font-mono); font-size: 0.78rem; color: var(--green); white-space: nowrap; }
+    .cmd-input { flex: 1; background: none; border: none; outline: none; font-family: var(--font-mono); font-size: 0.78rem; color: var(--white); cursor: none; }
 
-/* ══ SUBDOMAIN PANEL ═════════════════════════════════════ */
-.sub-stats{
-  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;
-}
-.sub-stat{
-  background:var(--surf2);border:1px solid var(--b1);
-  border-radius:5px;padding:10px;text-align:center;
-}
-.sub-stat-n{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--c)}
-.sub-stat-l{font-size:9px;color:var(--tx2);letter-spacing:1px;text-transform:uppercase}
+    .terminal-toggle {
+      position: fixed; bottom: 30px; right: 30px; z-index: 201; display: flex; align-items: center; gap: 10px;
+      background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3); padding: 10px 18px; cursor: none;
+      transition: all 0.2s; font-family: var(--font-mono); font-size: 0.75rem; color: var(--green);
+      clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%); backdrop-filter: blur(10px);
+    }
+    .terminal-toggle:hover { background: rgba(0,255,136,0.2); box-shadow: 0 0 20px rgba(0,255,136,0.2); }
+    .terminal-toggle.hidden { display: none; }
 
-.sub-list{
-  max-height:320px;overflow-y:auto;
-  display:flex;flex-direction:column;gap:5px;
-  margin-top:10px;
-}
-.sub-item{
-  display:flex;align-items:center;gap:8px;
-  background:var(--surf2);border:1px solid var(--b1);
-  border-radius:4px;padding:8px 10px;font-size:10px;
-  cursor:pointer;transition:all 0.15s;user-select:none;
-}
-.sub-item:hover{border-color:var(--b2)}
-.sub-item.sel{border-color:var(--c);background:var(--c-d);color:var(--c)}
-.sub-item input[type=checkbox]{accent-color:var(--c);cursor:pointer;flex-shrink:0}
-.sub-domain{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sub-status{font-size:9px;padding:1px 6px;border-radius:8px;flex-shrink:0}
-.ss-live{background:rgba(0,255,159,0.15);color:var(--g);border:1px solid rgba(0,255,159,0.3)}
-.ss-cert{background:var(--b-d);color:var(--b);border:1px solid rgba(48,128,255,0.3)}
+    footer { border-top: 1px solid var(--border); padding: 40px 0; margin-top: 0; }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; }
+    .footer-brand { font-family: var(--font-mono); font-size: 0.9rem; color: var(--green); font-weight: 700; }
+    .footer-links { display: flex; gap: 28px; list-style: none; }
+    .footer-links a { font-family: var(--font-mono); font-size: 0.75rem; color: var(--dim); text-decoration: none; transition: color 0.2s; letter-spacing: 0.08em; }
+    .footer-links a:hover { color: var(--green); }
+    .footer-copy { font-family: var(--font-mono); font-size: 0.68rem; color: rgba(232,240,254,0.25); letter-spacing: 0.08em; }
 
-/* ══ TERMINAL ════════════════════════════════════════════ */
-.terminal{
-  background:#020406;border:1px solid var(--b1);border-radius:10px;
-  overflow:hidden;margin-bottom:16px;display:none;
-}
-.terminal.show{display:block}
-.term-bar{
-  background:var(--surf2);padding:10px 16px;
-  display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--b1);
-}
-.tdot{width:11px;height:11px;border-radius:50%}
-.td-r{background:#ff5f57}.td-y{background:#ffbd2e}.td-g{background:#28c840}
-.t-title{font-size:10px;color:var(--tx2);margin-left:6px;flex:1;font-style:italic}
-.t-live{font-size:10px;color:var(--g);font-weight:600}
-.t-prog-wrap{height:3px;background:var(--b1)}
-.t-prog{height:100%;background:linear-gradient(90deg,var(--b),var(--g));width:0%;transition:width 0.4s ease}
-.t-log{
-  padding:12px 16px;max-height:260px;overflow-y:auto;
-  font-size:10.5px;line-height:2;
-}
-.tl{display:flex;gap:8px;align-items:baseline}
-.tl-ts{color:var(--tx3);font-size:9px;flex-shrink:0;width:60px}
-.tl-m{flex:1;word-break:break-all}
-.cg{color:var(--g)}.cr{color:var(--r)}.cy{color:var(--y)}.cb{color:var(--b)}.cp{color:var(--p)}.cc{color:var(--c)}.co{color:var(--o)}.cd{color:var(--tx2)}
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.revealed { opacity: 1; transform: translateY(0); }
 
-/* Phase bar */
-.phase-bar{
-  display:flex;gap:4px;padding:10px 16px;border-top:1px solid var(--b1);
-  overflow-x:auto;background:var(--surf2);
-}
-.ph{
-  font-size:8px;letter-spacing:1px;text-transform:uppercase;
-  padding:3px 9px;border-radius:10px;border:1px solid var(--b1);color:var(--tx3);
-  white-space:nowrap;transition:all 0.2s;
-}
-.ph.active{border-color:var(--g);color:var(--g);background:var(--g-d)}
-.ph.done{color:var(--tx2);border-color:var(--b2)}
+    /* DIMENSION LABEL (cosmetic) */
+    .dimension-badge {
+      position: fixed; bottom: 100px; left: 30px; z-index: 150;
+      font-family: var(--font-mono); font-size: 0.7rem; color: var(--cyan);
+      opacity: 0.5; letter-spacing: 0.3em; writing-mode: vertical-rl;
+      text-orientation: upright; pointer-events: none;
+    }
 
-/* ══ RESULTS ═════════════════════════════════════════════ */
-/* Stats cards */
-.stats-row{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
-  gap:10px;margin-bottom:18px;
-}
-.sc{
-  background:var(--surf);border:1px solid var(--b1);border-radius:8px;
-  padding:14px;text-align:center;transition:border-color 0.2s;
-  cursor:default;position:relative;overflow:hidden;
-}
-.sc::before{
-  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
-}
-.sc.sg::before{background:var(--g)}
-.sc.sr::before{background:var(--r)}
-.sc.sy::before{background:var(--y)}
-.sc.sb::before{background:var(--b)}
-.sc.sp::before{background:var(--p)}
-.sc.sc2::before{background:var(--c)}
-.sc.so::before{background:var(--o)}
-.sc-n{font-family:'Bebas Neue',sans-serif;font-size:40px;line-height:1}
-.sc-l{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--tx2);margin-top:2px}
+    @media (max-width: 1024px) {
+      .ctf-grid, .services-grid { grid-template-columns: repeat(2,1fr); }
+      .certs-grid { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 768px) {
+      .container { padding: 0 24px; }
+      .nav-links { display: none; }
+      .hero-inner { grid-template-columns: 1fr; }
+      .badge-container { height: 280px; }
+      .hero-stats { grid-template-columns: repeat(2,1fr); }
+      .ctf-grid, .services-grid, .certs-grid { grid-template-columns: 1fr; }
+      .contact-grid { grid-template-columns: 1fr; gap: 40px; }
+      .featured-card { grid-template-columns: 1fr; }
+      .skills-grid { grid-template-columns: 1fr; }
+      .rank-num { font-size: 4rem; }
+      .bounties-table { font-size: 0.72rem; }
+      .cmd-terminal { width: calc(100% - 48px); right: 24px; bottom: 24px; }
+      .terminal-toggle { right: 24px; bottom: 24px; }
+      .footer-inner { flex-direction: column; gap: 20px; text-align: center; }
+    }
 
-/* filter */
-.filter-wrap{
-  display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px;
-}
-.fb{
-  font-family:'JetBrains Mono',monospace;font-size:9px;
-  padding:5px 10px;border-radius:3px;cursor:pointer;
-  background:transparent;border:1px solid var(--b1);
-  color:var(--tx2);letter-spacing:1px;text-transform:uppercase;transition:all 0.15s;
-}
-.fb:hover{color:var(--tx);border-color:var(--b2)}
-.fb.on{color:var(--g);border-color:var(--g);background:var(--g-d)}
-.fb-search{
-  flex:1;min-width:150px;font-size:11px;padding:7px 12px;
-  background:var(--surf2);border:1px solid var(--b1);
-  color:var(--tx);border-radius:4px;outline:none;font-family:'JetBrains Mono',monospace;
-  transition:border-color 0.2s;
-}
-.fb-search:focus{border-color:var(--g)}
-.sort-group{display:flex;gap:4px;margin-left:auto;align-items:center}
-.sb{
-  font-family:'JetBrains Mono',monospace;font-size:9px;
-  background:none;border:1px solid var(--b1);border-radius:3px;
-  padding:4px 9px;cursor:pointer;color:var(--tx2);transition:all 0.15s;
-  text-transform:uppercase;letter-spacing:0.5px;
-}
-.sb.on{color:var(--y);border-color:var(--y)}
-
-/* Table */
-.tbl-wrap{
-  background:var(--surf);border:1px solid var(--b1);border-radius:8px;
-  overflow:auto;max-height:560px;
-}
-table{width:100%;border-collapse:collapse;font-size:10.5px}
-th{
-  position:sticky;top:0;z-index:10;background:var(--surf2);
-  padding:10px 12px;text-align:left;border-bottom:2px solid var(--b2);
-  font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--tx2);white-space:nowrap;
-}
-td{padding:9px 12px;border-bottom:1px solid var(--b1);vertical-align:top}
-tr:hover td{background:rgba(255,255,255,0.018)}
-
-.pn{font-size:12px;font-weight:700;color:var(--g);letter-spacing:0.5px;font-family:'JetBrains Mono',monospace}
-.ps{
-  display:inline-block;font-size:8px;padding:2px 7px;border-radius:10px;
-  border:1px solid;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;
-}
-.s-html{color:var(--g);border-color:rgba(0,255,159,0.3);background:var(--g-d)}
-.s-js{color:var(--y);border-color:rgba(255,204,0,0.3);background:var(--y-d)}
-.s-form{color:var(--p);border-color:rgba(160,96,255,0.3);background:var(--p-d)}
-.s-link{color:var(--c);border-color:rgba(0,212,255,0.3);background:var(--c-d)}
-.s-api{color:var(--b);border-color:rgba(48,128,255,0.3);background:var(--b-d)}
-.s-meta{color:var(--o);border-color:rgba(255,140,0,0.3);background:var(--o-d)}
-.s-word{color:var(--tx2);border-color:var(--b1);background:var(--surf2)}
-.s-sub{color:#40ffee;border-color:rgba(64,255,238,0.3);background:rgba(64,255,238,0.08)}
-.s-cookie{color:#ff60a0;border-color:rgba(255,96,160,0.3);background:rgba(255,96,160,0.08)}
-
-.rk{font-size:9px;font-weight:700;letter-spacing:1px}
-.rh{color:var(--r)}.rm{color:var(--y)}.rl{color:var(--tx2)}
-
-.wf-cell{
-  font-size:9px;color:var(--tx2);max-width:220px;
-  overflow:hidden;text-overflow:ellipsis;
-}
-.wf-url{
-  display:block;color:var(--c);font-size:9px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  max-width:220px;
-}
-.wf-badge{
-  display:inline-block;font-size:8px;padding:1px 6px;border-radius:8px;
-  background:var(--b-d);color:var(--b);border:1px solid rgba(48,128,255,0.2);
-  margin-top:2px;white-space:nowrap;
-}
-.notes-cell{font-size:9px;color:var(--tx2);max-width:160px}
-.no-r{text-align:center;padding:48px;color:var(--tx2);font-size:12px}
-
-/* Export bar */
-.export-bar{
-  display:flex;gap:6px;flex-wrap:wrap;
-  padding:14px 0 0;
-  border-top:1px solid var(--b1);
-  margin-top:12px;
-}
-
-/* ══ PLAIN TXT MODAL ═════════════════════════════════════ */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,0.85);
-  z-index:1000;display:flex;align-items:center;justify-content:center;
-  backdrop-filter:blur(4px);
-  display:none;
-}
-.modal-overlay.show{display:flex}
-.modal{
-  background:var(--surf);border:1px solid var(--g);border-radius:10px;
-  width:min(700px,95vw);max-height:85vh;display:flex;flex-direction:column;
-  box-shadow:0 0 60px rgba(0,255,159,0.2);
-}
-.modal-head{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:16px 20px;border-bottom:1px solid var(--b1);
-  background:var(--surf2);
-}
-.modal-head h3{font-family:'Orbitron',monospace;font-size:14px;color:var(--g);letter-spacing:2px}
-.modal-close{
-  background:none;border:1px solid var(--b1);color:var(--tx2);
-  border-radius:4px;padding:4px 10px;cursor:pointer;font-family:'JetBrains Mono',monospace;
-  font-size:10px;transition:all 0.15s;
-}
-.modal-close:hover{border-color:var(--r);color:var(--r)}
-.modal-body{flex:1;overflow-y:auto;padding:20px}
-.txt-area{
-  width:100%;background:#010203;border:1px solid var(--b1);
-  color:var(--g);font-family:'JetBrains Mono',monospace;font-size:11px;
-  padding:16px;border-radius:6px;resize:none;outline:none;
-  line-height:1.8;min-height:300px;
-}
-.txt-area:focus{border-color:var(--g)}
-.modal-foot{
-  display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--b1);
-  background:var(--surf2);
-}
-
-/* ══ FOOTER ══════════════════════════════════════════════ */
-footer{
-  margin-top:60px;padding:32px 20px;
-  border-top:1px solid var(--b1);
-  background:var(--surf);
-  text-align:center;
-}
-.footer-inner{max-width:1280px;margin:0 auto}
-.footer-brand{
-  font-family:'Orbitron',monospace;font-size:20px;font-weight:900;
-  letter-spacing:3px;margin-bottom:8px;
-}
-.footer-brand em{color:var(--g);font-style:normal;text-shadow:0 0 15px rgba(0,255,159,0.4)}
-.footer-tag{font-size:10px;color:var(--tx2);letter-spacing:2px;margin-bottom:16px}
-.footer-divider{
-  width:100px;height:1px;background:linear-gradient(90deg,transparent,var(--g),transparent);
-  margin:16px auto;
-}
-.footer-links{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-bottom:16px}
-.footer-links a{
-  font-size:10px;color:var(--tx2);text-decoration:none;letter-spacing:1px;
-  padding:4px 10px;border:1px solid var(--b1);border-radius:3px;
-  transition:all 0.2s;
-}
-.footer-links a:hover{color:var(--g);border-color:var(--g);background:var(--g-d)}
-.footer-copy{font-size:9px;color:var(--tx3);letter-spacing:1px}
-.footer-copy strong{color:var(--tx2)}
-.footer-god{
-  display:inline-block;margin-top:12px;
-  font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;
-  color:var(--y);text-shadow:0 0 10px rgba(255,204,0,0.4);
-}
-
-/* ══ MISC ════════════════════════════════════════════════ */
-@keyframes spin{to{transform:rotate(360deg)}}
-.spin{
-  display:inline-block;width:9px;height:9px;
-  border:2px solid var(--b2);border-top-color:var(--g);
-  border-radius:50%;animation:spin 0.6s linear infinite;
-  vertical-align:middle;margin-right:4px;
-}
-
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-.blink{animation:blink 1s infinite}
-
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:var(--b3)}
-
-.notice{
-  background:rgba(48,128,255,0.06);border:1px solid rgba(48,128,255,0.2);
-  border-radius:7px;padding:12px 16px;margin-bottom:16px;
-  font-size:10px;color:var(--tx);line-height:1.9;
-}
-.notice strong{color:var(--b)}
-
-.sep{border:none;border-top:1px solid var(--b1);margin:14px 0}
-
-label{font-size:10px;color:var(--tx2);letter-spacing:1px;display:block;margin-bottom:5px;text-transform:uppercase}
-
-@media(max-width:600px){
-  th:nth-child(5),td:nth-child(5){display:none}
-}
-</style>
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
 </head>
 <body>
-<div class="orb orb1"></div>
-<div class="orb orb2"></div>
-<div class="orb orb3"></div>
 
-<!-- ═══ PLAIN TXT MODAL ═══════════════════════════════════ -->
-<div class="modal-overlay" id="txtModal">
-  <div class="modal">
-    <div class="modal-head">
-      <h3>⚡ PARAM LIST</h3>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span id="modalCount" style="font-size:10px;color:var(--tx2)"></span>
-        <button class="modal-close" onclick="closeTxtModal()">✕ CLOSE</button>
-      </div>
-    </div>
-    <div class="modal-body">
-      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap" id="modalFilters">
-        <button class="btn btn-sm btn-g" onclick="setModalFilter('all')">All Params</button>
-        <button class="btn btn-sm btn-r" onclick="setModalFilter('high')">High Risk Only</button>
-        <button class="btn btn-sm btn-b" onclick="setModalFilter('active')">Active Found Only</button>
-        <button class="btn btn-sm btn-p" onclick="setModalFilter('word')">Wordlist Only</button>
-      </div>
-      <textarea class="txt-area" id="txtModalArea" readonly spellcheck="false"></textarea>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-g btn-sm" onclick="copyTxtModal()">📋 Copy All</button>
-      <button class="btn btn-b btn-sm" onclick="dlTxtModal()">⬇ Download .txt</button>
-      <button class="btn btn-y btn-sm" onclick="dlTxtModal('burp')">⬇ Burp Intruder .txt</button>
-      <span id="modalCopyStatus" style="font-size:10px;color:var(--g);align-self:center"></span>
-    </div>
-  </div>
-</div>
+<div class="grain-overlay"></div>
+<div class="scanlines"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
 
-<div class="wrap">
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
 
-<!-- ═══ HEADER ════════════════════════════════════════════ -->
-<header>
-  <div class="hdr-top">
-    <div class="brand">
-      <div class="brand-shield"><span>⚡</span></div>
-      <div class="brand-name">
-        <h1>PARAM<em>HUNTER</em> <span class="ver">V3</span></h1>
-        <div class="tagline">Advanced Hidden Parameter Discovery Engine</div>
-      </div>
-    </div>
-    <div class="status-pill">
-      <div class="status-dot" id="statusDot"></div>
-      <span id="statusText" style="color:var(--tx2)">Ready</span>
+<!-- 4D / 8D / 12D label (just for fun) -->
+<div class="dimension-badge">◈ 4D · 8D · 12D ◈</div>
+
+<canvas id="bg-canvas"></canvas>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#hero" class="nav-logo">RE://0x01</a>
+    <ul class="nav-links">
+      <li><a href="#ctf">CTF Log</a></li>
+      <li><a href="#bounties">Disclosures</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#skills">Arsenal</a></li>
+      <li><a href="#contact">Engage</a></li>
+    </ul>
+    <div class="nav-status">
+      <div class="pulse-dot"></div>
+      Available for Engagements
     </div>
   </div>
-  <div class="chips">
-    <span class="chip cg">HTML/Form Mining</span>
-    <span class="chip cy">Deep JS Analysis</span>
-    <span class="chip cb">Multi-Proxy Fetch</span>
-    <span class="chip cc">Subdomain Enum</span>
-    <span class="chip cr">DNS-over-HTTPS</span>
-    <span class="chip cp">Crt.sh Certs</span>
-    <span class="chip co">API Response Keys</span>
-    <span class="chip cg">380+ Wordlist</span>
-    <span class="chip cb">Cookie Mining</span>
-    <span class="chip cy">Link Param Extraction</span>
-    <span class="chip cc">Where-Found Tracking</span>
-    <span class="chip cr">Burp-Ready Export</span>
-  </div>
-</header>
+</nav>
 
-<!-- ═══ NOTICE ════════════════════════════════════════════ -->
-<div class="notice">
-  <strong>How it works:</strong> ParamHunter v3 uses <strong>10 active discovery methods</strong> with 5-proxy fallback chain, full subdomain enumeration (Crt.sh + DNS-over-HTTPS probe of 80 subdomains), and tracks <strong>exactly where each parameter was found</strong>. Export as plain TXT, Burp Intruder-ready, JSON, or CSV. No GAU, no Wayback, no archive APIs.
-</div>
-
-<!-- ═══ 2-COLUMN LAYOUT ═══════════════════════════════════ -->
-<div class="layout">
-
-  <!-- LEFT COLUMN: Config + Subdomains -->
-  <div id="leftCol">
-
-    <!-- Target Config -->
-    <div class="panel">
-      <div class="panel-head">
-        <div class="ph-bar" style="background:var(--g)"></div>
-        <span class="ph-title" style="color:var(--g)">Target Configuration</span>
-      </div>
-      <div class="panel-body">
-        <label>Target URL</label>
-        <div class="inp-row">
-          <input type="text" id="urlInput" placeholder="https://target.com"
-            onkeydown="if(event.key==='Enter')startScan()"/>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-          <div>
-            <label>Crawl Depth</label>
-            <input type="number" id="depthInput" value="2" min="1" max="4">
+<main>
+  <section id="hero">
+    <div class="container">
+      <div class="hero-inner">
+        <div class="hero-left">
+          <div class="hero-eyebrow">PROFILE_ID: RE-001 · MUMBAI, IN · CLEARANCE: ETHICAL</div>
+          <h1 class="hero-name">
+            <span class="solid">RITESH</span>
+            <span class="outline">EKBOTE</span>
+          </h1>
+          <p class="hero-subtitle">// Offensive Security Researcher &amp; Bug Hunter</p>
+          <p class="hero-bio">Breaking systems ethically — responsible disclosure advocate. CTF competitor. OSINT specialist.</p>
+          <div class="hero-stats">
+            <div class="stat-box"><div class="stat-num counter" data-target="10">0</div><div class="stat-label">+ Bounties</div></div>
+            <div class="stat-box"><div class="stat-num counter" data-target="15">0</div><div class="stat-label">+ CTFs</div></div>
+            <div class="stat-box"><div class="stat-num" style="color:var(--gold);text-shadow:0 0 12px rgba(255,215,0,0.5)">#5</div><div class="stat-label">Best Rank</div></div>
+            <div class="stat-box"><div class="stat-num counter" data-target="3700">0</div><div class="stat-label">+ Followers</div></div>
           </div>
-          <div>
-            <label>Concurrency</label>
-            <input type="number" id="threadsInput" value="3" min="1" max="8">
+          <div class="hero-buttons">
+            <a href="#contact" class="btn-primary">// Engage Now →</a>
+            <a href="#ctf" class="btn-outline">// View CTF Log</a>
           </div>
         </div>
-
-        <button class="btn btn-hunt" id="huntBtn" onclick="startScan()">
-          ⚡ HUNT PARAMETERS
-        </button>
-        <button class="btn btn-r btn-sm" style="width:100%;margin-top:6px;justify-content:center" onclick="resetAll()">
-          ✕ RESET
-        </button>
-      </div>
-    </div>
-
-    <!-- Discovery Methods -->
-    <div class="panel">
-      <div class="panel-head">
-        <div class="ph-bar" style="background:var(--y)"></div>
-        <span class="ph-title" style="color:var(--y)">Discovery Methods</span>
-        <div style="display:flex;gap:4px">
-          <button class="btn btn-xs btn-g" onclick="toggleAllOpts(true)">ALL</button>
-          <button class="btn btn-xs btn-r" onclick="toggleAllOpts(false)">NONE</button>
-        </div>
-      </div>
-      <div class="panel-body">
-        <div class="opts" id="optsGrid"></div>
-      </div>
-    </div>
-
-    <!-- Subdomain Enumeration -->
-    <div class="panel">
-      <div class="panel-head">
-        <div class="ph-bar" style="background:var(--c)"></div>
-        <span class="ph-title" style="color:var(--c)">Subdomain Enumeration</span>
-        <span id="subBadge" style="font-size:9px;color:var(--c);background:var(--c-d);border:1px solid rgba(0,212,255,0.3);padding:2px 8px;border-radius:10px;display:none">0 found</span>
-      </div>
-      <div class="panel-body">
-        <div class="sub-stats">
-          <div class="sub-stat">
-            <div class="sub-stat-n" id="subStatTotal">0</div>
-            <div class="sub-stat-l">Subdomains</div>
-          </div>
-          <div class="sub-stat">
-            <div class="sub-stat-n" id="subStatLive" style="color:var(--g)">0</div>
-            <div class="sub-stat-l">DNS Live</div>
-          </div>
-        </div>
-
-        <div class="btn-row" style="margin-bottom:10px">
-          <button class="btn btn-c btn-sm btn-b" id="subDiscoverBtn" onclick="discoverSubdomains()" style="flex:1;justify-content:center">
-            🔍 DISCOVER SUBS
-          </button>
-          <button class="btn btn-xs btn-g" onclick="selectAllSubs(true)">✓ ALL</button>
-          <button class="btn btn-xs btn-r" onclick="selectAllSubs(false)">✗ NONE</button>
-        </div>
-
-        <div style="font-size:9px;color:var(--tx2);margin-bottom:8px" id="subStatus">
-          Enter target URL above then click Discover Subs
-        </div>
-
-        <div class="sub-list" id="subList">
-          <div style="font-size:10px;color:var(--tx3);text-align:center;padding:20px">
-            No subdomains enumerated yet
+        <div class="hero-right">
+          <div class="badge-container">
+            <div class="badge-float">
+              <div class="orbit orbit-1"></div>
+              <div class="orbit orbit-2"></div>
+              <div class="orbit orbit-3"></div>
+              <div class="badge-core">
+                <div class="badge-icon">🛡️</div>
+                <div class="badge-rank">#5</div>
+                <div class="badge-label">National</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  </section>
 
-  </div><!-- /leftCol -->
-
-  <!-- RIGHT COLUMN: Terminal + Results -->
-  <div id="rightCol">
-
-    <!-- Terminal -->
-    <div class="terminal" id="terminal">
-      <div class="term-bar">
-        <span class="tdot td-r"></span><span class="tdot td-y"></span><span class="tdot td-g"></span>
-        <span class="t-title" id="tTitle">paramhunter v3 — idle</span>
-        <span class="t-live" id="tLive"></span>
-      </div>
-      <div class="t-prog-wrap"><div class="t-prog" id="tProg"></div></div>
-      <div class="t-log" id="tLog"></div>
-      <div class="phase-bar" id="phaseBar"></div>
-    </div>
-
-    <!-- Results -->
-    <div id="resultsSec" style="display:none">
-
-      <!-- Stats -->
-      <div class="stats-row" id="statsRow"></div>
-
-      <!-- Filter bar -->
-      <div class="filter-wrap">
-        <input type="text" class="fb-search" id="fSearch" placeholder="search parameter..." oninput="renderTable()">
-        <button class="fb on" id="fb-all"    onclick="setF('all',this)">All</button>
-        <button class="fb" id="fb-html"   onclick="setF('html',this)">HTML</button>
-        <button class="fb" id="fb-form"   onclick="setF('form',this)">Form</button>
-        <button class="fb" id="fb-js"     onclick="setF('js',this)">JS</button>
-        <button class="fb" id="fb-link"   onclick="setF('link',this)">Link</button>
-        <button class="fb" id="fb-api"    onclick="setF('api',this)">API</button>
-        <button class="fb" id="fb-sub"    onclick="setF('sub',this)">Subdomain</button>
-        <button class="fb" id="fb-word"   onclick="setF('word',this)">Wordlist</button>
-        <div class="sort-group">
-          <span style="font-size:8px;color:var(--tx2)">SORT</span>
-          <button class="sb on" id="sb-risk" onclick="setSort('risk',this)">Risk</button>
-          <button class="sb" id="sb-name" onclick="setSort('name',this)">Name</button>
-          <button class="sb" id="sb-src"  onclick="setSort('src',this)">Source</button>
+  <section id="featured">
+    <div class="container">
+      <div class="section-header reveal"><div class="section-tag">Latest Achievement</div><h2 class="section-title">Latest <span>Win</span></h2></div>
+      <div class="featured-card reveal">
+        <div class="featured-left">
+          <div class="featured-tag"><span class="dot"></span> MOST RECENT · 2025</div>
+          <h3 class="featured-title">OffSec Arctic Howl 2025</h3>
+          <p class="featured-subtitle">// #5 India | #21 Global | 3,400+ Players Worldwide</p>
+          <p class="featured-desc">331 points earned across 36 flags over 4 complete weeks. Covered threat hunting, malware analysis, supply chain attacks, Android security, and cloud forensics.</p>
+          <div class="featured-tags"><span class="tag-chip">Threat Hunting</span><span class="tag-chip">Malware Analysis</span><span class="tag-chip">Supply Chain</span><span class="tag-chip">Android</span><span class="tag-chip">Cloud Forensics</span></div>
         </div>
+        <div class="featured-rank"><div class="rank-num">#21</div><div class="rank-label">Global Rank</div><div class="rank-pts">331 pts · 36 flags</div></div>
       </div>
+    </div>
+  </section>
 
-      <!-- Table -->
-      <div class="tbl-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Parameter</th>
-              <th>Source</th>
-              <th>Risk</th>
-              <th>Where Found</th>
-              <th>Context</th>
-            </tr>
-          </thead>
-          <tbody id="paramBody"></tbody>
+  <section id="ctf">
+    <div class="container">
+      <div class="section-header reveal"><div class="section-tag">Competition Record</div><h2 class="section-title">CTF <span>Log</span></h2></div>
+      <div class="ctf-grid">
+        <div class="ctf-card gold reveal"><div class="ctf-badge">National</div><div class="ctf-rank">#5</div><div class="ctf-name">OWASP Hacker's Gambit 2025</div><div class="ctf-detail">38/40 flags · Team GenZCTF</div></div>
+        <div class="ctf-card gold reveal"><div class="ctf-badge">Global</div><div class="ctf-rank">#14</div><div class="ctf-name">AI vs Human CTF — HackTheBox</div><div class="ctf-detail">2-member team · 2nd in India</div></div>
+        <div class="ctf-card gold reveal"><div class="ctf-badge">Global</div><div class="ctf-rank">#21</div><div class="ctf-name">OffSec Arctic Howl 2025</div><div class="ctf-detail">3,400+ players · 36 flags</div></div>
+        <div class="ctf-card green reveal"><div class="ctf-badge">Global</div><div class="ctf-rank">#18</div><div class="ctf-name">Bugcrowd College Rules CTF</div><div class="ctf-detail">6,725 points</div></div>
+        <div class="ctf-card green reveal"><div class="ctf-badge">National</div><div class="ctf-rank">#21</div><div class="ctf-name">CyberStorm 2025</div><div class="ctf-detail">Mumbai's Largest CTF</div></div>
+        <div class="ctf-card green reveal"><div class="ctf-badge">Global</div><div class="ctf-rank">#22</div><div class="ctf-name">Black Hat USA CTF 2025</div><div class="ctf-detail">Bugcrowd hosted · Advanced RE</div></div>
+        <div class="ctf-card cyan reveal"><div class="ctf-badge">Global</div><div class="ctf-rank">#42</div><div class="ctf-name">NahamCon 2025</div><div class="ctf-detail">8,127 points</div></div>
+        <div class="ctf-card cyan reveal"><div class="ctf-badge">Global</div><div class="ctf-rank">#130</div><div class="ctf-name">Snyk Fetch The Flag 2025</div><div class="ctf-detail">2,660 points</div></div>
+        <div class="ctf-card cyan reveal"><div class="ctf-badge">Global</div><div class="ctf-rank">#140</div><div class="ctf-name">HTB Cyber Apocalypse 2025</div><div class="ctf-detail">64/77 challenges · 46,775 pts</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="bounties">
+    <div class="container">
+      <div class="section-header reveal"><div class="section-tag">Responsible Disclosure</div><h2 class="section-title">Bug Bounty <span>Disclosures</span></h2></div>
+      <div class="reveal" style="overflow-x:auto">
+        <table class="bounties-table">
+          <thead><tr><th>ID</th><th>Company</th><th>Vulnerability Type</th><th>Description</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td class="vuln-id">VULN-001</td><td class="vuln-company">Nykaa</td><td class="vuln-type">Admin Exposure + API Key Leak</td><td>Unrestricted admin panel access combined with exposed production API keys.</td><td><span class="result-badge result-hof">Hall of Fame</span></td></tr>
+            <tr><td class="vuln-id">VULN-002</td><td class="vuln-company">Zerodha</td><td class="vuln-type">OSINT Chain + Info Disclosure</td><td>Advanced OSINT chain revealing significant information disclosure.</td><td><span class="result-badge result-bounty">Bounty ✓</span></td></tr>
+            <tr><td class="vuln-id">VULN-003</td><td class="vuln-company">BrandMuscle</td><td class="vuln-type">Bug Hunt Program</td><td>Security vulnerability with real business impact.</td><td><span class="result-badge result-bounty">$100+ Bounty</span></td></tr>
+            <tr><td class="vuln-id">VULN-004</td><td class="vuln-company">DTDC</td><td class="vuln-type">Brand Impersonation</td><td>LinkedIn slug sanitization bypass enabling lookalike company page.</td><td><span class="result-badge result-ack">P4 Fixed</span></td></tr>
+            <tr><td class="vuln-id">VULN-005</td><td class="vuln-company">Com Olho Platform</td><td class="vuln-type">Multiple Programs</td><td>Consistent researcher presence across multiple programs.</td><td><span class="result-badge result-bounty">Multi-Bounty</span></td></tr>
+          </tbody>
         </table>
       </div>
+    </div>
+  </section>
 
-      <!-- Export bar -->
-      <div class="export-bar">
-        <button class="btn btn-g btn-sm" onclick="openTxtModal()">📄 Plain TXT</button>
-        <button class="btn btn-y btn-sm" onclick="exportBurpTxt()">🎯 Burp Intruder</button>
-        <button class="btn btn-b btn-sm" onclick="exportJSON()">📦 JSON</button>
-        <button class="btn btn-p btn-sm" onclick="exportCSV()">📊 CSV</button>
-        <button class="btn btn-r btn-sm" onclick="exportBurpXML()">🔴 Burp XML</button>
-        <button class="btn btn-sm" style="background:var(--o-d);color:var(--o);border:1px solid rgba(255,140,0,0.3)" onclick="copyAllParams()">📋 Copy Names</button>
+  <section id="services">
+    <div class="container">
+      <div class="section-header reveal"><div class="section-tag">What I Offer</div><h2 class="section-title">Security <span>Services</span></h2></div>
+      <div class="services-grid">
+        <div class="service-card reveal"><div class="service-num">01 ——</div><div class="service-icon">🌐</div><div class="service-name">Web App Penetration Testing</div><div class="service-note">Comprehensive assessment against OWASP Top 10 and beyond.</div><div class="service-tags"><span class="service-tag">OWASP Top 10</span><span class="service-tag">Auth Bypass</span><span class="service-tag">SQLi</span><span class="service-tag">XSS</span><span class="service-tag">IDOR</span></div></div>
+        <div class="service-card reveal"><div class="service-num">02 ——</div><div class="service-icon">🔌</div><div class="service-name">API Security Testing</div><div class="service-note">Deep REST, GraphQL, and SOAP API security reviews.</div><div class="service-tags"><span class="service-tag">JWT Audit</span><span class="service-tag">SSRF</span><span class="service-tag">BOLA</span><span class="service-tag">GraphQL</span></div></div>
+        <div class="service-card reveal"><div class="service-num">03 ——</div><div class="service-icon">🔍</div><div class="service-name">OSINT & Recon Services</div><div class="service-note">Advanced open-source intelligence gathering.</div><div class="service-tags"><span class="service-tag">Brand Intel</span><span class="service-tag">Dark Web</span><span class="service-tag">Subdomain Enum</span></div></div>
+        <div class="service-card reveal"><div class="service-num">04 ——</div><div class="service-icon">📋</div><div class="service-name">VAPT & Vulnerability Assessment</div><div class="service-note">Structured assessment with executive-ready reports.</div><div class="service-tags"><span class="service-tag">CVSS Scoring</span><span class="service-tag">Risk Priority</span><span class="service-tag">Exec Report</span></div></div>
+        <div class="service-card reveal"><div class="service-num">05 ——</div><div class="service-icon">🎓</div><div class="service-name">Bug Bounty Mentorship</div><div class="service-note">Proven mentorship: guided Ankita Kumari from rank #1000 → #226.</div><div class="service-tags"><span class="service-tag">1:1 Coaching</span><span class="service-tag">Methodology</span><span class="service-tag">Program Setup</span></div></div>
+        <div class="service-card reveal"><div class="service-num">06 ——</div><div class="service-icon">🔴</div><div class="service-name">Red Team & CTF Design</div><div class="service-note">Adversarial simulation and custom CTF challenge design.</div><div class="service-tags"><span class="service-tag">Red Teaming</span><span class="service-tag">CTF Design</span><span class="service-tag">Blue Team Training</span></div></div>
       </div>
+    </div>
+  </section>
 
-    </div><!-- /resultsSec -->
+  <section id="skills">
+    <div class="container">
+      <div class="section-header reveal"><div class="section-tag">Technical Proficiency</div><h2 class="section-title">Offensive <span>Arsenal</span></h2></div>
+      <div class="skills-grid">
+        <div class="skill-group reveal" id="skills-left">
+          <div class="skill-group-title">// Offensive Techniques</div>
+          <div class="skill-item"><div class="skill-header"><span class="skill-name">OSINT & Recon</span><span class="skill-pct">95%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-width="95"></div></div></div>
+          <div class="skill-item"><div class="skill-header"><span class="skill-name">Web Exploitation</span><span class="skill-pct">92%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-width="92"></div></div></div>
+          <div class="skill-item"><div class="skill-header"><span class="skill-name">API Security Testing</span><span class="skill-pct">90%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-width="90"></div></div></div>
+          <div class="skill-item"><div class="skill-header"><span class="skill-name">Privilege Escalation</span><span class="skill-pct">85%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-width="85"></div></div></div>
+          <div class="skill-item"><div class="skill-header"><span class="skill-name">Reverse Engineering</span><span class="skill-pct">78%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-width="78"></div></div></div>
+        </div>
+        <div class="skill-group reveal" id="skills-right">
+          <div class="skill-group-title">// Tools & Domains</div>
+          <div class="skill-item"><div class="skill-header"><span class="skill-name">Burp Suite / Postman</span><span class="skill-pct">93%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-width="93"></div></div></div>
+          <div class="skill-item"><div class="skill-header"><span class="skill-name">Python Scripting</span><span class="skill-pct">82%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-width="82"></div></div></div>
+          <div class="skill-item"><div class="skill-header"><span class="skill-name">Cryptography</span><span class="skill-pct">80%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-width="80"></div></div></div>
+          <div class="skill-item"><div class="skill-header"><span class="skill-name">Digital Forensics</span><span class="skill-pct">77%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-width="77"></div></div></div>
+          <div class="skill-item"><div class="skill-header"><span class="skill-name">Threat Hunting / YARA</span><span class="skill-pct">75%</span></div><div class="skill-bar-bg"><div class="skill-bar-fill" data-width="75"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  </div><!-- /rightCol -->
-</div><!-- /layout -->
-</div><!-- /wrap -->
+  <section id="certs">
+    <div class="container">
+      <div class="section-header reveal"><div class="section-tag">Credentials</div><h2 class="section-title">Certifications &amp; <span>Training</span></h2></div>
+      <div class="certs-grid">
+        <div class="cert-card reveal"><div class="cert-icon">🛡️</div><div class="cert-name">CNSP — Certified Network Security Pro</div><div class="cert-issuer">The SecOps Group</div></div>
+        <div class="cert-card reveal"><div class="cert-icon">🔌</div><div class="cert-name">ACP — API Security Professional</div><div class="cert-issuer">APIsec University</div></div>
+        <div class="cert-card reveal"><div class="cert-icon">⚔️</div><div class="cert-name">API Penetration Testing</div><div class="cert-issuer">APIsec University · 12hr Labs</div></div>
+        <div class="cert-card reveal"><div class="cert-icon">🌐</div><div class="cert-name">Intro to Cybersecurity</div><div class="cert-issuer">Cisco Networking Academy</div></div>
+        <div class="cert-card reveal"><div class="cert-icon">🎄</div><div class="cert-name">Advent of Cyber 2024</div><div class="cert-issuer">TryHackMe · 25-day Challenge</div></div>
+        <div class="cert-card reveal"><div class="cert-icon">🐧</div><div class="cert-name">Linux PrivEsc Badge</div><div class="cert-issuer">TryHackMe</div></div>
+        <div class="cert-card reveal"><div class="cert-icon">🎯</div><div class="cert-name">YARA Threat Hunting Lab</div><div class="cert-issuer">TryHackMe</div></div>
+        <div class="cert-card reveal"><div class="cert-icon">💳</div><div class="cert-name">Mastercard Cybersecurity Program</div><div class="cert-issuer">Forage</div></div>
+      </div>
+    </div>
+  </section>
 
-<!-- ═══ FOOTER ════════════════════════════════════════════ -->
+  <section id="contact">
+    <div class="container">
+      <div class="section-header reveal"><div class="section-tag">Get In Touch</div><h2 class="section-title">Ready to <span>Engage</span></h2></div>
+      <div class="contact-grid">
+        <div class="contact-left reveal">
+          <p class="contact-pitch">Looking for a security researcher who delivers results? With proven CVEs, Hall of Fame recognition at major Indian platforms, and elite CTF rankings globally — I bring both the methodology and the mindset to find what others miss.</p>
+          <ul class="why-list">
+            <li class="why-item"><span class="why-icon">🏆</span><div class="why-text"><strong>Proven Track Record</strong><span>Nykaa, Zerodha, DTDC, BrandMuscle Hall of Fame entries + bounties</span></div></li>
+            <li class="why-item"><span class="why-icon">🌍</span><div class="why-text"><strong>Elite CTF Credentials</strong><span>Top 22 Black Hat USA, Top 14 AI vs Human (HackTheBox), #5 National</span></div></li>
+            <li class="why-item"><span class="why-icon">📋</span><div class="why-text"><strong>Professional Deliverables</strong><span>CVSS report, PoC documentation, remediation guidance, and retest included</span></div></li>
+            <li class="why-item"><span class="why-icon">🔒</span><div class="why-text"><strong>Ethics First</strong><span>Coordinated disclosure, NDA available on request, zero data exfiltration</span></div></li>
+          </ul>
+        </div>
+        <div class="contact-right reveal">
+          <div class="terminal-panel">
+            <div class="terminal-header"><span class="terminal-title">// Contact Terminal</span><div class="terminal-status"><div class="pulse-dot"></div>Available Now</div></div>
+            <div class="terminal-body">
+              <a href="mailto:contact@genzctf.com" class="email-btn"><span>contact@genzctf.com</span><span class="arrow">→</span></a>
+              <ul class="services-check"><li>Web App & API Penetration Testing</li><li>OSINT & Reconnaissance Services</li><li>VAPT & Vulnerability Assessment</li><li>Bug Bounty Mentorship Programs</li><li>Red Team & CTF Challenge Design</li></ul>
+              <p class="terminal-note">Response within 24 hours. NDA available on request.</p>
+            </div>
+          </div>
+          <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;">
+            <a href="https://linkedin.com/in/ritesh-ekbote" target="_blank" class="btn-outline" style="font-size:0.75rem;padding:10px 20px">LinkedIn ↗</a>
+            <a href="https://tryhackme.com/p/ritesh8975" target="_blank" class="btn-outline" style="font-size:0.75rem;padding:10px 20px;border-color:var(--cyan);color:var(--cyan)">TryHackMe ↗</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
 <footer>
-  <div class="footer-inner">
-    <div class="footer-brand">GENZ<em>CTF</em>.XYZ</div>
-    <div class="footer-tag">HACKING IS AN ART — WE ARE THE ARTISTS</div>
-    <div class="footer-divider"></div>
-    <div class="footer-links">
-      <a href="https://genzctf.xyz" target="_blank">🌐 Website</a>
-      <a href="#" onclick="return false">🐞 Bug Bounty</a>
-      <a href="#" onclick="return false">📚 Resources</a>
-      <a href="#" onclick="return false">💬 Community</a>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">RITESH EKBOTE</div>
+      <ul class="footer-links"><li><a href="mailto:contact@genzctf.com">Email</a></li><li><a href="https://linkedin.com/in/ritesh-ekbote" target="_blank">LinkedIn</a></li><li><a href="https://tryhackme.com/p/ritesh8975" target="_blank">TryHackMe</a></li><li><a href="#services">Services</a></li></ul>
+      <div class="footer-copy">© 2025 Ritesh Ekbote · Offensive Security Researcher</div>
     </div>
-    <div class="footer-copy">
-      ParamHunter v3 — Created by <strong>Ritesh Ekbote</strong> &nbsp;|&nbsp; <strong>GenzCTF.xyz</strong>
-    </div>
-    <div class="footer-god blink">⚡ WE ARE PARAMETER GOD ⚡</div>
   </div>
 </footer>
 
+<button class="terminal-toggle" id="termToggle" onclick="toggleTerminal()"><span>▶_</span> Open Terminal</button>
+
+<div class="cmd-terminal" id="cmdTerminal">
+  <div class="cmd-terminal-header"><span class="cmd-terminal-title">ritesh@genzctf:~$</span><button class="cmd-close-btn" onclick="toggleTerminal()">✕ close</button></div>
+  <div class="cmd-terminal-body" id="cmdOutput"><div class="cmd-line-green">Welcome to RE-001 Terminal v1.0.0</div><div class="cmd-line-dim">Type <span class="cmd-line-green">help</span> for available commands.</div><br></div>
+  <div class="cmd-input-row"><span class="cmd-prompt">ritesh@genzctf:~$</span><input type="text" class="cmd-input" id="cmdInput" placeholder="type a command..." autocomplete="off" spellcheck="false"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-// ════════════════════════════════════════════════════════════
-//  CONSTANTS
-// ════════════════════════════════════════════════════════════
-const METHODS = [
-  {id:'html',  label:'HTML Inputs',       desc:'input/select/textarea names + types', on:true},
-  {id:'form',  label:'Form Hidden Fields', desc:'hidden inputs, form actions',          on:true},
-  {id:'js',    label:'JS Deep Mining',    desc:'20+ regex patterns on scripts',        on:true},
-  {id:'link',  label:'Link Params',       desc:'href/action URL query strings',        on:true},
-  {id:'meta',  label:'Meta / Data-attrs', desc:'data-* attributes & meta names',       on:true},
-  {id:'api',   label:'API / JSON Keys',   desc:'JSON-LD, fetch responses, obj keys',   on:true},
-  {id:'cookie',label:'Cookie Mining',     desc:'Set-Cookie header param names',        on:true},
-  {id:'comment',label:'HTML Comments',   desc:'commented-out params/keys in HTML',    on:true},
-  {id:'word',  label:'Smart Wordlist',    desc:'380+ context-aware param candidates',  on:true},
-];
+  (function(){
+    // ═══════════════════════════════════════════════════════════════════════
+    // THREE.JS BACKGROUND – ENHANCED WITH 4D HYPERCUBE + MULTI-DIMENSIONAL FIELDS
+    // ═══════════════════════════════════════════════════════════════════════
+    const canvas = document.getElementById('bg-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x020408, 0);
 
-const PROXIES = [
-  { url: u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`, parse: async r => { const j=await r.json(); return j.contents||''; } },
-  { url: u => `https://corsproxy.io/?${encodeURIComponent(u)}`, parse: async r => r.text() },
-  { url: u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`, parse: async r => r.text() },
-  { url: u => `https://thingproxy.freeboard.io/fetch/${u}`, parse: async r => r.text() },
-  { url: u => `https://jsonp.afeld.me/?url=${encodeURIComponent(u)}`, parse: async r => r.text() },
-];
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 2, 38);
+    
+    // Lighting for depth
+    const ambient = new THREE.AmbientLight(0x404060);
+    scene.add(ambient);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    dirLight.position.set(10, 20, 5);
+    scene.add(dirLight);
 
-const SUBDOMAIN_WORDLIST = [
-  'www','api','app','mail','smtp','ftp','dev','staging','beta','test','sandbox','uat',
-  'admin','portal','dashboard','panel','manage','management','console','control',
-  'static','cdn','assets','media','img','images','files','upload','uploads','downloads','dl',
-  'blog','shop','store','ecommerce','payment','checkout','billing','invoice','pay',
-  'auth','login','sso','oauth','id','accounts','account','user','users','member','members',
-  'support','help','docs','wiki','kb','faq','status','health','ping','monitor','metrics',
-  'api2','api3','api-v2','v1','v2','v3','v4','internal','private','public','ext','external',
-  'mobile','m','wap','app1','app2','web','webapp','webapi',
-  'old','legacy','backup','archive','secure','ssl','vpn','proxy',
-  'search','analytics','track','tracking','stats','data','report','reports',
-  'chat','ws','websocket','realtime','socket','stream','events','push','notify',
-  'db','database','cache','redis','elastic','es','queue','jobs','worker','cron',
-  'git','gitlab','github','jenkins','ci','cd','deploy','k8s','ops','devops',
-  'mx','ns','ns1','ns2','ns3','ns4','mail2','smtp2','imap','pop','pop3','webmail',
-  'forum','community','social','hub','gateway','edge','node','cluster',
-];
+    // ─── PARTICLE FIELDS (multiple dimensions) ───────────────────────────────
+    function createParticleField(count, size, colorArray, range, speedFactor) {
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(count * 3);
+      const col = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        pos[i*3] = (Math.random() - 0.5) * range.x;
+        pos[i*3+1] = (Math.random() - 0.5) * range.y;
+        pos[i*3+2] = (Math.random() - 0.5) * range.z;
+        const c = colorArray[Math.floor(Math.random() * colorArray.length)];
+        col[i*3] = c[0]; col[i*3+1] = c[1]; col[i*3+2] = c[2];
+      }
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      const mat = new THREE.PointsMaterial({ size, vertexColors: true, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending });
+      const points = new THREE.Points(geo, mat);
+      points.userData = { speed: speedFactor, range };
+      return points;
+    }
 
-const WORDLIST = [
-  'token','access_token','refresh_token','id_token','bearer','auth','auth_token','authorization',
-  'api_key','apikey','api_token','secret','secret_key','private_key','client_id','client_secret',
-  'password','pass','pwd','passwd','confirm_password','old_password','new_password',
-  'username','user','email','login','signin','signup','register','logout',
-  'session','session_id','sid','jwt','nonce','csrf','csrf_token','xsrf','_token','authenticity_token',
-  'id','uid','uuid','user_id','account_id','customer_id','object_id','record_id','entity_id',
-  'page','p','pg','page_num','offset','limit','count','per_page','page_size','start','end','cursor',
-  'view','tab','section','module','action','method','type','mode','step','stage','state','status',
-  'query','q','search','s','keyword','keywords','term','terms','text','phrase','q2',
-  'filter','filters','sort','sort_by','order','order_by','orderby','direction','asc','desc',
-  'category','cat','tag','tags','label','labels','group','class','scope',
-  'url','redirect','redirect_url','redirect_uri','return','return_url','next','continue',
-  'callback','callbackUrl','goto','back','after','destination','dest','target','ref','referrer',
-  'origin','host','domain','subdomain','base_url','endpoint',
-  'file','filename','file_name','filepath','file_path','path','dir','directory',
-  'src','source','href','link','image','img','photo','avatar','thumbnail','thumb',
-  'upload','download','attachment','document','doc','pdf','format','ext','mime','content_type',
-  'debug','test','dev','verbose','log','trace','preview','draft','sandbox','mock','env',
-  'version','v','ver','revision','build','environment','config',
-  'date','from_date','to_date','start_date','end_date','created_at','updated_at',
-  'timestamp','time','since','until','before','after_date','period','interval','duration',
-  'output','response_type','fields','include','exclude','expand','embed',
-  'locale','lang','language','region','country','currency','timezone','tz',
-  'theme','skin','layout','template','view_type',
-  'utm_source','utm_medium','utm_campaign','utm_term','utm_content',
-  'tracking_id','track','analytics','ga','fbclid','gclid','clickid',
-  'data','payload','body','content','message','description','title','name',
-  'value','values','param','params','args','options','settings','metadata','meta',
-  'request_id','transaction_id','order_id','invoice_id','product_id','item_id',
-  'post_id','comment_id','thread_id','group_id','org_id','project_id','task_id',
-  'admin','role','roles','permission','permissions','grant','access',
-  'ip','address','location','geo','latitude','longitude','zip','postal',
-  'phone','mobile','number','code','pin','otp','verify','validation','activate',
-  'width','height','size','quality','resolution','color',
-  'status','enabled','disabled','active','deleted','archived','published',
-  'created_by','updated_by','owner','author','user_agent','client',
-  'sign','signature','hash','checksum','digest','mac','hmac',
-  'price','amount','quantity','total','discount','tax','fee',
-  'next_page','prev_page','after_cursor','before_cursor','pagination',
-  'include_deleted','with_trashed','soft_delete',
-  'retry','attempt','timeout','max_retries',
-  'key','public_key','private','scope','grant_type','response_type',
-  'sort_order','sort_field','order_field','group_by','having',
-  'format','output_format','encoding','charset','return_format',
-  'notify','notification','subscribe','unsubscribe','webhook',
-  'app_id','app_key','device_id','device_token','push_token',
-  'referral','referral_code','promo','promo_code','coupon','voucher',
-  'search_type','search_mode','match','exact','fuzzy','boost',
-  'parent_id','root_id','tree','path','slug','alias','permalink',
-  'depth','level','limit_depth','recursive','flatten',
-  'created','modified','expires','expiry','valid_until','ttl',
-  'cache','cache_key','cache_ttl','no_cache','bypass_cache',
-  'render','partial','component','widget','block','section_id',
-];
+    const palette = [[0,1,0.53],[0,0.83,1],[1,0,0.43],[0.8,0.2,1]];
+    const field1 = createParticleField(1800, 0.18, palette, new THREE.Vector3(140, 90, 100), 0.0004);
+    const field2 = createParticleField(800, 0.25, [[0.2,1,0.8],[0.5,0.8,1]], new THREE.Vector3(200, 120, 150), 0.0007);
+    const field3 = createParticleField(500, 0.35, [[1,0.4,0.8],[0.8,1,0.2]], new THREE.Vector3(250, 150, 200), 0.001);
+    scene.add(field1); scene.add(field2); scene.add(field3);
 
-// ════════════════════════════════════════════════════════════
-//  STATE
-// ════════════════════════════════════════════════════════════
-const G = {
-  results:[], subdomains:[], filter:'all', sort:'risk',
-  scanning:false, startTime:0, pages:0,
-  modalFilter:'all',
-};
-
-// ════════════════════════════════════════════════════════════
-//  BUILD OPTION TOGGLES
-// ════════════════════════════════════════════════════════════
-(function buildOpts(){
-  const c = document.getElementById('optsGrid');
-  METHODS.forEach(m => {
-    const d = document.createElement('div');
-    d.className = 'opt' + (m.on ? ' on' : '');
-    d.id = 'opt_' + m.id;
-    d.onclick = () => d.classList.toggle('on');
-    d.innerHTML = `<div class="opt-led"></div><div class="opt-txt"><div class="opt-name">${m.label}</div><span class="opt-desc">${m.desc}</span></div>`;
-    c.appendChild(d);
-  });
-})();
-
-function toggleAllOpts(on) {
-  METHODS.forEach(m => document.getElementById('opt_'+m.id).classList.toggle('on', on));
-}
-function isOn(id){ return document.getElementById('opt_'+id)?.classList.contains('on') ?? false; }
-
-// ════════════════════════════════════════════════════════════
-//  LOGGING
-// ════════════════════════════════════════════════════════════
-function tlog(msg, type='d') {
-  const el = document.getElementById('tLog');
-  const d = document.createElement('div');
-  d.className = 'tl';
-  const ts = new Date().toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  d.innerHTML = `<span class="tl-ts">${ts}</span><span class="tl-m c${type}">${msg}</span>`;
-  el.appendChild(d);
-  el.scrollTop = el.scrollHeight;
-  document.getElementById('tLive').textContent = G.results.length ? `⚡ ${G.results.length} found` : '';
-}
-
-function setProgress(p){
-  document.getElementById('tProg').style.width = Math.min(100,p) + '%';
-}
-
-function setStatus(state, text) {
-  const dot = document.getElementById('statusDot');
-  const txt = document.getElementById('statusText');
-  dot.className = 'status-dot ' + (state === 'scan' ? 'live' : state === 'err' ? 'err' : '');
-  txt.textContent = text;
-  txt.style.color = state === 'scan' ? 'var(--g)' : state === 'err' ? 'var(--r)' : 'var(--tx2)';
-}
-
-function buildPhases(list) {
-  document.getElementById('phaseBar').innerHTML = list.map(p => `<div class="ph">${p}</div>`).join('');
-}
-function setPhase(i) {
-  document.querySelectorAll('.ph').forEach((el,j) => {
-    el.className = 'ph' + (j===i?' active':j<i?' done':'');
-  });
-}
-
-// ════════════════════════════════════════════════════════════
-//  FETCH ENGINE
-// ════════════════════════════════════════════════════════════
-async function fetchWithProxy(url, timeout=12000) {
-  for (let i=0; i<PROXIES.length; i++) {
-    try {
-      const purl = PROXIES[i].url(url);
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), timeout);
-      const resp = await fetch(purl, { signal: ctrl.signal });
-      clearTimeout(t);
-      if (!resp.ok) throw new Error(`${resp.status}`);
-      const content = await PROXIES[i].parse(resp);
-      if (!content || content.length < 50) throw new Error('empty');
-      return { content, proxyIdx: i };
-    } catch {}
-  }
-  throw new Error('All proxies exhausted');
-}
-
-// ════════════════════════════════════════════════════════════
-//  RESULT ENGINE
-// ════════════════════════════════════════════════════════════
-const RISK_HIGH = /token|secret|password|pass(?:wd?)?$|auth|key|api[_-]?key|jwt|bearer|session|csrf|nonce|private|credential|hmac|signature|sign|hash|otp|pin|ssn|cvv|credit|private_key|client_secret/i;
-const RISK_MED  = /^id$|uid|user|email|debug|test|admin|redirect|url|file|path|src|ref|callback|upload|download|role|permission|grant|access|scope|ip|address|env|config|token/i;
-
-function riskOf(p){
-  if (RISK_HIGH.test(p)) return 'high';
-  if (RISK_MED.test(p))  return 'med';
-  return 'low';
-}
-
-function addParam(param, source, url, notes) {
-  if (!param) return;
-  param = param.trim();
-  if (param.length < 2 || param.length > 64) return;
-  if (!/^[a-zA-Z_$][a-zA-Z0-9_$\-\.]*$/.test(param)) return;
-  if (/^(var|let|const|function|return|if|else|for|while|class|new|this|true|false|null|undefined|import|export|from|async|await|typeof|instanceof)$/.test(param)) return;
-  const existing = G.results.find(r => r.param === param && r.source === source);
-  if (existing) {
-    // Enrich with more found URLs
-    if (url && !existing.foundUrls.includes(url)) existing.foundUrls.push(url);
-    return;
-  }
-  G.results.push({
-    param, source, url: url||'', notes: notes||'',
-    risk: riskOf(param),
-    foundUrls: url ? [url] : [],
-  });
-}
-
-// ════════════════════════════════════════════════════════════
-//  PARSERS
-// ════════════════════════════════════════════════════════════
-function parseUrlQS(url, pageUrl) {
-  try {
-    const u = new URL(url, pageUrl||url);
-    u.searchParams.forEach((v,k) => addParam(k, 'link', url, `URL query: ${v.slice(0,30)||'(empty)'}`));
-  } catch {}
-}
-
-function parseHTML(html, pageUrl) {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-
-  if (isOn('html') || isOn('form')) {
-    doc.querySelectorAll('input[name],select[name],textarea[name],button[name]').forEach(el => {
-      const n = el.name; if (!n) return;
-      const src = (el.type==='hidden' || el.tagName==='INPUT') ? (el.type==='hidden' ? 'form' : 'html') : 'html';
-      addParam(n, src, pageUrl, `<${el.tagName.toLowerCase()} type="${el.type||'text'}"${el.value?` value="${el.value.slice(0,25)}"`:''}`);
-    });
-  }
-
-  if (isOn('link')) {
-    doc.querySelectorAll('a[href]').forEach(el => parseUrlQS(el.href, pageUrl));
-    doc.querySelectorAll('form[action]').forEach(el => parseUrlQS(el.action, pageUrl));
-  }
-
-  if (isOn('meta')) {
-    doc.querySelectorAll('[data-*]').forEach(el => {
-      [...el.attributes].filter(a=>a.name.startsWith('data-')).forEach(a => {
-        const p = a.name.slice(5).replace(/-([a-z])/g,(_,c)=>c.toUpperCase()).replace(/[^a-zA-Z0-9_]/g,'');
-        if (p && p.length>=2) addParam(p, 'meta', pageUrl, `data-attr: ${a.name}="${a.value.slice(0,25)}"`);
+    // ─── 4D HYPERCUBE (TESSERACT) ──────────────────────────────────────────
+    function createTesseractEdges(scale = 8) {
+      const vertices = [];
+      for (let i = 0; i < 16; i++) {
+        const x = (i & 1) ? 1 : -1;
+        const y = (i & 2) ? 1 : -1;
+        const z = (i & 4) ? 1 : -1;
+        const w = (i & 8) ? 1 : -1;
+        vertices.push(new THREE.Vector4(x, y, z, w));
+      }
+      
+      const edges = [];
+      for (let i = 0; i < 16; i++) {
+        for (let j = i+1; j < 16; j++) {
+          let diff = 0;
+          for (let k = 0; k < 4; k++) if (Math.abs(vertices[i].getComponent(k) - vertices[j].getComponent(k)) > 0.1) diff++;
+          if (diff === 1) edges.push([vertices[i], vertices[j]]);
+        }
+      }
+      
+      const points = [];
+      edges.forEach(edge => {
+        const p1 = edge[0], p2 = edge[1];
+        for (let t = 0; t <= 1; t+=0.05) {
+          const v = new THREE.Vector4().lerpVectors(p1, p2, t);
+          // Stereographic projection (4D -> 3D)
+          const w = v.w;
+          const denom = (1 - w * 0.25);
+          const proj = new THREE.Vector3(v.x, v.y, v.z).multiplyScalar(scale / denom);
+          points.push(proj.x, proj.y, proj.z);
+        }
       });
-    });
-    doc.querySelectorAll('meta[name],meta[property]').forEach(el => {
-      const n = el.getAttribute('name')||el.getAttribute('property')||'';
-      if (n && !/^(viewport|description|keywords|author|robots|generator|og:|twitter:|fb:)/.test(n))
-        addParam(n.replace(/[:\-\.]/g,'_'), 'meta', pageUrl, `<meta name="${n}">`);
-    });
-  }
-
-  if (isOn('api')) {
-    doc.querySelectorAll('script[type="application/ld+json"],script[type="application/json"]').forEach(el => {
-      try { mineObject(JSON.parse(el.textContent), pageUrl, 'api', 0); } catch {}
-    });
-  }
-
-  if (isOn('comment')) {
-    const comments = [];
-    const walker = doc.createTreeWalker(doc, 128);
-    let n;
-    while ((n = walker.nextNode())) comments.push(n.textContent);
-    comments.forEach(c => {
-      // look for param-like patterns in comments
-      const re = /(?:param|key|field|var|name)\s*[:=]\s*['"]?(\w{2,40})['"]?/gi;
-      let m;
-      while ((m = re.exec(c)) !== null) {
-        if (isParamLike(m[1])) addParam(m[1], 'html', pageUrl, `HTML comment: "${c.slice(0,50).trim()}"`);
-      }
-    });
-  }
-
-  return doc;
-}
-
-function mineObject(obj, url, src, depth) {
-  if (depth>5 || !obj || typeof obj !== 'object') return;
-  for (const k of Object.keys(obj)) {
-    if (isParamLike(k)) addParam(k, src, url, `JSON key depth=${depth}`);
-    if (typeof obj[k]==='object') mineObject(obj[k], url, src, depth+1);
-  }
-}
-
-// JS Mining — 22 patterns
-const JS_RX = [
-  [/[?&](\w{2,35})=/g, 1, null],
-  [/searchParams\.(?:get|set|append|has|delete)\s*\(\s*['"`](\w{2,40})['"`]/gi, 1, null],
-  [/new\s+URLSearchParams\s*\(\s*\{([^}]{1,500})\}/g, 1, 'obj'],
-  [/(?:formData|form|fd)\.append\s*\(\s*['"`](\w{2,40})['"`]/gi, 1, null],
-  [/(?:params|data|body|payload|options|config|opts)\[['"`](\w{2,40})['"`]\]/g, 1, null],
-  [/\b(?:params|data|body|payload|opts)\s*\.\s*(\w{2,35})\b(?!\s*\()/g, 1, null],
-  [/params\s*:\s*\{([^}]{1,500})\}/g, 1, 'obj'],
-  [/(?:qs|querystring)\.stringify\s*\(\s*\{([^}]{1,500})\}/g, 1, 'obj'],
-  [/\$\.ajax\s*\(\s*\{[^}]*?data\s*:\s*\{([^}]{1,500})\}/gs, 1, 'obj'],
-  [/axios\.\w+\s*\(\s*['"`][^'"`]+['"`]\s*,\s*\{([^}]{1,500})\}/g, 1, 'obj'],
-  [/(?:req|request)\.(?:query|body|params)\s*\.\s*(\w{2,35})\b/g, 1, null],
-  [/(?:req|request)\.(?:query|body|params)\s*\[\s*['"`](\w{2,35})['"`]\s*\]/g, 1, null],
-  [/defineProps\s*\(\s*\{([^}]{1,500})\}/g, 1, 'obj'],
-  [/(?:v-model|ng-model|formControlName)\s*=\s*['"`]([\w.]{2,40})['"`]/g, 1, null],
-  [/(?:getState|useState|useSelector)\s*\(\s*['"`](\w{2,35})['"`]/g, 1, null],
-  [/['"`]([\w_]{3,30})['"`]\s*:\s*(?:required|optional)\b/g, 1, null],
-  [/emit\s*\(\s*['"`](\w{2,35})['"`]/g, 1, null],
-  [/headers\s*:\s*\{([^}]{1,400})\}/g, 1, 'obj'],
-  [/body\s*:\s*JSON\.stringify\s*\(\s*\{([^}]{1,500})\}/g, 1, 'obj'],
-  [/fetch\s*\(\s*`[^`]*\$\{[^}]*\}\s*\?([^`]{1,200})/g, 1, 'qs'],
-  [/(?:router|route)\.(?:query|params)\s*\.\s*(\w{2,35})/g, 1, null],
-  [/\$route\.(?:query|params)\s*\.\s*(\w{2,35})/g, 1, null],
-];
-
-function mineJS(code, url) {
-  if (!isOn('js') || !code) return;
-  JS_RX.forEach(([re, grp, mode]) => {
-    const rx = new RegExp(re.source, re.flags);
-    let m;
-    while ((m = rx.exec(code)) !== null) {
-      const v = m[grp]||'';
-      if (mode === 'obj') {
-        v.split(',').forEach(pair => {
-          const k = pair.split(':')[0].trim().replace(/[`'" ]/g,'');
-          if (isParamLike(k)) addParam(k, 'js', url, 'object key in JS');
-        });
-      } else if (mode === 'qs') {
-        v.split('&').forEach(pair => {
-          const k = pair.split('=')[0].trim();
-          if (isParamLike(k)) addParam(k, 'js', url, 'template literal URL');
-        });
-      } else if (isParamLike(v)) {
-        addParam(v, 'js', url, re.source.slice(0,40));
-      }
+      
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+      const mat = new THREE.LineBasicMaterial({ color: 0x00ff88 });
+      return new THREE.LineSegments(geo, mat);
     }
-  });
-}
 
-function isParamLike(s) {
-  if (!s||typeof s!=='string') return false;
-  s=s.trim();
-  if (s.length<2||s.length>50) return false;
-  if (!/^[a-zA-Z_$]/.test(s)) return false;
-  if (/^(var|let|const|function|return|if|else|for|while|switch|case|break|continue|class|new|this|super|true|false|null|undefined|import|export|from|default|async|await|typeof|instanceof|void|delete|throw|try|catch|finally|in|of|do|with|yield|debugger|extends|static|get|set|String|Number|Boolean|Object|Array|Promise|Error|console|window|document|navigator|location|history|Math|Date|JSON|fetch|XMLHttpRequest|Response|Request|Headers|FormData|URLSearchParams|URL|Event)$/.test(s)) return false;
-  if (/^[A-Z_]{3,}$/.test(s)) return false;
-  return true;
-}
+    const tesseract = createTesseractEdges(7.5);
+    tesseract.position.set(5, 3, -10);
+    scene.add(tesseract);
+    
+    // Additional wireframe shapes
+    const ico = new THREE.Mesh(new THREE.IcosahedronGeometry(3.8, 0), new THREE.MeshBasicMaterial({ wireframe: true, color: 0x00d4ff, transparent: true, opacity: 0.15 }));
+    ico.position.set(-18, -5, -15);
+    scene.add(ico);
+    const oct = new THREE.Mesh(new THREE.OctahedronGeometry(4.2), new THREE.MeshBasicMaterial({ wireframe: true, color: 0xff006e, transparent: true, opacity: 0.12 }));
+    oct.position.set(22, 8, -20);
+    scene.add(oct);
+    
+    const grid = new THREE.GridHelper(180, 30, 0x00ff88, 0x004422);
+    grid.position.y = -12;
+    grid.material.opacity = 0.06;
+    grid.material.transparent = true;
+    scene.add(grid);
 
-function extractLinks(html, base) {
-  const set = new Set();
-  const re = /(?:href|action)\s*=\s*["']([^"'#]{4,200})["']/gi;
-  let m;
-  while ((m=re.exec(html))!==null) {
-    try {
-      const u = new URL(m[1], base);
-      const b = new URL(base);
-      if (u.hostname===b.hostname || u.hostname.endsWith('.'+b.hostname))
-        set.add(u.origin+u.pathname);
-    } catch {}
-  }
-  return [...set].slice(0,50);
-}
+    // Mouse parallax
+    let mx = 0, my = 0, targetX = 0, targetY = 0;
+    document.addEventListener('mousemove', e => {
+      targetX = (e.clientX / window.innerWidth - 0.5) * 2;
+      targetY = (e.clientY / window.innerHeight - 0.5) * 2;
+    });
 
-function extractScripts(html, base) {
-  const out=[];
-  const er=/<script[^>]+src\s*=\s*["']([^"']+)["'][^>]*>/gi;
-  let m;
-  while((m=er.exec(html))!==null){
-    try { out.push({url:new URL(m[1],base).href,inline:false}); } catch {}
-  }
-  const ir=/<script(?:\s(?!src)[^>]*)?>([^]{0,80000}?)<\/script>/gi;
-  while((m=ir.exec(html))!==null){
-    if(m[1]&&m[1].trim().length>10) out.push({url:base,inline:true,code:m[1]});
-  }
-  return out;
-}
+    let clock = new THREE.Clock();
+    
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      const elapsedTime = performance.now() * 0.001;
+      
+      mx += (targetX - mx) * 0.03;
+      my += (targetY - my) * 0.03;
+      camera.position.x += (mx * 3.5 - camera.position.x) * 0.02;
+      camera.position.y += (-my * 2.5 - camera.position.y) * 0.02;
+      camera.lookAt(0, 0, 0);
+      
+      // Rotate fields
+      field1.rotation.y += 0.0002;
+      field1.rotation.x += 0.0001;
+      field2.rotation.y += 0.0004;
+      field2.rotation.z += 0.00015;
+      field3.rotation.x += 0.0003;
+      field3.rotation.y += 0.0005;
+      
+      // Tesseract rotation (4D effect)
+      tesseract.rotation.x = Math.sin(elapsedTime * 0.15) * 0.8;
+      tesseract.rotation.y = elapsedTime * 0.2;
+      tesseract.rotation.z = Math.sin(elapsedTime * 0.1) * 0.5;
+      
+      ico.rotation.x += 0.002;
+      ico.rotation.y += 0.003;
+      oct.rotation.y += 0.0025;
+      oct.rotation.z += 0.001;
+      
+      renderer.render(scene, camera);
+    }
+    animate();
 
-function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  })();
 
-// ════════════════════════════════════════════════════════════
-//  SUBDOMAIN ENUMERATION
-// ════════════════════════════════════════════════════════════
-async function discoverSubdomains() {
-  const rawUrl = document.getElementById('urlInput').value.trim();
-  if (!rawUrl) { alert('Enter a target URL first'); return; }
-  const domain = getDomain(rawUrl);
-  if (!domain) { alert('Cannot parse domain'); return; }
+  // ═════════════════════════════════════════════════════════════════════════
+  // CUSTOM CURSOR, REVEAL, COUNTER, TERMINAL (unchanged logic)
+  // ═════════════════════════════════════════════════════════════════════════
+  (function(){
+    const dot = document.getElementById('cursor-dot'), ring = document.getElementById('cursor-ring');
+    let rx = 0, ry = 0, dx = 0, dy = 0;
+    document.addEventListener('mousemove', e => { dx = e.clientX; dy = e.clientY; dot.style.left = dx+'px'; dot.style.top = dy+'px'; });
+    function animCursor(){ rx += (dx - rx)*0.14; ry += (dy - ry)*0.14; ring.style.left = rx+'px'; ring.style.top = ry+'px'; requestAnimationFrame(animCursor); }
+    animCursor();
+    document.querySelectorAll('a,button,.ctf-card,.service-card,.cert-card').forEach(el => {
+      el.addEventListener('mouseenter', ()=>{ ring.style.width='52px'; ring.style.height='52px'; ring.style.borderColor='rgba(0,255,136,0.8)'; });
+      el.addEventListener('mouseleave', ()=>{ ring.style.width='36px'; ring.style.height='36px'; ring.style.borderColor='rgba(0,255,136,0.5)'; });
+    });
+  })();
 
-  const btn = document.getElementById('subDiscoverBtn');
-  btn.disabled = true;
-  setSubStatus('spin', 'Querying crt.sh...');
-  G.subdomains = [];
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, idx) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('revealed'), idx * 60);
+        e.target.querySelectorAll('.skill-bar-fill').forEach(bar => bar.style.width = bar.dataset.width + '%');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-  const found = new Map(); // domain -> source
-
-  // Phase 1: crt.sh
-  try {
-    const r = await fetch(`https://crt.sh/?q=%25.${domain}&output=json`);
-    if (r.ok) {
-      const data = await r.json();
-      data.forEach(e => {
-        (e.name_value||'').split('\n').forEach(n => {
-          n=n.trim().toLowerCase().replace(/^\*\./,'');
-          if ((n.endsWith('.'+domain)||n===domain) && n!==domain)
-            found.set(n, 'cert');
-        });
+  (function(){
+    const counters = document.querySelectorAll('.counter');
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target, target = +el.dataset.target, start = performance.now();
+        function step(now){ const p = Math.min((now-start)/1800,1); el.textContent = Math.floor((1 - Math.pow(1-p,3)) * target); if(p<1) requestAnimationFrame(step); else el.textContent = target+'+'; }
+        requestAnimationFrame(step); obs.unobserve(el);
       });
-    }
-  } catch {}
+    }, { threshold: 0.5 });
+    counters.forEach(c => obs.observe(c));
+  })();
 
-  setSubStatus('spin', `DNS probing ${SUBDOMAIN_WORDLIST.length} subdomains...`);
+  const commands = {
+    help: () => [{cls:'cmd-line-green', txt:'Available commands:'},{cls:'cmd-line-dim', txt:'  whoami / bounties / ctf / skills / contact / nmap / exploit / clear'}],
+    whoami: () => [{cls:'cmd-line-cyan',txt:'> RITESH EKBOTE · OffSec Researcher'},{cls:'cmd-line-dim',txt:'  Mumbai · Available · #5 National'}],
+    bounties: () => [{cls:'cmd-line-gold',txt:'> 10+ bounties: Nykaa, Zerodha, DTDC, BrandMuscle, Com Olho'}],
+    ctf: () => [{cls:'cmd-line-gold',txt:'> #5 OWASP, #14 AI vs Human, #21 Arctic Howl, #22 Black Hat USA'}],
+    skills: () => [{cls:'cmd-line-cyan',txt:'> OSINT 95% · Web 92% · API 90% · PrivEsc 85%'}],
+    contact: () => [{cls:'cmd-line-green',txt:'> contact@genzctf.com · LinkedIn /ritesh-ekbote'}],
+    nmap: () => [{cls:'cmd-line-green',txt:'Nmap scan: 80/open, 443/open, 1337/open (elite)'}],
+    exploit: () => [{cls:'cmd-line-pink',txt:'[!] Nice try. You cannot exploit what you cannot find.'}],
+  };
 
-  // Phase 2: DNS-over-HTTPS probe
-  const probe = SUBDOMAIN_WORDLIST.map(s => s+'.'+domain);
-  let dnsLive = 0;
-
-  await Promise.allSettled(probe.map(async fqdn => {
-    try {
-      const r = await fetch(`https://dns.google/resolve?name=${fqdn}&type=A`,{headers:{accept:'application/dns-json'}});
-      if (!r.ok) return;
-      const j = await r.json();
-      if (j.Status===0 && j.Answer?.length>0) {
-        found.set(fqdn, found.has(fqdn)?'cert+dns':'dns');
-        dnsLive++;
-      }
-    } catch {}
-  }));
-
-  G.subdomains = [...found.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
-
-  // Update stats
-  document.getElementById('subStatTotal').textContent = G.subdomains.length;
-  document.getElementById('subStatLive').textContent = dnsLive;
-  const badge = document.getElementById('subBadge');
-  badge.style.display = G.subdomains.length ? 'block' : 'none';
-  badge.textContent = G.subdomains.length + ' found';
-
-  renderSubList();
-  setSubStatus('done', `${G.subdomains.length} subdomains found (${dnsLive} DNS-live, ${found.size-dnsLive} cert-only)`);
-  btn.disabled = false;
-}
-
-function renderSubList() {
-  const el = document.getElementById('subList');
-  if (!G.subdomains.length) {
-    el.innerHTML = '<div style="font-size:10px;color:var(--tx3);text-align:center;padding:20px">No subdomains found</div>';
-    return;
+  function toggleTerminal() {
+    const term = document.getElementById('cmdTerminal'), toggle = document.getElementById('termToggle');
+    const open = term.classList.toggle('open');
+    toggle.style.display = open ? 'none' : 'flex';
+    if (open) setTimeout(() => document.getElementById('cmdInput').focus(), 400);
   }
-  el.innerHTML = G.subdomains.map(([s, src]) => {
-    const cls = src.includes('dns') ? 'ss-live' : 'ss-cert';
-    const lbl = src.includes('dns') ? (src==='cert+dns'?'cert+dns':'dns-live') : 'cert';
-    return `<div class="sub-item sel" id="si_${s.replace(/\./g,'_')}" onclick="toggleSub('${s}',this)">
-      <input type="checkbox" checked data-sub="${s}">
-      <span class="sub-domain" title="${s}">${s}</span>
-      <span class="sub-status ${cls}">${lbl}</span>
-    </div>`;
-  }).join('');
-}
 
-function toggleSub(s, el){
-  el.classList.toggle('sel');
-  el.querySelector('input').checked = el.classList.contains('sel');
-}
-function selectAllSubs(v){
-  document.querySelectorAll('#subList input[type=checkbox]').forEach(cb=>{
-    cb.checked=v; cb.closest('.sub-item').classList.toggle('sel',v);
+  document.getElementById('cmdInput').addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    const input = this.value.trim().toLowerCase(); this.value = '';
+    const out = document.getElementById('cmdOutput');
+    const line = document.createElement('div'); line.className = 'cmd-line-green'; line.textContent = '$ ' + input; out.appendChild(line);
+    if (input === 'clear') { out.innerHTML = ''; return; }
+    const fn = commands[input];
+    const lines = fn ? fn() : [{cls:'cmd-line-pink', txt:`command not found: ${input}. Type 'help'.`}];
+    lines.forEach(l => { const d = document.createElement('div'); d.className = l.cls; d.textContent = l.txt; out.appendChild(d); });
+    out.appendChild(document.createElement('br'));
+    out.scrollTop = out.scrollHeight;
   });
-}
-function getSelectedSubs(){
-  return [...document.querySelectorAll('#subList input[type=checkbox]:checked')].map(cb=>cb.dataset.sub);
-}
-function getDomain(url){
-  try{ const u=new URL(url.startsWith('http')?url:'https://'+url); return u.hostname.replace(/^www\./,''); } catch{ return null; }
-}
-function setSubStatus(state, msg){
-  const el = document.getElementById('subStatus');
-  el.innerHTML = state==='spin' ? `<span class="spin"></span>${msg}` : msg;
-  el.style.color = state==='done' ? 'var(--g)' : 'var(--tx2)';
-}
-
-// ════════════════════════════════════════════════════════════
-//  MAIN SCAN
-// ════════════════════════════════════════════════════════════
-async function startScan() {
-  let rawUrl = document.getElementById('urlInput').value.trim();
-  if (!rawUrl) { alert('Enter a target URL'); return; }
-  if (!/^https?:\/\//i.test(rawUrl)) rawUrl = 'https://'+rawUrl;
-
-  G.results=[]; G.scanning=true; G.startTime=Date.now(); G.pages=0;
-
-  const huntBtn = document.getElementById('huntBtn');
-  huntBtn.disabled=true; huntBtn.innerHTML='<span class="spin"></span>SCANNING...';
-
-  document.getElementById('terminal').classList.add('show');
-  document.getElementById('resultsSec').style.display='none';
-  document.getElementById('tLog').innerHTML='';
-  document.getElementById('tLive').textContent='';
-  setProgress(0); setStatus('scan','Scanning...');
-
-  const depth = Math.min(4, parseInt(document.getElementById('depthInput').value)||2);
-  const concurrency = Math.min(8, parseInt(document.getElementById('threadsInput').value)||3);
-  const selectedSubs = getSelectedSubs();
-  const targets = [rawUrl, ...selectedSubs.map(s=>`https://${s}`)];
-
-  buildPhases(['DNS/Sub','Fetch','HTML','JS','Links','Cookies','Wordlist','Dedup']);
-  setPhase(0);
-
-  tlog(`▶ Target: <span class="cg">${rawUrl}</span>`, 'g');
-  tlog(`  Depth:${depth} | Concurrency:${concurrency} | Subdomains:${selectedSubs.length}`, 'd');
-  tlog(`  Methods: ${METHODS.filter(m=>isOn(m.id)).map(m=>m.label).join(', ')}`, 'd');
-  if (selectedSubs.length) tlog(`  Sub-targets: ${selectedSubs.slice(0,4).join(', ')}${selectedSubs.length>4?` +${selectedSubs.length-4} more`:''}`, 'c');
-
-  const allVisited = new Set();
-
-  for (let ti=0; ti<targets.length; ti++) {
-    const baseUrl = targets[ti];
-    const isSub = ti > 0;
-    tlog(`${'─'.repeat(50)}`, 'd');
-    tlog(`[${ti+1}/${targets.length}] <span class="${isSub?'cc':'cg'}">${baseUrl}</span>`, isSub?'c':'g');
-
-    const visited = new Set();
-    const queue = [[baseUrl, 0]];
-
-    while (queue.length > 0) {
-      const batch = [];
-      while (queue.length>0 && batch.length<concurrency) {
-        const item = queue.shift();
-        if (!visited.has(item[0]) && !allVisited.has(item[0]) && item[1]<=depth) {
-          visited.add(item[0]); allVisited.add(item[0]); batch.push(item);
-        }
-      }
-      if (!batch.length) break;
-
-      const prog = Math.min(85, (allVisited.size/(allVisited.size+queue.length+1))*85);
-      setProgress(prog);
-
-      await Promise.allSettled(batch.map(async ([url, d]) => {
-        tlog(`  <span class="spin"></span>[d${d}] ${url.slice(0,75)}`, 'd');
-        setPhase(1);
-
-        let html='';
-        try {
-          const r = await fetchWithProxy(url);
-          html = r.content;
-          G.pages++;
-          tlog(`  ✓ ${url.slice(0,60)} <span class="cg">${html.length.toLocaleString()}c</span> proxy#${r.proxyIdx+1}`, 'g');
-        } catch(e) {
-          tlog(`  ✗ ${url.slice(0,60)} — ${e.message}`, 'r');
-          return;
-        }
-
-        // URL params
-        parseUrlQS(url, url);
-
-        // HTML parse
-        setPhase(2);
-        const b0 = G.results.length;
-        try { parseHTML(html, url); } catch {}
-        const hd = G.results.length-b0;
-        if (hd>0) tlog(`  HTML: <span class="cg">+${hd}</span>`, 'g');
-
-        // Cookie mining
-        if (isOn('cookie')) {
-          setPhase(5);
-          // Mine cookie names from HTML (document.cookie patterns, Set-Cookie in comments)
-          const ckRe = /(?:Set-Cookie|document\.cookie)\s*[:=]\s*['"`]?\s*(\w[\w\-]{1,40})\s*=/gi;
-          let cm;
-          while ((cm=ckRe.exec(html))!==null) {
-            addParam(cm[1], 'cookie', url, 'cookie name from page');
-          }
-        }
-
-        // JS mining
-        setPhase(3);
-        const scripts = extractScripts(html, url);
-        const jb = G.results.length;
-        scripts.filter(s=>s.inline).forEach(s=>mineJS(s.code, url));
-        await Promise.allSettled(
-          scripts.filter(s=>!s.inline).slice(0,12).map(async s=>{
-            try{const r=await fetchWithProxy(s.url,8000);mineJS(r.content,s.url);}catch{}
-          })
-        );
-        const jd = G.results.length-jb;
-        if (jd>0) tlog(`  JS(${scripts.length}): <span class="cy">+${jd}</span>`, 'y');
-
-        // Queue children
-        if (d < depth) {
-          setPhase(4);
-          const links = extractLinks(html, url);
-          const newLinks = links.filter(l=>!visited.has(l)&&!allVisited.has(l));
-          newLinks.forEach(l=>queue.push([l,d+1]));
-          if (newLinks.length) tlog(`  Queued ${newLinks.length} pages`, 'd');
-        }
-      }));
-    }
-    tlog(`  ✅ ${[...visited].length} pages | params so far: ${G.results.length}`, 'g');
-  }
-
-  // Wordlist
-  if (isOn('word')) {
-    setPhase(6);
-    tlog(`▶ Wordlist pass (${WORDLIST.length})...`, 'p');
-    const wb = G.results.length;
-    const activeSet = new Set(G.results.filter(r=>r.source!=='word').map(r=>r.param));
-    WORDLIST.forEach(p => {
-      if (!activeSet.has(p)) addParam(p,'word',rawUrl,'smart wordlist candidate');
-    });
-    tlog(`  Wordlist: <span class="cp">+${G.results.length-wb}</span>`, 'p');
-  }
-
-  // Dedup
-  setPhase(7);
-  const activeSet2 = new Set(G.results.filter(r=>r.source!=='word').map(r=>r.param));
-  G.results = G.results.filter(r => r.source!=='word' || !activeSet2.has(r.param));
-
-  setProgress(100);
-  const elapsed = ((Date.now()-G.startTime)/1000).toFixed(1);
-  const activeCount = G.results.filter(r=>r.source!=='word').length;
-  const wordCount = G.results.filter(r=>r.source==='word').length;
-  tlog(`${'═'.repeat(55)}`, 'd');
-  tlog(`⚡ DONE in ${elapsed}s | Pages: ${G.pages} | Total: <span class="cg">${G.results.length}</span> (${activeCount} active + ${wordCount} wordlist)`, 'g');
-
-  G.scanning=false;
-  huntBtn.disabled=false; huntBtn.innerHTML='⚡ HUNT PARAMETERS';
-  setStatus('done', `Done — ${G.results.length} params`);
-  showResults(elapsed);
-}
-
-// ════════════════════════════════════════════════════════════
-//  RESULTS
-// ════════════════════════════════════════════════════════════
-function showResults(elapsed) {
-  const sec = document.getElementById('resultsSec');
-  sec.style.display='block';
-
-  const byR={high:0,med:0,low:0};
-  G.results.forEach(r=>byR[r.risk]++);
-  const activeCount = G.results.filter(r=>r.source!=='word').length;
-  const jsCount = G.results.filter(r=>r.source==='js').length;
-  const subCount = G.results.filter(r=>G.subdomains.some(([s])=>r.url.includes(s))).length;
-  const hCount = G.results.filter(r=>r.source==='html'||r.source==='form').length;
-
-  document.getElementById('statsRow').innerHTML = `
-    <div class="sc sg"><div class="sc-n" style="color:var(--g)">${G.results.length}</div><div class="sc-l">Total Found</div></div>
-    <div class="sc sr"><div class="sc-n" style="color:var(--r)">${byR.high}</div><div class="sc-l">High Risk</div></div>
-    <div class="sc sy"><div class="sc-n" style="color:var(--y)">${byR.med}</div><div class="sc-l">Medium Risk</div></div>
-    <div class="sc sb"><div class="sc-n" style="color:var(--b)">${activeCount}</div><div class="sc-l">Active Found</div></div>
-    <div class="sc sp"><div class="sc-n" style="color:var(--y)">${jsCount}</div><div class="sc-l">From JS</div></div>
-    <div class="sc sc2"><div class="sc-n" style="color:var(--c)">${subCount}</div><div class="sc-l">Subdomain Params</div></div>
-    <div class="sc sg"><div class="sc-n" style="color:var(--g)">${hCount}</div><div class="sc-l">HTML/Form</div></div>
-    <div class="sc so"><div class="sc-n" style="color:var(--o)">${G.pages}</div><div class="sc-l">Pages Scanned</div></div>
-  `;
-
-  renderTable();
-  sec.scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-const RISK_ORD = {high:0,med:1,low:2};
-
-function setF(f, btn){
-  G.filter=f;
-  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on'); renderTable();
-}
-function setSort(s, btn){
-  G.sort=s;
-  document.querySelectorAll('.sb').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on'); renderTable();
-}
-
-function renderTable() {
-  const q = (document.getElementById('fSearch').value||'').toLowerCase();
-  let rows = G.results.filter(r => {
-    if (G.filter==='sub') return G.subdomains.some(([s])=>r.url.includes(s));
-    if (G.filter!=='all' && r.source!==G.filter) return false;
-    if (q && !r.param.toLowerCase().includes(q) && !r.source.includes(q) && !r.notes.toLowerCase().includes(q)) return false;
-    return true;
-  });
-
-  if (G.sort==='risk') rows.sort((a,b)=>RISK_ORD[a.risk]-RISK_ORD[b.risk]||a.param.localeCompare(b.param));
-  else if (G.sort==='name') rows.sort((a,b)=>a.param.localeCompare(b.param));
-  else rows.sort((a,b)=>a.source.localeCompare(b.source));
-
-  const tbody = document.getElementById('paramBody');
-  if (!rows.length){
-    tbody.innerHTML=`<tr><td colspan="6" class="no-r">No parameters match filter</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = rows.map((r,i)=>{
-    const isSub = G.subdomains.some(([s])=>r.url.includes(s));
-    const sc = isSub ? 's-sub' : 's-'+r.source;
-    const sl = isSub ? '⬡ subdomain' : r.source;
-    // Where found: full URL truncated nicely
-    const wf = r.foundUrls.length
-      ? r.foundUrls.slice(0,2).map(u=>
-          `<span class="wf-url" title="${esc(u)}">${esc(u.replace(/https?:\/\//,'').slice(0,55))}</span>`
-        ).join('') + (r.foundUrls.length>2?`<span style="color:var(--tx3);font-size:9px"> +${r.foundUrls.length-2} more</span>`:'')
-      : `<span style="color:var(--tx3)">wordlist</span>`;
-    const foundBadge = r.foundUrls.length>1
-      ? `<span class="wf-badge">${r.foundUrls.length} locations</span>` : '';
-    return `<tr>
-      <td style="color:var(--tx3);font-size:9px">${i+1}</td>
-      <td><span class="pn">${esc(r.param)}</span></td>
-      <td><span class="ps ${sc}">${sl}</span></td>
-      <td><span class="rk r${r.risk[0]}">${r.risk.toUpperCase()}</span></td>
-      <td class="wf-cell">${wf}${foundBadge}</td>
-      <td class="notes-cell">${esc((r.notes||'').slice(0,70))}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ════════════════════════════════════════════════════════════
-//  PLAIN TXT MODAL
-// ════════════════════════════════════════════════════════════
-function openTxtModal() {
-  document.getElementById('txtModal').classList.add('show');
-  setModalFilter('all');
-}
-function closeTxtModal() {
-  document.getElementById('txtModal').classList.remove('show');
-}
-function setModalFilter(f) {
-  G.modalFilter = f;
-  let params;
-  if (f==='high') params = G.results.filter(r=>r.risk==='high');
-  else if (f==='active') params = G.results.filter(r=>r.source!=='word');
-  else if (f==='word') params = G.results.filter(r=>r.source==='word');
-  else params = G.results;
-  const names = [...new Set(params.map(r=>r.param))].sort();
-  document.getElementById('txtModalArea').value = names.join('\n');
-  document.getElementById('modalCount').textContent = `${names.length} params`;
-}
-function copyTxtModal() {
-  const ta = document.getElementById('txtModalArea');
-  navigator.clipboard.writeText(ta.value).then(() => {
-    const s = document.getElementById('modalCopyStatus');
-    s.textContent = '✓ Copied!';
-    setTimeout(()=>s.textContent='',1800);
-  });
-}
-function dlTxtModal(mode) {
-  const ta = document.getElementById('txtModalArea');
-  const fname = mode==='burp' ? 'burp-intruder-params.txt' : 'paramhunter-params.txt';
-  let content = ta.value;
-  if (mode==='burp') {
-    // Burp Intruder format: just param names, one per line, ready to paste into payload list
-    const header = `# ParamHunter v3 — Burp Intruder Payload List\n# Target: ${document.getElementById('urlInput').value}\n# Generated: ${new Date().toISOString()}\n# Total: ${ta.value.split('\n').filter(Boolean).length} params\n#\n`;
-    content = header + ta.value;
-  }
-  dl(new Blob([content],{type:'text/plain'}), fname);
-}
-
-// ════════════════════════════════════════════════════════════
-//  EXPORTS
-// ════════════════════════════════════════════════════════════
-function exportBurpTxt() {
-  const names = [...new Set(G.results.filter(r=>r.source!=='word').map(r=>r.param))].sort();
-  const content = `# ParamHunter v3 — Burp Suite Intruder Payload List\n# Target: ${document.getElementById('urlInput').value}\n# Date: ${new Date().toISOString()}\n# Active params only (no wordlist): ${names.length}\n# Paste into Burp Intruder > Payloads > Simple List\n\n`+names.join('\n');
-  dl(new Blob([content],{type:'text/plain'}), 'burp-intruder-active-params.txt');
-}
-
-function exportJSON() {
-  dl(new Blob([JSON.stringify({
-    meta:{ target:document.getElementById('urlInput').value, date:new Date().toISOString(), pages:G.pages, total:G.results.length, tool:'ParamHunter v3 by GenzCTF.xyz' },
-    results:G.results.map(r=>({...r}))
-  },null,2)],{type:'application/json'}), 'paramhunter-results.json');
-}
-
-function exportCSV() {
-  const rows=[['param','source','risk','foundUrls','notes'],...G.results.map(r=>[r.param,r.source,r.risk,r.foundUrls.join('|'),r.notes])];
-  dl(new Blob([rows.map(r=>r.map(c=>`"${(c||'').replace(/"/g,'""')}"`).join(',')).join('\n')],{type:'text/csv'}), 'paramhunter.csv');
-}
-
-function exportBurpXML() {
-  const params=[...new Set(G.results.filter(r=>r.source!=='word').map(r=>r.param))];
-  const xml=`<?xml version="1.0" encoding="UTF-8"?>\n<!-- ParamHunter v3 by GenzCTF.xyz -->\n<!-- Target: ${esc(document.getElementById('urlInput').value)} -->\n<payloads type="simple">\n${params.map(p=>`  <item>${esc(p)}</item>`).join('\n')}\n</payloads>`;
-  dl(new Blob([xml],{type:'text/xml'}), 'burp-params.xml');
-}
-
-function copyAllParams() {
-  const list=[...new Set(G.results.map(r=>r.param))].sort().join('\n');
-  navigator.clipboard.writeText(list).then(()=>{
-    const btn=event.currentTarget;
-    const orig=btn.textContent;
-    btn.textContent='✅ Copied!';
-    setTimeout(()=>btn.textContent=orig,1500);
-  });
-}
-
-function dl(blob, name){
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click();
-}
-
-function resetAll(){
-  G.results=[]; G.subdomains=[];
-  document.getElementById('terminal').classList.remove('show');
-  document.getElementById('resultsSec').style.display='none';
-  document.getElementById('subList').innerHTML='<div style="font-size:10px;color:var(--tx3);text-align:center;padding:20px">No subdomains enumerated yet</div>';
-  document.getElementById('subStatTotal').textContent='0';
-  document.getElementById('subStatLive').textContent='0';
-  document.getElementById('subBadge').style.display='none';
-  document.getElementById('subStatus').textContent='Enter target URL above then click Discover Subs';
-  setStatus('','Ready');
-  setProgress(0);
-  document.getElementById('tLive').textContent='';
-}
-
-// Close modal on overlay click
-document.getElementById('txtModal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeTxtModal();
-});
 </script>
 </body>
 </html>
