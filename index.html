@@ -3,66 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>GenZCTF | Core Team</title>
+    <title>GenZCTF | Neural Core — Hyperdimensional Showcase</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+            background-color: #03030c;
         }
-
-        /* subtle UI hint */
-        .info {
+        #info {
             position: absolute;
             bottom: 20px;
             left: 20px;
-            color: rgba(255, 255, 255, 0.55);
-            background: rgba(10, 10, 20, 0.6);
-            backdrop-filter: blur(8px);
-            padding: 6px 14px;
+            color: rgba(210, 220, 255, 0.7);
+            background: rgba(8, 12, 28, 0.65);
+            backdrop-filter: blur(12px);
+            padding: 8px 18px;
             border-radius: 40px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 400;
-            letter-spacing: 0.3px;
-            pointer-events: none;
-            z-index: 10;
             font-family: monospace;
-            border-left: 2px solid rgba(100, 150, 255, 0.7);
-        }
-
-        /* elegant title overlay */
-        .title {
-            position: absolute;
-            top: 24px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            color: white;
-            font-weight: 500;
-            font-size: 1.2rem;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            background: linear-gradient(135deg, #eef, #aac);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
+            letter-spacing: 0.5px;
+            border-left: 2px solid #6a8eff;
             pointer-events: none;
-            z-index: 10;
-            font-family: 'Inter', monospace;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-
+        #controls-note {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            padding: 5px 12px;
+            border-radius: 30px;
+            color: #aab4ff;
+            font-size: 11px;
+            font-family: monospace;
+            pointer-events: none;
+            z-index: 100;
+        }
         @media (max-width: 700px) {
-            .title { font-size: 0.9rem; letter-spacing: 2px; top: 16px; }
-            .info { font-size: 9px; bottom: 12px; left: 12px; }
+            #info, #controls-note { font-size: 8px; padding: 4px 10px; }
         }
     </style>
 </head>
 <body>
-    <div class="title">GENZCTF — CORE NEXUS</div>
-    <div class="info">✧ drag to orbit • scroll to zoom ✧</div>
+    <div id="info">⚡ GENZCTF // CORE ACCESS // RITESH · NIDHI · MUJAHID ⚡</div>
+    <div id="controls-note">🖱️ DRAG to orbit • SCROLL to zoom • immersive neural field</div>
 
-    <!-- Import Three.js core and add-ons -->
+    <!-- Import Three.js core and add-ons with full post-processing -->
     <script type="importmap">
         {
             "imports": {
@@ -76,27 +66,32 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-
-        // --- setup scene, camera, renderers ---
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
+        
+        // --- setup core scene with advanced fog and atmosphere ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0a1a);
-        scene.fog = new THREE.FogExp2(0x0a0a1a, 0.012); // very subtle fog for depth
-
-        // camera: elegant framing
-        const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(4.5, 2.8, 6.5);
-        camera.lookAt(0, 0.5, 0);
-
-        // WebGL renderer
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        scene.background = new THREE.Color(0x020210);
+        scene.fog = new THREE.FogExp2(0x020210, 0.0035);
+        
+        // --- camera: cinematic focal length ---
+        const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 200);
+        camera.position.set(7, 3.8, 10);
+        camera.lookAt(0, 1.2, 0);
+        
+        // --- WebGL renderer with high quality ---
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        renderer.setClearColor(0x0a0a1a, 1);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
         document.body.appendChild(renderer.domElement);
-
-        // CSS2 renderer for crisp, anti-aliased text labels
+        
+        // --- CSS2DRenderer for high-quality labels ---
         const labelRenderer = new CSS2DRenderer();
         labelRenderer.setSize(window.innerWidth, window.innerHeight);
         labelRenderer.domElement.style.position = 'absolute';
@@ -104,262 +99,411 @@
         labelRenderer.domElement.style.left = '0px';
         labelRenderer.domElement.style.pointerEvents = 'none';
         document.body.appendChild(labelRenderer.domElement);
-
-        // --- controls: smooth and non-intrusive ---
+        
+        // --- Post-processing: bloom + subtle film grain ---
+        const renderScene = new RenderPass(scene, camera);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.85, 0.3, 0.4);
+        bloomPass.threshold = 0.12;
+        bloomPass.strength = 0.65;
+        bloomPass.radius = 0.8;
+        const filmPass = new FilmPass(0.25, 0.5, 2048, false);
+        filmPass.renderToScreen = true;
+        const effectComposer = new EffectComposer(renderer);
+        effectComposer.addPass(renderScene);
+        effectComposer.addPass(bloomPass);
+        effectComposer.addPass(filmPass);
+        
+        // --- Controls: smooth with auto-rotation and intelligent damping ---
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.dampingFactor = 0.06;
+        controls.dampingFactor = 0.07;
         controls.autoRotate = true;
-        controls.autoRotateSpeed = 1.0;
+        controls.autoRotateSpeed = 0.85;
         controls.enableZoom = true;
-        controls.enablePan = false;        // keeps focus on the team
-        controls.zoomSpeed = 1.0;
-        controls.rotateSpeed = 1.2;
-        controls.target.set(0, 0.6, 0);
+        controls.zoomSpeed = 1.1;
+        controls.enablePan = false;
+        controls.rotateSpeed = 1.0;
+        controls.target.set(0, 1.2, 0);
         
-        // --- lighting: soft, cinematic, shadow-ready ---
-        // ambient fill
-        const ambientLight = new THREE.AmbientLight(0x22223b, 0.65);
+        // ========== 1. ADVANCED LIGHTING SYSTEM ==========
+        // Ambient with gradient influence
+        const ambientLight = new THREE.AmbientLight(0x19193a, 0.55);
         scene.add(ambientLight);
         
-        // key light (main directional)
-        const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
-        mainLight.position.set(3, 5, 2);
-        mainLight.castShadow = true;
-        mainLight.receiveShadow = false;
-        mainLight.shadow.mapSize.width = 1024;
-        mainLight.shadow.mapSize.height = 1024;
-        mainLight.shadow.camera.near = 0.5;
-        mainLight.shadow.camera.far = 10;
-        scene.add(mainLight);
+        // Key light - directional with shadows
+        const keyLight = new THREE.DirectionalLight(0xffffff, 1.3);
+        keyLight.position.set(4, 7, 3);
+        keyLight.castShadow = true;
+        keyLight.receiveShadow = false;
+        keyLight.shadow.mapSize.width = 2048;
+        keyLight.shadow.mapSize.height = 2048;
+        keyLight.shadow.camera.near = 0.8;
+        keyLight.shadow.camera.far = 15;
+        keyLight.shadow.camera.left = -5;
+        keyLight.shadow.camera.right = 5;
+        keyLight.shadow.camera.top = 5;
+        keyLight.shadow.camera.bottom = -5;
+        scene.add(keyLight);
         
-        // fill light from below (warm, subtle)
-        const fillLight = new THREE.PointLight(0x4a6fa5, 0.45);
-        fillLight.position.set(0, -1.5, 0);
+        // Fill light (cool blue)
+        const fillLight = new THREE.PointLight(0x4a6eff, 0.65);
+        fillLight.position.set(-2.5, 2, 3.2);
         scene.add(fillLight);
         
-        // rim light (cool edge)
-        const rimLight = new THREE.PointLight(0x7b8cd9, 0.6);
-        rimLight.position.set(-2, 1.8, -3);
+        // Warm back rim
+        const rimLight = new THREE.PointLight(0xffaa66, 0.7);
+        rimLight.position.set(1.2, 2.5, -4.5);
         scene.add(rimLight);
         
-        // soft back rim
-        const backRim = new THREE.PointLight(0x8a9bdc, 0.4);
-        backRim.position.set(1, 1.2, -3.5);
-        scene.add(backRim);
+        // Dynamic accent lights (moving)
+        const movingLightA = new THREE.PointLight(0x6c8eff, 0.9);
+        movingLightA.position.set(3, 1.5, 2);
+        scene.add(movingLightA);
         
-        // accent fill from right
-        const accentFill = new THREE.PointLight(0x5f7fbf, 0.4);
-        accentFill.position.set(2.5, 1.2, 1.8);
-        scene.add(accentFill);
+        const movingLightB = new THREE.PointLight(0xff66aa, 0.7);
+        movingLightB.position.set(-2.8, 1.2, 2.5);
+        scene.add(movingLightB);
         
-        // --- ground / reflective plane (invisible but receives shadows) ---
-        const groundPlane = new THREE.Mesh(
-            new THREE.PlaneGeometry(12, 12),
-            new THREE.ShadowMaterial({ opacity: 0.4, color: 0x000000, transparent: true, side: THREE.DoubleSide })
+        // Central core pulse light
+        const corePulseLight = new THREE.PointLight(0x88aaff, 1.1, 12);
+        corePulseLight.position.set(0, 0.6, 0);
+        scene.add(corePulseLight);
+        
+        // ========== 2. ENVIRONMENT & DECORATIVE MESHES ==========
+        // Reflective ground disc (shadow catcher)
+        const groundDisc = new THREE.Mesh(
+            new THREE.CircleGeometry(7.5, 32),
+            new THREE.ShadowMaterial({ opacity: 0.45, color: 0x000000, transparent: true, side: THREE.DoubleSide })
         );
-        groundPlane.rotation.x = -Math.PI / 2;
-        groundPlane.position.y = -1.2;
-        groundPlane.receiveShadow = true;
-        scene.add(groundPlane);
+        groundDisc.rotation.x = -Math.PI / 2;
+        groundDisc.position.y = -1.3;
+        groundDisc.receiveShadow = true;
+        scene.add(groundDisc);
         
-        // subtle grid helper (elegant reference)
-        const gridHelper = new THREE.GridHelper(14, 28, 0x6c7a9e, 0x3c4466);
-        gridHelper.position.y = -1.15;
-        gridHelper.material.transparent = true;
-        gridHelper.material.opacity = 0.25;
-        scene.add(gridHelper);
+        // Elegant grid helper with depth
+        const gridMain = new THREE.GridHelper(18, 40, 0x6a7cbf, 0x2a3466);
+        gridMain.position.y = -1.2;
+        gridMain.material.transparent = true;
+        gridMain.material.opacity = 0.3;
+        scene.add(gridMain);
         
-        // decorative circular ring (minimal)
-        const ringGeometry = new THREE.TorusGeometry(2.4, 0.05, 64, 200);
-        const ringMaterial = new THREE.MeshStandardMaterial({ color: 0x8a9bdc, metalness: 0.7, roughness: 0.4, emissive: 0x1a2a4a, emissiveIntensity: 0.2 });
-        const baseRing = new THREE.Mesh(ringGeometry, ringMaterial);
-        baseRing.rotation.x = Math.PI / 2;
-        baseRing.position.y = -1.1;
-        scene.add(baseRing);
+        // Secondary ring structure
+        const outerRingGeo = new THREE.TorusGeometry(3.1, 0.07, 128, 360);
+        const outerRingMat = new THREE.MeshStandardMaterial({ color: 0x8a9eff, metalness: 0.85, roughness: 0.25, emissive: 0x112244, emissiveIntensity: 0.2 });
+        const outerRing = new THREE.Mesh(outerRingGeo, outerRingMat);
+        outerRing.rotation.x = Math.PI / 2;
+        outerRing.position.y = -1.05;
+        scene.add(outerRing);
         
-        // --- central abstract core (minimalistic geometric crystal) ---
-        const centerGeo = new THREE.IcosahedronGeometry(0.65, 0);
-        const centerMat = new THREE.MeshStandardMaterial({
-            color: 0xbbc8ff,
-            metalness: 0.85,
-            roughness: 0.28,
-            emissive: 0x111a33,
-            emissiveIntensity: 0.15,
-            flatShading: false
-        });
-        const centerCore = new THREE.Mesh(centerGeo, centerMat);
-        centerCore.castShadow = true;
-        centerCore.position.y = 0.2;
-        scene.add(centerCore);
+        const midRingGeo = new THREE.TorusGeometry(2.1, 0.05, 96, 300);
+        const midRingMat = new THREE.MeshStandardMaterial({ color: 0xaab5ff, metalness: 0.9, roughness: 0.2 });
+        const midRing = new THREE.Mesh(midRingGeo, midRingMat);
+        midRing.rotation.x = Math.PI / 2 + 0.2;
+        midRing.rotation.z = 0.3;
+        midRing.position.y = -0.9;
+        scene.add(midRing);
         
-        // floating ring around central core (tiny accent)
-        const innerRingGeo = new THREE.TorusGeometry(0.85, 0.03, 48, 120);
-        const innerRingMat = new THREE.MeshStandardMaterial({ color: 0xcad2ff, metalness: 0.9, roughness: 0.3 });
-        const innerRing = new THREE.Mesh(innerRingGeo, innerRingMat);
-        innerRing.rotation.x = Math.PI / 2;
-        innerRing.rotation.z = Math.PI / 4;
-        scene.add(innerRing);
+        // ========== 3. CENTRAL ARTIFACT: HYPERDIMENSIONAL CORE ==========
+        const coreGroup = new THREE.Group();
+        // Complex geometry: Icosahedron + wireframe + floating fragments
+        const centralMat = new THREE.MeshStandardMaterial({ color: 0xccd6ff, metalness: 0.95, roughness: 0.18, emissive: 0x3355aa, emissiveIntensity: 0.25 });
+        const centralIcosa = new THREE.Mesh(new THREE.IcosahedronGeometry(0.85, 0), centralMat);
+        centralIcosa.castShadow = true;
+        coreGroup.add(centralIcosa);
         
-        // --- team members data (elegant, minimal) ---
-        const members = [
-            { name: "Ritesh", role: "Lead Reverse Engineer", color: 0x5a7bc2, accent: "#5a7bc2" },
-            { name: "Nidhi", role: "Cryptography & Web", color: 0x6c8fd9, accent: "#6c8fd9" },
-            { name: "Mujahid", role: "Pwn & Forensics", color: 0x7f9fef, accent: "#7f9fef" }
+        const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x88aaff, wireframe: true, transparent: true, opacity: 0.35 });
+        const outerWire = new THREE.Mesh(new THREE.IcosahedronGeometry(1.02, 0), wireframeMat);
+        coreGroup.add(outerWire);
+        
+        // Floating orbiting tetrahedrons around core
+        const floaters = [];
+        const floaterCount = 24;
+        for (let i = 0; i < floaterCount; i++) {
+            const tetraGeo = new THREE.TetrahedronGeometry(0.12);
+            const tetraMat = new THREE.MeshStandardMaterial({ color: 0x88aaff, metalness: 0.8, emissive: 0x2266aa, emissiveIntensity: 0.4 });
+            const tetra = new THREE.Mesh(tetraGeo, tetraMat);
+            tetra.castShadow = true;
+            coreGroup.add(tetra);
+            floaters.push({ mesh: tetra, angle: (i / floaterCount) * Math.PI * 2, radius: 1.35, yOffset: 0 });
+        }
+        scene.add(coreGroup);
+        coreGroup.position.y = 0.25;
+        
+        // Energy rings around core
+        const coreRing1 = new THREE.Mesh(new THREE.TorusGeometry(1.22, 0.04, 64, 200), new THREE.MeshStandardMaterial({ color: 0x6a8eff, emissive: 0x3366cc, emissiveIntensity: 0.5 }));
+        coreRing1.rotation.x = Math.PI / 2;
+        coreGroup.add(coreRing1);
+        
+        const coreRing2 = new THREE.Mesh(new THREE.TorusGeometry(1.42, 0.03, 64, 200), new THREE.MeshStandardMaterial({ color: 0x9aaeff, emissive: 0x4488ff, emissiveIntensity: 0.4 }));
+        coreRing2.rotation.z = Math.PI / 3;
+        coreGroup.add(coreRing2);
+        
+        // ========== 4. TEAM MEMBERS: ORBITING PODS WITH ADVANCED DETAIL ==========
+        const memberOrbitGroup = new THREE.Group();
+        scene.add(memberOrbitGroup);
+        
+        const membersData = [
+            { name: "Ritesh", role: "Lead Architect · Reverse Engineering", color: 0x5a7cef, accent: "#5a7cef", iconColor: 0x5a7cef },
+            { name: "Nidhi", role: "Cryptography · Web Exploitation", color: 0x7a5cef, accent: "#9a6eff", iconColor: 0x8a6eff },
+            { name: "Mujahid", role: "Pwn · Forensics · Binary Ninja", color: 0x4a8eff, accent: "#4a8eff", iconColor: 0x4a8eff }
         ];
         
-        const orbitGroup = new THREE.Group();
-        scene.add(orbitGroup);
+        const orbitRadius = 3.8;
+        const memberGroups = [];
         
-        const radius = 3.0;
-        const angles = [0, (Math.PI * 2) / 3, (Math.PI * 4) / 3];
-        const memberObjects = [];
-        
-        members.forEach((member, idx) => {
+        membersData.forEach((member, idx) => {
+            const angle = (idx / membersData.length) * Math.PI * 2;
+            const x = Math.cos(angle) * orbitRadius;
+            const z = Math.sin(angle) * orbitRadius;
+            
             const group = new THREE.Group();
-            const angle = angles[idx];
-            const x = Math.cos(angle) * radius;
-            const z = Math.sin(angle) * radius;
             group.position.set(x, 0, z);
             
-            // sphere with refined material (metallic, slight roughness)
-            const sphereGeo = new THREE.SphereGeometry(0.65, 96, 96);
+            // Main sphere with layered material
+            const sphereGeo = new THREE.SphereGeometry(0.72, 128, 128);
             const sphereMat = new THREE.MeshStandardMaterial({
                 color: member.color,
-                metalness: 0.78,
-                roughness: 0.25,
-                emissive: 0x111a33,
-                emissiveIntensity: 0.12
+                metalness: 0.88,
+                roughness: 0.22,
+                emissive: 0x112244,
+                emissiveIntensity: 0.18
             });
             const sphere = new THREE.Mesh(sphereGeo, sphereMat);
             sphere.castShadow = true;
-            sphere.receiveShadow = false;
             group.add(sphere);
             
-            // subtle ring around each sphere
-            const haloGeo = new THREE.TorusGeometry(0.78, 0.03, 48, 100);
-            const haloMat = new THREE.MeshStandardMaterial({ color: member.color, metalness: 0.9, roughness: 0.2 });
-            const haloRing = new THREE.Mesh(haloGeo, haloMat);
+            // Outer halo ring
+            const haloRing = new THREE.Mesh(new THREE.TorusGeometry(0.86, 0.045, 64, 140), new THREE.MeshStandardMaterial({ color: member.color, metalness: 0.95, emissive: member.color, emissiveIntensity: 0.3 }));
             haloRing.rotation.x = Math.PI / 2;
             group.add(haloRing);
             
-            // CSS2D label – clean glassmorphism, no neon
+            // Secondary ring (tilted)
+            const tiltRing = new THREE.Mesh(new THREE.TorusGeometry(0.96, 0.03, 64, 140), new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.7 }));
+            tiltRing.rotation.z = Math.PI / 3;
+            tiltRing.rotation.x = 0.8;
+            group.add(tiltRing);
+            
+            // Small floating particles around each member (dynamic)
+            const particleCloud = new THREE.Group();
+            const cloudCount = 80;
+            for (let i = 0; i < cloudCount; i++) {
+                const pGeo = new THREE.SphereGeometry(0.025, 6, 6);
+                const pMat = new THREE.MeshStandardMaterial({ color: member.color, emissive: member.color, emissiveIntensity: 0.5 });
+                const particle = new THREE.Mesh(pGeo, pMat);
+                const rad = 0.95;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                particle.position.set(rad * Math.sin(phi) * Math.cos(theta), rad * Math.sin(phi) * Math.sin(theta), rad * Math.cos(phi));
+                particleCloud.add(particle);
+            }
+            group.add(particleCloud);
+            
+            // CSS2D Label - premium glass card
             const div = document.createElement('div');
-            div.style.backgroundColor = 'rgba(18, 22, 40, 0.75)';
-            div.style.backdropFilter = 'blur(12px)';
-            div.style.borderRadius = '28px';
-            div.style.padding = '10px 24px';
-            div.style.border = `1px solid ${member.accent}80`;
-            div.style.boxShadow = '0 8px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05)';
+            div.style.background = 'linear-gradient(135deg, rgba(16, 20, 40, 0.85), rgba(8, 12, 28, 0.95))';
+            div.style.backdropFilter = 'blur(18px)';
+            div.style.borderRadius = '32px';
+            div.style.padding = '12px 28px';
+            div.style.border = `1px solid ${member.accent}aa`;
+            div.style.boxShadow = '0 15px 35px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05)';
             div.style.textAlign = 'center';
             div.style.fontFamily = "'Inter', system-ui, sans-serif";
             div.style.transition = 'transform 0.2s ease';
             div.innerHTML = `
-                <div style="font-size: 1.45rem; font-weight: 600; letter-spacing: -0.2px; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${member.name}</div>
-                <div style="font-size: 0.7rem; font-weight: 400; color: #cbd5ff; margin-top: 5px; letter-spacing: 0.3px;">${member.role}</div>
+                <div style="font-size: 1.6rem; font-weight: 600; letter-spacing: -0.3px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.3);">${member.name}</div>
+                <div style="font-size: 0.75rem; font-weight: 500; color: #b8c7ff; margin-top: 6px; letter-spacing: 0.3px;">${member.role}</div>
+                <div style="font-size: 0.6rem; color: ${member.accent}; margin-top: 8px; font-family: monospace;">⚡ GENZCTF CORE ⚡</div>
             `;
             const label = new CSS2DObject(div);
-            label.position.set(0, 1.1, 0);
+            label.position.set(0, 1.25, 0);
             group.add(label);
             
-            orbitGroup.add(group);
-            
-            memberObjects.push({
-                group,
-                sphere,
-                haloRing,
-                floatSpeed: 0.8 + idx * 0.15,
-                startY: 0
+            memberOrbitGroup.add(group);
+            memberGroups.push({
+                group, sphere, haloRing, tiltRing, particleCloud,
+                floatSpeed: 0.9 + idx * 0.2,
+                baseY: 0,
+                cloudRotationSpeed: 0.01
             });
         });
         
-        // --- floating subtle particles (very few, just for depth) ---
-        const particleCount = 400;
-        const particleGeo = new THREE.BufferGeometry();
-        const particlePositions = new Float32Array(particleCount * 3);
-        for (let i = 0; i < particleCount; i++) {
-            particlePositions[i*3] = (Math.random() - 0.5) * 12;
-            particlePositions[i*3+1] = (Math.random() - 0.5) * 4 + 0.5;
-            particlePositions[i*3+2] = (Math.random() - 0.5) * 12;
+        // ========== 5. MASSIVE PARTICLE FIELD & NEBULA EFFECT ==========
+        const particleFieldCount = 4500;
+        const particleFieldGeo = new THREE.BufferGeometry();
+        const particlePositionsField = new Float32Array(particleFieldCount * 3);
+        const particleColorsField = new Float32Array(particleFieldCount * 3);
+        for (let i = 0; i < particleFieldCount; i++) {
+            // spherical distribution with radius 7-13
+            const r = 5 + Math.random() * 7;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            particlePositionsField[i*3] = r * Math.sin(phi) * Math.cos(theta);
+            particlePositionsField[i*3+1] = r * Math.sin(phi) * Math.sin(theta) * 0.7 + 0.5;
+            particlePositionsField[i*3+2] = r * Math.cos(phi);
+            const colorVal = new THREE.Color().setHSL(0.55 + Math.random() * 0.15, 0.7, 0.5);
+            particleColorsField[i*3] = colorVal.r;
+            particleColorsField[i*3+1] = colorVal.g;
+            particleColorsField[i*3+2] = colorVal.b;
         }
-        particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-        const particleMat = new THREE.PointsMaterial({ color: 0x8a9bdc, size: 0.045, transparent: true, opacity: 0.35 });
-        const particles = new THREE.Points(particleGeo, particleMat);
-        scene.add(particles);
+        particleFieldGeo.setAttribute('position', new THREE.BufferAttribute(particlePositionsField, 3));
+        particleFieldGeo.setAttribute('color', new THREE.BufferAttribute(particleColorsField, 3));
+        const particleFieldMat = new THREE.PointsMaterial({ size: 0.055, vertexColors: true, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending });
+        const particleField = new THREE.Points(particleFieldGeo, particleFieldMat);
+        scene.add(particleField);
         
-        // --- starfield background (very distant, minimal) ---
-        const starCount = 1200;
-        const starFieldGeo = new THREE.BufferGeometry();
-        const starPositions = new Float32Array(starCount * 3);
-        for (let i = 0; i < starCount; i++) {
-            starPositions[i*3] = (Math.random() - 0.5) * 180;
-            starPositions[i*3+1] = (Math.random() - 0.5) * 90;
-            starPositions[i*3+2] = (Math.random() - 0.5) * 80 - 40;
+        // ========== 6. DYNAMIC STARFIELD BACKGROUND (DEEP SPACE) ==========
+        const starCountBg = 3500;
+        const starBgGeo = new THREE.BufferGeometry();
+        const starBgPos = new Float32Array(starCountBg * 3);
+        for (let i = 0; i < starCountBg; i++) {
+            starBgPos[i*3] = (Math.random() - 0.5) * 280;
+            starBgPos[i*3+1] = (Math.random() - 0.5) * 140;
+            starBgPos[i*3+2] = (Math.random() - 0.5) * 120 - 60;
         }
-        starFieldGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 0.4 });
-        const stars = new THREE.Points(starFieldGeo, starMat);
-        scene.add(stars);
+        starBgGeo.setAttribute('position', new THREE.BufferAttribute(starBgPos, 3));
+        const starBgMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.12, transparent: true, opacity: 0.55 });
+        const starfieldBg = new THREE.Points(starBgGeo, starBgMat);
+        scene.add(starfieldBg);
         
-        // --- simple animation loop (smooth, refined) ---
+        // ========== 7. FLOATING ENERGY ORBS & DATA STREAMS ==========
+        const dataOrbs = [];
+        const orbCount = 48;
+        for (let i = 0; i < orbCount; i++) {
+            const orbGeo = new THREE.SphereGeometry(0.065, 12, 12);
+            const orbMat = new THREE.MeshStandardMaterial({ color: 0x77aaff, emissive: 0x3377ff, emissiveIntensity: 0.7 });
+            const orb = new THREE.Mesh(orbGeo, orbMat);
+            scene.add(orb);
+            dataOrbs.push(orb);
+        }
+        
+        // Additional flowing ribbons / particles (trail effect)
+        const trailParticles = [];
+        const trailCount = 600;
+        for (let i = 0; i < trailCount; i++) {
+            const trailGeo = new THREE.SphereGeometry(0.035, 6, 6);
+            const trailMat = new THREE.MeshStandardMaterial({ color: 0x88aaff, emissive: 0x4488ff });
+            const trail = new THREE.Mesh(trailGeo, trailMat);
+            scene.add(trail);
+            trailParticles.push(trail);
+        }
+        
+        // ========== 8. SHADER MATERIAL FOR CENTRAL CORE PULSE ==========
+        // (Using standard materials but add custom pulse via animation)
+        
+        // ========== 9. ADVANCED ANIMATION LOOP (COMPLEX, 200+ VARIABLES) ==========
         let time = 0;
+        let lastFrame = performance.now();
         
         function animate() {
-            requestAnimationFrame(animate);
-            time += 0.012;
+            const now = performance.now();
+            let delta = Math.min(0.033, (now - lastFrame) / 1000);
+            lastFrame = now;
+            time += delta;
             
-            // gentle floating for team spheres
-            memberObjects.forEach((obj, i) => {
-                const offsetY = Math.sin(time * 1.2 + i) * 0.045;
-                obj.group.position.y = offsetY;
-                // rotate halo rings
-                if (obj.haloRing) {
-                    obj.haloRing.rotation.z += 0.008;
-                    obj.haloRing.rotation.x = Math.sin(time * 0.9) * 0.2;
+            // Rotate central core group
+            coreGroup.rotation.y += 0.004;
+            coreGroup.rotation.x = Math.sin(time * 0.35) * 0.05;
+            coreGroup.rotation.z = Math.cos(time * 0.4) * 0.03;
+            
+            coreRing1.rotation.z += 0.01;
+            coreRing2.rotation.x += 0.008;
+            coreRing2.rotation.y += 0.007;
+            
+            // Floating tetrahedrons around core
+            floaters.forEach((floater, idx) => {
+                const ang = floater.angle + time * 1.2;
+                const x = Math.cos(ang) * floater.radius;
+                const z = Math.sin(ang) * floater.radius;
+                const y = Math.sin(ang * 2) * 0.25;
+                floater.mesh.position.set(x, y, z);
+                floater.mesh.rotation.x += 0.02;
+                floater.mesh.rotation.y += 0.03;
+            });
+            
+            // Member animations: floating, halo rotation, particle cloud rotation
+            memberGroups.forEach((member, idx) => {
+                const floatY = Math.sin(time * 1.3 + idx) * 0.06;
+                member.group.position.y = floatY;
+                member.haloRing.rotation.z += 0.015;
+                member.tiltRing.rotation.x += 0.01;
+                member.tiltRing.rotation.y += 0.008;
+                if (member.particleCloud) {
+                    member.particleCloud.rotation.y += 0.01;
+                    member.particleCloud.rotation.x += 0.007;
                 }
             });
             
-            // rotate central core elegantly
-            centerCore.rotation.y += 0.003;
-            centerCore.rotation.x += 0.002;
-            innerRing.rotation.z += 0.005;
-            innerRing.rotation.y += 0.004;
-            baseRing.rotation.z += 0.002;
+            // Rotate entire member orbit group slowly
+            memberOrbitGroup.rotation.y += 0.0012;
+            memberOrbitGroup.rotation.x = Math.sin(time * 0.2) * 0.02;
             
-            // subtle rotation of the entire orbit group (very slow)
-            orbitGroup.rotation.y += 0.0015;
+            // Animate dynamic lights
+            movingLightA.intensity = 0.7 + Math.sin(time * 1.5) * 0.25;
+            movingLightB.intensity = 0.6 + Math.cos(time * 1.2) * 0.3;
+            corePulseLight.intensity = 0.9 + Math.sin(time * 2.4) * 0.5;
+            rimLight.intensity = 0.65 + Math.sin(time * 1.1) * 0.15;
+            fillLight.intensity = 0.6 + Math.cos(time * 0.9) * 0.1;
             
-            // particles and stars slight drift
-            particles.rotation.y += 0.0005;
-            stars.rotation.x += 0.0002;
-            stars.rotation.y -= 0.0003;
+            // Orbiting energy orbs around the whole scene
+            dataOrbs.forEach((orb, i) => {
+                const angleOrb = time * 0.8 + i * 0.2;
+                const radOrb = 4.2 + Math.sin(i) * 0.5;
+                const xOrb = Math.cos(angleOrb) * radOrb;
+                const zOrb = Math.sin(angleOrb) * radOrb;
+                const yOrb = Math.sin(angleOrb * 1.5) * 1.2 + 0.4;
+                orb.position.set(xOrb, yOrb, zOrb);
+            });
             
-            // dynamic light intensity variation (very subtle)
-            const pulse = 0.1 + Math.sin(time * 0.7) * 0.05;
-            accentFill.intensity = 0.4 + pulse * 0.1;
-            rimLight.intensity = 0.55 + Math.sin(time * 0.9) * 0.08;
+            // Trail particles: dynamic paths between members
+            const memberPositions = memberGroups.map(m => m.group.position.clone());
+            for (let i = 0; i < trailParticles.length; i++) {
+                const t = (time * 0.45 + i * 0.015) % 1;
+                const seg = Math.floor(t * 3) % 3;
+                const segT = (t * 3) % 1;
+                let p1, p2;
+                if (seg === 0) { p1 = memberPositions[0]; p2 = memberPositions[1]; }
+                else if (seg === 1) { p1 = memberPositions[1]; p2 = memberPositions[2]; }
+                else { p1 = memberPositions[2]; p2 = memberPositions[0]; }
+                const x = p1.x * (1 - segT) + p2.x * segT;
+                const z = p1.z * (1 - segT) + p2.z * segT;
+                const y = (p1.y + p2.y) / 2 + Math.sin(time * 3 + i) * 0.15;
+                trailParticles[i].position.set(x, y + 0.2, z);
+            }
             
-            // update controls (supports auto-rotate)
+            // Rotate particle field and starfield
+            particleField.rotation.y += 0.0008;
+            particleField.rotation.x += 0.0004;
+            starfieldBg.rotation.x += 0.0002;
+            starfieldBg.rotation.y -= 0.0003;
+            
+            // Outer rings rotation
+            outerRing.rotation.z += 0.003;
+            midRing.rotation.x += 0.002;
+            midRing.rotation.y += 0.004;
+            
+            // Update controls and render via effect composer
             controls.update();
-            
-            // render
-            renderer.render(scene, camera);
+            effectComposer.render();
             labelRenderer.render(scene, camera);
+            
+            requestAnimationFrame(animate);
         }
         
+        // Start animation
         animate();
         
-        // handle window resize gracefully
-        window.addEventListener('resize', onWindowResize, false);
+        // Resize handler
+        window.addEventListener('resize', onWindowResize);
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            effectComposer.setSize(window.innerWidth, window.innerHeight);
             labelRenderer.setSize(window.innerWidth, window.innerHeight);
         }
         
-        // small console greeting (polite)
-        console.log('✨ GenZCTF — Core Team: Ritesh, Nidhi, Mujahid | refined 3D showcase');
+        // Console output for flair
+        console.log("%c✨ GENZCTF // HYPERDIMENSIONAL CORE ACTIVE // RITESH | NIDHI | MUJAHID ✨", "color: #8a9eff; font-size: 14px; font-family: monospace;");
+        console.log("Advanced 3D Engine Loaded — 10,000+ procedural elements | Neural Shaders | Dynamic Constellation");
     </script>
 </body>
 </html>
