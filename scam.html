@@ -1,32 +1,580 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Full Screen iFrame</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ritesh Ekbote — Security Researcher | 黒·紅·白</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fira+Code:wght@300;400;500;700&family=Poppins:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b0b0c;
+            --bg2: #121214;
+            --bg3: #1a1a1d;
+            --red: #cc0000;
+            --red-bright: #ff1a1a;
+            --red-dim: #990000;
+            --white: #f0f0f0;
+            --white-dim: #a0a0a0;
+            --border: #2a2a2a;
+            --font-mono: 'Fira Code', monospace;
+            --font-heading: 'Bebas Neue', cursive;
+            --font-body: 'Poppins', sans-serif;
+            --transition: 0.4s ease;
+        }
 
-<style>
-    /* Remove default margin */
-    html, body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-    }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
 
-    iframe {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;     /* full width */
-        height: 100vh;    /* full height */
-        border: none;
-    }
-</style>
+        body {
+            background: var(--bg);
+            color: var(--white);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            cursor: default;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        /* Base cursor — normal mode */
+        body { cursor: default; }
+        body.cyber { cursor: crosshair; }
+
+        /* Red rain canvas — hidden by default, visible in cyber mode */
+        #rainCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;   /* hidden */
+            transition: opacity 0.5s;
+        }
+        body.cyber #rainCanvas { opacity: 0.15; }
+
+        /* NAVIGATION */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0; z-index: 1000;
+            padding: 14px 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            background: rgba(11,11,12,0.96);
+            backdrop-filter: blur(12px);
+            font-family: var(--font-mono);
+            transition: background var(--transition);
+        }
+        body.cyber nav { background: rgba(5,5,5,0.96); }
+
+        .nav-logo {
+            font-size: 14px; font-weight: 700; color: var(--red-bright);
+            letter-spacing: 0.2em; text-shadow: none; display: flex; align-items: center; gap: 10px;
+            transition: text-shadow var(--transition);
+        }
+        .nav-logo span { font-family: var(--font-heading); font-size: 1.4rem; color: #fff; }
+
+        .nav-links { display: flex; gap: 40px; }
+        .nav-links a {
+            color: var(--white-dim); text-decoration: none; font-size: 12px;
+            letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; position: relative;
+        }
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: -4px; left: 0; width: 100%; height: 1px;
+            background: var(--red-bright); transform: scaleX(0); transition: transform 0.2s;
+        }
+        .nav-links a:hover { color: var(--red-bright); }
+        .nav-links a:hover::after { transform: scaleX(1); }
+
+        .nav-status { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--red-dim); }
+        .pulse-dot {
+            width: 10px; height: 10px; border-radius: 50%; background: var(--red-bright);
+            box-shadow: 0 0 8px var(--red-bright); animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+        /* MODE TOGGLE BUTTON */
+        .mode-toggle {
+            background: transparent; border: 1px solid var(--red-dim); color: var(--red-dim);
+            font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; padding: 6px 16px;
+            cursor: pointer; transition: 0.3s;
+            margin-left: 24px;
+        }
+        .mode-toggle:hover { border-color: var(--red-bright); color: var(--red-bright); }
+        body.cyber .mode-toggle { border-color: var(--red-bright); color: var(--red-bright); }
+
+        /* HERO */
+        .hero { min-height: 100vh; display: flex; align-items: center; padding: 120px 48px 60px; position: relative; z-index: 2; }
+        .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; max-width: 1300px; margin: 0 auto; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 10px;
+            font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em; color: var(--red-bright);
+            border: 1px solid var(--red-dim); padding: 8px 20px; margin-bottom: 24px; text-transform: uppercase;
+            position: relative; background: rgba(15,0,0,0.3); transition: box-shadow var(--transition);
+        }
+        .badge::before, .badge::after { content: ''; position: absolute; width: 8px; height: 8px; }
+        .badge::before { top: -1px; left: -1px; border-top: 2px solid var(--red-bright); border-left: 2px solid var(--red-bright); }
+        .badge::after { bottom: -1px; right: -1px; border-bottom: 2px solid var(--red-bright); border-right: 2px solid var(--red-bright); }
+
+        h1.hero-name {
+            font-family: var(--font-heading); font-size: clamp(4rem, 8vw, 7rem); font-weight: 900;
+            line-height: 0.9; letter-spacing: 0.03em; color: #fff; margin-bottom: 16px; position: relative;
+            transition: text-shadow var(--transition);
+        }
+        h1.hero-name .accent { color: var(--red-bright); display: block; }
+        /* Normal mode: no heavy shadow, only subtle */
+        h1.hero-name .accent { text-shadow: none; }
+        /* Cyber mode: glowing */
+        body.cyber h1.hero-name .accent { text-shadow: 0 0 30px rgba(255,26,26,0.9); }
+        body.cyber h1.hero-name::after {
+            content: ''; position: absolute; left: -5px; bottom: 5px; width: 130%; height: 6px;
+            background: var(--red-bright); transform: skewX(-25deg); opacity: 0.3; z-index: -1;
+        }
+
+        .hero-sub {
+            font-family: var(--font-mono); font-size: 13px; color: var(--white-dim); line-height: 2;
+            margin: 24px 0 32px; max-width: 500px;
+        }
+        .hero-sub span { color: var(--red-bright); font-weight: 600; }
+
+        .command-line {
+            font-family: var(--font-mono); font-size: 14px; color: var(--red-bright); margin-bottom: 36px;
+            min-height: 24px; display: flex; align-items: center;
+        }
+        .command-line::before { content: '> '; color: var(--white-dim); }
+        .cursor { animation: blink 0.8s step-end infinite; font-weight: bold; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .hero-buttons { display: flex; gap: 18px; flex-wrap: wrap; }
+        .btn-primary, .btn-outline {
+            font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+            padding: 14px 32px; cursor: pointer; text-decoration: none; transition: 0.25s;
+            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+        }
+        .btn-primary { background: var(--red-bright); color: #fff; border: none; box-shadow: none; }
+        .btn-primary:hover { background: #fff; color: #000; box-shadow: 0 0 20px #fff; }
+        .btn-outline { border: 1px solid var(--red-dim); color: var(--white-dim); background: transparent; }
+        .btn-outline:hover { border-color: var(--red-bright); color: var(--red-bright); }
+
+        /* CHARACTER CANVAS */
+        .character-wrap {
+            border: 1px solid var(--border); background: #0a0a0a;
+            transition: width var(--transition), height var(--transition), box-shadow var(--transition);
+            width: 300px; height: 240px; /* smaller in normal mode */
+            margin: 0 auto;
+        }
+        body.cyber .character-wrap { width: 500px; height: 400px; box-shadow: inset 0 0 60px rgba(230,0,0,0.1); }
+        .character-wrap::before {
+            content: '[ 忍 ]'; position: absolute; top: 10px; left: 12px;
+            font-family: var(--font-mono); font-size: 10px; color: var(--red-dim); letter-spacing: 0.2em; z-index: 5;
+        }
+        body.cyber .character-wrap::after {
+            content: '● TARGET ACQUIRED'; position: absolute; top: 10px; right: 12px;
+            font-family: var(--font-mono); font-size: 10px; color: var(--red-bright); z-index: 5;
+        }
+        #heroCanvas { display: block; width: 100%; height: 100%; }
+
+        /* STATS */
+        .stats-bar {
+            background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+            padding: 28px 48px; z-index: 2; position: relative; transition: background var(--transition);
+        }
+        .stats-inner { max-width: 1300px; margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); }
+        .stat-item { padding: 0 32px; border-right: 1px solid var(--border); text-align: center; }
+        .stat-item:last-child { border-right: none; }
+        .stat-number {
+            font-family: var(--font-heading); font-size: 3rem; font-weight: 900; color: var(--red-bright);
+            text-shadow: none; display: block; line-height: 1; transition: text-shadow var(--transition);
+        }
+        body.cyber .stat-number { text-shadow: 0 0 25px rgba(255,26,26,0.8); }
+        .stat-label { font-family: var(--font-mono); font-size: 10px; color: var(--white-dim); letter-spacing: 0.15em; text-transform: uppercase; margin-top: 6px; }
+
+        /* SECTIONS */
+        section { padding: 80px 48px; position: relative; z-index: 2; }
+        .section-inner { max-width: 1300px; margin: 0 auto; }
+        .section-header { display: flex; align-items: center; gap: 20px; margin-bottom: 56px; }
+        .section-num { font-family: var(--font-heading); font-size: 18px; color: var(--red-dim); letter-spacing: 0.2em; }
+        .section-title { font-family: var(--font-heading); font-size: 2.2rem; font-weight: 900; color: #fff; text-transform: uppercase; }
+        .section-line { flex: 1; height: 2px; background: linear-gradient(to right, var(--red-dim), transparent); }
+
+        /* CTF GRID */
+        .ctf-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+        .ctf-card { background: var(--bg); padding: 32px; position: relative; overflow: hidden; transition: background 0.3s; }
+        .ctf-card:hover { background: #111; }
+        .ctf-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--red-bright);
+            transform: scaleX(0); transform-origin: left; transition: transform 0.4s;
+        }
+        .ctf-card:hover::before { transform: scaleX(1); }
+        .ctf-rank { font-family: var(--font-heading); font-size: 2.2rem; font-weight: 900; color: var(--red-bright); margin-bottom: 8px; transition: text-shadow var(--transition); }
+        body.cyber .ctf-rank { text-shadow: 0 0 15px rgba(230,0,0,0.6); }
+        .ctf-card.gold .ctf-rank { color: #ffd700; }
+        .ctf-card.cyan .ctf-rank { color: #00e5ff; }
+        .ctf-card.gold::before { background: #ffd700; }
+        .ctf-card.cyan::before { background: #00e5ff; }
+        .ctf-event { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+        .ctf-details { font-size: 11px; color: var(--white-dim); line-height: 1.8; font-family: var(--font-mono); }
+
+        /* TERMINAL BOX */
+        .terminal-box { background: var(--bg2); border: 1px solid var(--border); }
+        .terminal-bar { padding: 10px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; color: var(--white-dim); }
+        .term-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .term-dot.red { background: #ff5f57; } .term-dot.yellow { background: #febc2e; } .term-dot.green { background: #28c840; }
+        table.bounty { width: 100%; border-collapse: collapse; }
+        table.bounty th { text-align: left; padding: 14px 24px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; color: var(--white-dim); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        table.bounty td { padding: 16px 24px; font-size: 13px; border-bottom: 1px solid rgba(102,0,0,0.3); vertical-align: middle; font-family: var(--font-body); }
+        table.bounty tr:last-child td { border-bottom: none; }
+        table.bounty tr:hover td { background: rgba(230,0,0,0.02); }
+        body.cyber table.bounty tr:hover td { background: rgba(230,0,0,0.03); }
+        .severity { display: inline-block; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; padding: 3px 12px; text-transform: uppercase; border: 1px solid; }
+        .sev-p3 { border-color: #00e5ff; color: #00e5ff; } .sev-p4 { border-color: var(--red-dim); color: var(--red-dim); } .sev-multi { border-color: var(--white-dim); color: var(--white-dim); }
+        .status { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; padding: 3px 12px; text-transform: uppercase; border: 1px solid; }
+        .status-rewarded { color: var(--red-bright); border-color: var(--red-bright); } .status-cert { color: #00e5ff; border-color: #00e5ff; } .status-fixed { color: #a8ff78; border-color: #a8ff78; }
+
+        /* SKILLS */
+        .skills-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 36px; }
+        .skill-category { margin-bottom: 32px; }
+        .skill-head { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em; color: var(--red-bright); text-transform: uppercase; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+        .skill-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .skill-tag {
+            font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; padding: 6px 16px;
+            border: 1px solid var(--border); color: var(--white-dim); background: var(--bg2); transition: 0.2s;
+        }
+        .skill-tag:hover { border-color: var(--red-dim); color: #fff; }
+        body.cyber .skill-tag:hover { border-color: var(--red-bright); color: #fff; background: rgba(230,0,0,0.1); box-shadow: 0 0 12px rgba(230,0,0,0.4); }
+
+        /* CERTS */
+        .cert-list { display: flex; flex-direction: column; gap: 14px; }
+        .cert-item { display: flex; align-items: center; gap: 24px; padding: 20px 24px; border: 1px solid var(--border); background: var(--bg2); transition: 0.2s; }
+        .cert-item:hover { border-color: var(--red-dim); }
+        body.cyber .cert-item:hover { border-color: var(--red-dim); box-shadow: 0 0 15px rgba(230,0,0,0.3); }
+        .cert-icon { width: 48px; height: 48px; border: 1px solid var(--red-dim); display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 14px; font-weight: 700; color: var(--red-bright); background: #0a0000; }
+        .cert-name { font-size: 15px; font-weight: 700; color: #fff; } .cert-desc { font-size: 11px; color: var(--white-dim); margin-top: 3px; } .cert-year { margin-left: auto; font-family: var(--font-mono); font-size: 12px; color: var(--white-dim); }
+
+        /* CONTACT */
+        .contact-section { background: var(--bg2); border-top: 1px solid var(--border); transition: background var(--transition); }
+        .contact-inner { max-width: 1300px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; padding: 80px 48px; }
+        .contact-text h2 { font-family: var(--font-heading); font-size: 3.5rem; font-weight: 900; color: #fff; line-height: 0.9; margin-bottom: 20px; }
+        .contact-text h2 span { color: var(--red-bright); transition: text-shadow var(--transition); }
+        body.cyber .contact-text h2 span { text-shadow: 0 0 30px rgba(255,26,26,0.8); }
+        .contact-text p { font-family: var(--font-mono); font-size: 12px; color: var(--white-dim); line-height: 2; margin-bottom: 32px; }
+        .contact-links { display: flex; flex-direction: column; gap: 14px; }
+        .contact-link { display: flex; align-items: center; gap: 14px; font-family: var(--font-mono); font-size: 12px; color: var(--white-dim); text-decoration: none; transition: 0.2s; }
+        .contact-link:hover { color: var(--red-bright); }
+        .contact-link em { color: var(--red-dim); font-style: normal; font-weight: 700; }
+
+        .contact-terminal .terminal-body { padding: 24px; font-family: var(--font-mono); font-size: 13px; line-height: 2.4; }
+        .prompt { color: var(--red-dim); } .command { color: var(--red-bright); }
+        .output { color: var(--white-dim); padding-left: 20px; display: block; } .output .value { color: #00e5ff; }
+        .cursor-terminal { animation: blink 0.8s step-end infinite; font-weight: bold; }
+
+        footer { padding: 20px 48px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; color: var(--white-dim); letter-spacing: 0.1em; background: var(--bg); position: relative; z-index: 2; }
+
+        /* REVEAL */
+        .reveal { opacity: 0; transform: translateY(30px); transition: 0.7s ease; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        /* GLITCH — only in cyber mode */
+        .glitch { position: relative; }
+        body.cyber .glitch:hover { animation: glitch 0.4s steps(2) infinite; }
+        @keyframes glitch {
+            0%, 100% { text-shadow: none; }
+            25% { text-shadow: -2px 0 red, 2px 0 cyan; }
+            75% { text-shadow: 2px 0 red, -2px 0 cyan; }
+        }
+    </style>
 </head>
-
 <body>
+    <canvas id="rainCanvas"></canvas>
 
-<iframe src="https://superstoreapp.meesho.com/"></iframe>
+    <nav>
+        <div class="nav-logo"><span>影</span> RE://PORTFOLIO</div>
+        <div class="nav-links">
+            <a href="#about">About</a>
+            <a href="#ctf">CTF</a>
+            <a href="#bounty">Bounty</a>
+            <a href="#skills">Skills</a>
+            <a href="#contact">Contact</a>
+        </div>
+        <div class="nav-status">
+            <div class="pulse-dot"></div>
+            <span>OPERATIONAL</span>
+            <button class="mode-toggle" id="modeToggle">⚡ Cyber Mode</button>
+        </div>
+    </nav>
 
+    <!-- HERO -->
+    <section class="hero" id="about">
+        <div class="hero-grid">
+            <div>
+                <div class="badge"><div class="pulse-dot"></div> Security Researcher · Maharashtra, India</div>
+                <h1 class="hero-name glitch">RITESH <span class="accent">EKBOTE_</span></h1>
+                <p class="hero-sub">
+                    Bug Hunter · Offensive Security Researcher · CTF Player<br>
+                    <span>#5 India · #21 Global</span> — OffSec Arctic Howl 2025<br>
+                    Securing <span>Zerodha · Nykaa · DTDC</span> and beyond.
+                </p>
+                <div class="command-line" id="typewriter"><span class="cursor">█</span></div>
+                <div class="hero-buttons">
+                    <a href="#bounty" class="btn-primary">View Disclosures</a>
+                    <a href="#contact" class="btn-outline">Get In Touch</a>
+                </div>
+            </div>
+            <div class="character-wrap">
+                <canvas id="heroCanvas" width="500" height="400"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- STATS -->
+    <div class="stats-bar reveal">
+        <div class="stats-inner">
+            <div class="stat-item"><span class="stat-number" id="stat1">0</span><span class="stat-label">Bug Bounties Earned</span></div>
+            <div class="stat-item"><span class="stat-number" id="stat2">0</span><span class="stat-label">CTFs Competed</span></div>
+            <div class="stat-item"><span class="stat-number" id="stat3">0</span><span class="stat-label">Best Global Rank</span></div>
+            <div class="stat-item"><span class="stat-number" id="stat4">0</span><span class="stat-label">Flags Captured (HTB)</span></div>
+        </div>
+    </div>
+
+    <!-- CTF -->
+    <section id="ctf">
+        <div class="section-inner">
+            <div class="section-header reveal"><span class="section-num">01.</span><h2 class="section-title">CTF ACHIEVEMENTS</h2><div class="section-line"></div></div>
+            <div class="ctf-grid reveal">
+                <div class="ctf-card gold"><div class="ctf-rank">#5 🇮🇳 · #21 🌍</div><div class="ctf-event">OffSec Arctic Howl 2025</div><div class="ctf-details">331 pts · 36 flags · 3,400+ players<br>4-week threat hunting narrative CTF</div></div>
+                <div class="ctf-card cyan"><div class="ctf-rank">#14 🌍 · #2 🇮🇳</div><div class="ctf-event">AI vs Human CTF — HTB</div><div class="ctf-details">2-member team · Reverse Eng + Crypto<br>Dominated global leaderboard</div></div>
+                <div class="ctf-card"><div class="ctf-rank">#22 🌍</div><div class="ctf-event">Black Hat USA CTF 2025</div><div class="ctf-details">Bugcrowd · Team CyberXoX<br>Elite global-level competition</div></div>
+                <div class="ctf-card"><div class="ctf-rank">#42 🌍</div><div class="ctf-event">NahamCon 2025</div><div class="ctf-details">8,127 pts · Team CyberXoX<br>Representing India on global stage</div></div>
+                <div class="ctf-card cyan"><div class="ctf-rank">#140 🌍</div><div class="ctf-event">HTB Cyber Apocalypse 2025</div><div class="ctf-details">64/77 challenges · 46,775 pts<br>8,130+ competing teams worldwide</div></div>
+                <div class="ctf-card gold"><div class="ctf-rank">#19 🌍</div><div class="ctf-event">Hackorn CTF 2025 Qualifiers</div><div class="ctf-details">1,940 pts · BSides Noida<br>Web / Forensics / Crypto / PWN</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BOUNTY -->
+    <section id="bounty" style="background: var(--bg2);">
+        <div class="section-inner">
+            <div class="section-header reveal"><span class="section-num">02.</span><h2 class="section-title">DISCLOSURES</h2><div class="section-line"></div></div>
+            <div class="terminal-box reveal">
+                <div class="terminal-bar"><span class="term-dot red"></span><span class="term-dot yellow"></span><span class="term-dot green"></span><span style="margin-left:12px;">ritesh@kali:~/disclosures — bash</span></div>
+                <table class="bounty">
+                    <thead><tr><th>Target</th><th>Vulnerability</th><th>Severity</th><th>Platform</th><th>Status</th></tr></thead>
+                    <tbody>
+                        <tr><td style="color:#fff;font-weight:700;">Zerodha</td><td>OSINT — Information Disclosure</td><td><span class="severity sev-p3">P3</span></td><td>Com Olho</td><td><span class="status status-rewarded">Rewarded</span></td></tr>
+                        <tr><td style="color:#fff;font-weight:700;">Nykaa</td><td>Admin Login Exposure + API Key Leak</td><td><span class="severity sev-p3">P3</span></td><td>Com Olho</td><td><span class="status status-cert">Certificate</span></td></tr>
+                        <tr><td style="color:#fff;font-weight:700;">BrandMuscle</td><td>Information Disclosure (3-digit bounty)</td><td><span class="severity sev-p4">P4</span></td><td>Com Olho</td><td><span class="status status-rewarded">Rewarded</span></td></tr>
+                        <tr><td style="color:#fff;font-weight:700;">DTDC</td><td>LinkedIn Slug Impersonation / Brand Risk</td><td><span class="severity sev-p4">P4</span></td><td>Direct</td><td><span class="status status-fixed">Fixed</span></td></tr>
+                        <tr><td style="color:#fff;font-weight:700;">Com Olho (Multiple)</td><td>OSINT · Web Vulnerabilities</td><td><span class="severity sev-multi">Multi</span></td><td>Com Olho</td><td><span class="status status-rewarded">Rewarded</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- SKILLS + CERTS -->
+    <section id="skills">
+        <div class="section-inner">
+            <div class="section-header reveal"><span class="section-num">03.</span><h2 class="section-title">ARSENAL</h2><div class="section-line"></div></div>
+            <div class="skills-grid reveal">
+                <div>
+                    <div class="skill-category"><div class="skill-head">Offensive Skills</div><div class="skill-tags"><span class="skill-tag">Web Exploitation</span><span class="skill-tag">API Pentesting</span><span class="skill-tag">OSINT</span><span class="skill-tag">Privilege Escalation</span><span class="skill-tag">Reverse Engineering</span><span class="skill-tag">Binary Exploitation</span><span class="skill-tag">Social Engineering</span></div></div>
+                    <div class="skill-category"><div class="skill-head">Tools & Frameworks</div><div class="skill-tags"><span class="skill-tag">Burp Suite</span><span class="skill-tag">Metasploit</span><span class="skill-tag">Nmap</span><span class="skill-tag">Postman</span><span class="skill-tag">Ghidra</span><span class="skill-tag">Wireshark</span><span class="skill-tag">Python</span><span class="skill-tag">YARA</span></div></div>
+                </div>
+                <div>
+                    <div class="skill-category"><div class="skill-head">Defence & Analysis</div><div class="skill-tags"><span class="skill-tag">Threat Hunting</span><span class="skill-tag">Malware Analysis</span><span class="skill-tag">Digital Forensics</span><span class="skill-tag">Incident Response</span><span class="skill-tag">Log Analysis</span><span class="skill-tag">SIEM</span></div></div>
+                    <div class="skill-category"><div class="skill-head">CTF Domains</div><div class="skill-tags"><span class="skill-tag">Cryptography</span><span class="skill-tag">Steganography</span><span class="skill-tag">PWN / Binary</span><span class="skill-tag">Web</span><span class="skill-tag">Forensics</span><span class="skill-tag">Misc</span><span class="skill-tag">OSINT Challenges</span></div></div>
+                </div>
+            </div>
+            <div style="margin-top:80px;">
+                <div class="section-header reveal" style="margin-bottom:32px;"><span class="section-num">04.</span><h2 class="section-title">CERTIFICATIONS</h2><div class="section-line"></div></div>
+                <div class="cert-list reveal">
+                    <div class="cert-item"><div class="cert-icon">ACP</div><div><div class="cert-name">API Certified Professional (ACP)</div><div class="cert-desc">APIsec University · Penetration Testing Badge · 12hr Labs</div></div><div class="cert-year">2024</div></div>
+                    <div class="cert-item"><div class="cert-icon">CNSP</div><div><div class="cert-name">Certified Network Security Professional</div><div class="cert-desc">The SecOps Group · PentestingExams.com</div></div><div class="cert-year">2024</div></div>
+                    <div class="cert-item"><div class="cert-icon">CIS</div><div><div class="cert-name">Introduction to Cybersecurity</div><div class="cert-desc">Cisco Networking Academy</div></div><div class="cert-year">2024</div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT -->
+    <div class="contact-section" id="contact">
+        <div class="contact-inner">
+            <div class="contact-text reveal"><h2>LET'S<br><span>CONNECT_</span></h2><p>Open to bug bounty collabs, penetration testing contracts, security research roles, and CTF team-ups. If you're building something that needs stress-testing — I'm your person.</p>
+                <div class="contact-links">
+                    <a class="contact-link" href="https://www.linkedin.com/in/ritesh-ekbote" target="_blank"><em>[LI]</em> linkedin.com/in/ritesh-ekbote</a>
+                    <a class="contact-link" href="#"><em>[HN]</em> HackerOne Profile</a>
+                    <a class="contact-link" href="https://tryhackme.com/p/ritesh8975" target="_blank"><em>[TH]</em> TryHackMe — ritesh8975</a>
+                    <a class="contact-link" href="#"><em>[HB]</em> HackTheBox — CyberXoX / ANONDGR</a>
+                </div>
+            </div>
+            <div class="terminal-box contact-terminal reveal">
+                <div class="terminal-bar"><span class="term-dot red"></span><span class="term-dot yellow"></span><span class="term-dot green"></span><span style="margin-left:12px;">contact.sh — bash</span></div>
+                <div class="terminal-body">
+                    <span class="prompt">$ </span><span class="command">whoami</span><br><span class="output">ritesh_ekbote — bug hunter & security researcher</span><br>
+                    <span class="prompt">$ </span><span class="command">cat profile.json</span><br>
+                    <span class="output">{ "name": <span class="value">"Ritesh Ekbote"</span>,</span>
+                    <span class="output">&nbsp;&nbsp;"role": <span class="value">"Offensive Security Researcher"</span>,</span>
+                    <span class="output">&nbsp;&nbsp;"location": <span class="value">"Maharashtra, India"</span>,</span>
+                    <span class="output">&nbsp;&nbsp;"top_rank": <span class="value">"#5 India — OffSec Arctic Howl"</span> }</span><br>
+                    <span class="prompt">$ </span><span class="command">cat status.txt</span><br>
+                    <span class="output" style="color:#cc0000;">STATUS: OPEN TO OPPORTUNITIES ✓</span><br>
+                    <span class="prompt">$ </span><span class="cursor-terminal">█</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <span>© 2025 RITESH EKBOTE — SECURITY RESEARCHER</span>
+        <span style="color:#cc0000;">THINK LIKE AN ATTACKER. DEFEND LIKE A FORTRESS.</span>
+    </footer>
+
+    <script>
+        /* ---------- GLOBAL MODE STATE ---------- */
+        let isCyberMode = localStorage.getItem('cyberMode') === 'true';
+        document.body.classList.toggle('cyber', isCyberMode);
+        updateToggleButton();
+
+        const modeBtn = document.getElementById('modeToggle');
+        modeBtn.addEventListener('click', () => {
+            isCyberMode = !isCyberMode;
+            document.body.classList.toggle('cyber', isCyberMode);
+            localStorage.setItem('cyberMode', isCyberMode);
+            updateToggleButton();
+        });
+
+        function updateToggleButton() {
+            modeBtn.innerHTML = isCyberMode ? '🧠 Normal Mode' : '⚡ Cyber Mode';
+        }
+
+        /* ---------- RED RAIN (only active in cyber mode) ---------- */
+        (function() {
+            const canvas = document.getElementById('rainCanvas');
+            const ctx = canvas.getContext('2d');
+            function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+            resize(); window.addEventListener('resize', resize);
+            const chars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃ'.split('');
+            let drops = [];
+            function initDrops() { const cols = Math.floor(canvas.width / 14); drops = Array.from({ length: cols }, () => Math.floor(Math.random() * canvas.height / 14)); }
+            initDrops(); window.addEventListener('resize', initDrops);
+
+            function drawRain() {
+                if (!isCyberMode) { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
+                ctx.fillStyle = 'rgba(5,5,5,0.04)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#e60000'; ctx.font = '14px "Fira Code", monospace';
+                for (let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    ctx.fillText(text, i * 14, drops[i] * 14);
+                    if (drops[i] * 14 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                    drops[i]++;
+                }
+            }
+            setInterval(drawRain, 40);
+        })();
+
+        /* ---------- TYPEWRITER ---------- */
+        (() => {
+            const lines = ['nmap -sV -sC target.com','sqlmap -u target/login --dbs','python3 exploit.py --shell','grep -r "api_key" ./source/','curl -X POST /admin --data "id=1 OR 1=1"','hydra -L users.txt -P pass.txt ssh://target'];
+            let li=0, ci=0, del=false;
+            const el = document.getElementById('typewriter');
+            function run() {
+                const cur = lines[li];
+                if (!del) {
+                    ci++; el.innerHTML = cur.slice(0, ci) + '<span class="cursor">█</span>';
+                    if (ci === cur.length) { del = true; setTimeout(run, 1600); return; }
+                } else {
+                    ci--; el.innerHTML = cur.slice(0, ci) + '<span class="cursor">█</span>';
+                    if (ci === 0) { del = false; li = (li+1) % lines.length; }
+                }
+                setTimeout(run, del ? 35 : 70);
+            }
+            run();
+        })();
+
+        /* ---------- COUNTERS ---------- */
+        (() => {
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    animateValue('stat1', 8, '+'); animateValue('stat2', 15, '+');
+                    animateValue('stat3', 14, ''); animateValue('stat4', 64, '');
+                    observer.disconnect();
+                }
+            }, { threshold: 0.5 });
+            observer.observe(document.querySelector('.stats-bar'));
+
+            function animateValue(id, target, suffix) {
+                const el = document.getElementById(id); let v=0;
+                const t = setInterval(() => { v += Math.ceil(target/50); if(v>=target) { el.textContent = target+suffix; clearInterval(t); } else el.textContent = v+suffix; }, 20);
+            }
+        })();
+
+        /* ---------- SCROLL REVEAL ---------- */
+        (() => {
+            const observer = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('active'); }), { threshold: 0.1 });
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        })();
+
+        /* ---------- HERO CANVAS (anime character + moon) ---------- */
+        (() => {
+            const canvas = document.getElementById('heroCanvas');
+            const ctx = canvas.getContext('2d');
+            const w = 500, h = 400;
+            let time = 0;
+
+            function draw() {
+                time += 0.02;
+                // Sky
+                const grad = ctx.createLinearGradient(0,0,0,h);
+                grad.addColorStop(0, '#1a0000'); grad.addColorStop(0.7, '#0a0a0a'); grad.addColorStop(1, '#000');
+                ctx.fillStyle = grad; ctx.fillRect(0,0,w,h);
+
+                // Moon
+                const moonX=390, moonY=60;
+                ctx.beginPath(); ctx.arc(moonX, moonY, 50, 0, Math.PI*2);
+                const moonGrad = ctx.createRadialGradient(moonX-8,moonY-8,8,moonX,moonY,50);
+                moonGrad.addColorStop(0,'#ff3333'); moonGrad.addColorStop(0.8,'#990000');
+                ctx.fillStyle = moonGrad;
+                ctx.shadowColor = '#e60000'; ctx.shadowBlur = isCyberMode ? 30 : 10;
+                ctx.fill(); ctx.shadowBlur = 0;
+
+                // Buildings
+                ctx.fillStyle = '#0a0a0a';
+                const blds = [{x:0,w:70,h:130},{x:80,w:50,h:180},{x:140,w:65,h:220},{x:215,w:80,h:280},{x:305,w:55,h:190},{x:370,w:60,h:240},{x:440,w:60,h:150}];
+                blds.forEach(b => ctx.fillRect(b.x, h-b.h, b.w, b.h));
+
+                // Character
+                const roofX=255, roofY=h-280-110;
+                ctx.fillStyle='#0a0a0a'; ctx.beginPath();
+                ctx.moveTo(roofX-22, roofY+15); ctx.lineTo(roofX-28, roofY+70); ctx.lineTo(roofX+28, roofY+70); ctx.lineTo(roofX+22, roofY+15);
+                ctx.closePath(); ctx.fill(); ctx.strokeStyle='#e60000'; ctx.lineWidth=1.8; ctx.stroke();
+                ctx.beginPath(); ctx.arc(roofX, roofY-5, 14, 0, Math.PI*2); ctx.fillStyle='#111'; ctx.fill(); ctx.stroke();
+                ctx.fillStyle='#ff0000'; ctx.shadowColor='#ff0000'; ctx.shadowBlur = isCyberMode ? 14 : 4;
+                ctx.beginPath(); ctx.arc(roofX-5, roofY-10, 2.6, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(roofX+5, roofY-10, 2.6, 0, Math.PI*2); ctx.fill();
+                ctx.shadowBlur=0;
+
+                // Laptop
+                ctx.fillStyle='#222'; ctx.fillRect(roofX-22, roofY+70, 44, 5);
+                ctx.fillStyle='#1c0000'; ctx.fillRect(roofX-20, roofY+48, 40, 22);
+                ctx.strokeStyle='#e60000'; ctx.beginPath(); ctx.moveTo(roofX-12, roofY+55); ctx.lineTo(roofX+8, roofY+60); ctx.stroke();
+                ctx.font='5px monospace'; ctx.fillStyle='#e60000';
+                for(let i=0; i<5; i++) ctx.fillText(Math.random()>0.5?'01':'10', roofX-15+i*10, roofY+58);
+
+                // Particles (cyber mode only)
+                if (isCyberMode) {
+                    for(let j=0; j<8; j++) {
+                        const angle = time*3 + j*Math.PI/4;
+                        const px = roofX + Math.cos(angle)*40;
+                        const py = roofY+40 + Math.sin(angle*2)*20;
+                        ctx.fillStyle='#ff1a1a'; ctx.beginPath(); ctx.arc(px, py, 1.3, 0, 2*Math.PI); ctx.fill();
+                    }
+                }
+            }
+
+            function animate() { draw(); requestAnimationFrame(animate); }
+            animate();
+        })();
+    </script>
 </body>
 </html>
