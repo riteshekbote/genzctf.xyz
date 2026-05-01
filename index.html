@@ -1,509 +1,544 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>GenZCTF | Neural Core — Hyperdimensional Showcase</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
-            background-color: #03030c;
-        }
-        #info {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            color: rgba(210, 220, 255, 0.7);
-            background: rgba(8, 12, 28, 0.65);
-            backdrop-filter: blur(12px);
-            padding: 8px 18px;
-            border-radius: 40px;
-            font-size: 13px;
-            font-weight: 400;
-            font-family: monospace;
-            letter-spacing: 0.5px;
-            border-left: 2px solid #6a8eff;
-            pointer-events: none;
-            z-index: 100;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        #controls-note {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(8px);
-            padding: 5px 12px;
-            border-radius: 30px;
-            color: #aab4ff;
-            font-size: 11px;
-            font-family: monospace;
-            pointer-events: none;
-            z-index: 100;
-        }
-        @media (max-width: 700px) {
-            #info, #controls-note { font-size: 8px; padding: 4px 10px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ritesh Ekbote — Security Researcher</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--green:#00ff41;--green-dim:#00aa2b;--green-dark:#003311;--cyan:#00e5ff;--red:#ff003c;--gold:#ffd700;--bg:#020d05;--bg2:#04180a;--bg3:#071f0e;--text:#c8ffd4;--text-dim:#4d8a5c;--border:#0f3d1c;--glow:0 0 20px rgba(0,255,65,0.3);--glow-s:0 0 40px rgba(0,255,65,0.6);}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;overflow-x:hidden;cursor:crosshair;}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);pointer-events:none;z-index:9998;}
+#matrix{position:fixed;top:0;left:0;opacity:0.055;z-index:0;pointer-events:none;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:14px 48px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(2,13,5,0.93);backdrop-filter:blur(16px);}
+.nav-logo{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--green);letter-spacing:.15em;text-shadow:var(--glow);}
+.nav-links{display:flex;gap:36px;}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:10px;letter-spacing:.12em;text-transform:uppercase;transition:color .2s;}
+.nav-links a:hover{color:var(--green);text-shadow:var(--glow);}
+.nav-status{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--green-dim);}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.25;}}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;padding:100px 48px 60px;position:relative;overflow:hidden;}
+.hex-bg{position:absolute;top:0;right:0;width:55%;height:100%;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V17L28 1l28 16v33z' fill='none' stroke='%230f3d1c' stroke-width='0.5'/%3E%3Cpath d='M28 100L0 84V51l28-17 28 17v33z' fill='none' stroke='%230f3d1c' stroke-width='0.5'/%3E%3C/svg%3E");opacity:.5;pointer-events:none;}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;max-width:1200px;margin:0 auto;width:100%;align-items:center;position:relative;z-index:2;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.15em;color:var(--green);border:1px solid var(--border);padding:6px 14px;margin-bottom:24px;text-transform:uppercase;position:relative;}
+.hero-badge::before,.hero-badge::after{content:'';position:absolute;width:8px;height:8px;}
+.hero-badge::before{top:-1px;left:-1px;border-top:2px solid var(--green);border-left:2px solid var(--green);}
+.hero-badge::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--green);border-right:2px solid var(--green);}
+h1.hero-name{font-family:'Orbitron',monospace;font-size:clamp(2.4rem,4vw,4rem);font-weight:900;line-height:1.0;letter-spacing:.02em;margin-bottom:8px;color:#fff;}
+h1.hero-name .accent{color:var(--green);text-shadow:var(--glow-s);display:block;}
+.hero-sub{font-size:12px;color:var(--text-dim);letter-spacing:.06em;margin:18px 0 28px;line-height:1.9;max-width:440px;}
+.hero-sub span{color:var(--cyan);}
+.tw-line{font-size:13px;color:var(--green);margin-bottom:32px;min-height:22px;}
+.tw-line::before{content:'> ';color:var(--text-dim);}
+.cursor{animation:blink 1s step-end infinite;}
+@keyframes blink{50%{opacity:0;}}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;}
+.btn-p{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:12px 28px;border:1px solid var(--green);color:var(--bg);background:var(--green);cursor:pointer;text-decoration:none;transition:all .2s;display:inline-block;}
+.btn-p:hover{box-shadow:var(--glow-s);}
+.btn-o{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:12px 28px;border:1px solid var(--border);color:var(--text-dim);background:transparent;cursor:pointer;text-decoration:none;transition:all .2s;display:inline-block;}
+.btn-o:hover{border-color:var(--green);color:var(--green);}
+
+/* CANVAS WRAPPER */
+.canvas-wrap{position:relative;border:1px solid var(--border);}
+.canvas-wrap::before{content:'[ THREAT MATRIX v2.1 ]';position:absolute;top:10px;left:14px;font-size:10px;color:var(--green-dim);letter-spacing:.12em;z-index:5;}
+.canvas-wrap::after{content:'● LIVE';position:absolute;top:10px;right:14px;font-size:10px;color:var(--green);z-index:5;}
+#hc{display:block;}
+
+/* STATS */
+.stats{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:32px 48px;}
+.stats-in{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);}
+.stat{padding:0 32px;border-right:1px solid var(--border);text-align:center;}
+.stat:first-child{padding-left:0;}
+.stat:last-child{border-right:none;}
+.sv{font-family:'Orbitron',monospace;font-size:2.2rem;font-weight:900;color:var(--green);text-shadow:var(--glow);display:block;}
+.sl{font-size:10px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-top:4px;}
+
+/* SECTION */
+section{padding:80px 48px;position:relative;z-index:2;}
+.si{max-width:1200px;margin:0 auto;}
+.sh{display:flex;align-items:center;gap:16px;margin-bottom:48px;}
+.snum{font-family:'Orbitron',monospace;font-size:11px;color:var(--green-dim);letter-spacing:.2em;}
+.stit{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:var(--text);letter-spacing:.05em;}
+.sline{flex:1;height:1px;background:linear-gradient(to right,var(--border),transparent);}
+
+/* CTF */
+.ctf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);}
+.ctf-card{background:var(--bg);padding:28px;position:relative;overflow:hidden;transition:background .2s;}
+.ctf-card:hover{background:var(--bg3);}
+.ctf-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--green);transform:scaleX(0);transform-origin:left;transition:transform .35s;}
+.ctf-card:hover::before{transform:scaleX(1);}
+.cr{font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;color:var(--green);text-shadow:var(--glow);margin-bottom:6px;}
+.ctf-card.gold .cr{color:var(--gold);text-shadow:0 0 20px rgba(255,215,0,.5);}
+.ctf-card.gold::before{background:var(--gold);}
+.ctf-card.cyan .cr{color:var(--cyan);text-shadow:0 0 20px rgba(0,229,255,.5);}
+.ctf-card.cyan::before{background:var(--cyan);}
+.ce{font-size:13px;font-weight:700;color:#fff;margin-bottom:5px;}
+.cd{font-size:11px;color:var(--text-dim);line-height:1.75;}
+
+/* TERMINAL BOX */
+.tbox{background:var(--bg2);border:1px solid var(--border);}
+.tbar{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-dim);}
+.td{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.tr{background:#ff5f57;}.ty{background:#febc2e;}.tg{background:#28c840;}
+
+/* BOUNTY TABLE */
+table.bt{width:100%;border-collapse:collapse;}
+table.bt th{text-align:left;padding:12px 20px;font-size:10px;letter-spacing:.12em;color:var(--text-dim);text-transform:uppercase;border-bottom:1px solid var(--border);}
+table.bt td{padding:14px 20px;font-size:12px;border-bottom:1px solid rgba(15,61,28,.4);vertical-align:middle;}
+table.bt tr:last-child td{border-bottom:none;}
+table.bt tr:hover td{background:rgba(0,255,65,.03);}
+.sev{display:inline-block;font-size:10px;letter-spacing:.08em;padding:2px 10px;text-transform:uppercase;}
+.sp3{border:1px solid var(--cyan);color:var(--cyan);}
+.sp4{border:1px solid var(--green-dim);color:var(--green-dim);}
+.si2{border:1px solid var(--text-dim);color:var(--text-dim);}
+.sb{font-size:10px;letter-spacing:.08em;padding:3px 10px;text-transform:uppercase;}
+.spaid{color:var(--green);border:1px solid var(--green);}
+.scert{color:var(--cyan);border:1px solid var(--cyan);}
+.sfixed{color:#a8ff78;border:1px solid #a8ff78;}
+
+/* SKILLS */
+.sk-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:28px;}
+.sk-head{font-size:10px;letter-spacing:.15em;color:var(--green);text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.sk-tags{display:flex;flex-wrap:wrap;gap:8px;}
+.sk-tag{font-size:11px;letter-spacing:.04em;padding:5px 12px;border:1px solid var(--border);color:var(--text-dim);transition:all .15s;cursor:default;}
+.sk-tag:hover{border-color:var(--green);color:var(--green);background:rgba(0,255,65,.05);}
+
+/* CERTS */
+.cert-list{display:flex;flex-direction:column;gap:12px;}
+.ci{display:flex;align-items:center;gap:20px;padding:16px 20px;border:1px solid var(--border);background:var(--bg2);transition:border-color .2s;}
+.ci:hover{border-color:var(--green-dim);}
+.cicon{width:44px;height:44px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--green);flex-shrink:0;}
+.cn{font-size:13px;font-weight:700;color:#fff;}
+.cis{font-size:11px;color:var(--text-dim);margin-top:2px;}
+.cy{margin-left:auto;font-size:11px;color:var(--text-dim);}
+
+/* CONTACT */
+.contact-s{background:var(--bg2);border-top:1px solid var(--border);}
+.contact-in{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;padding:80px 48px;}
+.ct h2{font-family:'Orbitron',monospace;font-size:2rem;font-weight:900;margin-bottom:14px;color:#fff;}
+.ct h2 span{color:var(--green);text-shadow:var(--glow-s);}
+.ct p{font-size:12px;color:var(--text-dim);line-height:1.9;margin-bottom:28px;}
+.clinks{display:flex;flex-direction:column;gap:12px;}
+.clink{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--text-dim);text-decoration:none;transition:color .2s;}
+.clink:hover{color:var(--green);}
+.clink em{color:var(--green-dim);font-style:normal;}
+.cterm-body{padding:22px;font-size:12px;line-height:2.1;}
+.cterm-body .pr{color:var(--green-dim);}
+.cterm-body .cm{color:var(--green);}
+.cterm-body .out{color:var(--text-dim);padding-left:16px;display:block;}
+.cterm-body .val{color:var(--cyan);}
+
+/* FOOTER */
+footer{padding:22px 48px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text-dim);letter-spacing:.08em;}
+
+/* GLITCH */
+.glitch{position:relative;}
+.glitch:hover{animation:gh .5s steps(2) infinite;}
+@keyframes gh{0%,100%{text-shadow:var(--glow-s);}25%{text-shadow:-2px 0 var(--red),2px 0 var(--cyan);}75%{text-shadow:2px 0 var(--red),-2px 0 var(--cyan);}}
+
+/* REVEAL */
+.rev{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease;}
+.rev.on{opacity:1;transform:translateY(0);}
+</style>
 </head>
 <body>
-    <div id="info">⚡ GENZCTF // CORE ACCESS // RITESH · NIDHI · MUJAHID ⚡</div>
-    <div id="controls-note">🖱️ DRAG to orbit • SCROLL to zoom • immersive neural field</div>
 
-    <!-- Import Three.js core and add-ons with full post-processing -->
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
-            }
-        }
-    </script>
+<canvas id="matrix"></canvas>
 
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-        import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
-        
-        // --- setup core scene with advanced fog and atmosphere ---
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x020210);
-        scene.fog = new THREE.FogExp2(0x020210, 0.0035);
-        
-        // --- camera: cinematic focal length ---
-        const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 200);
-        camera.position.set(7, 3.8, 10);
-        camera.lookAt(0, 1.2, 0);
-        
-        // --- WebGL renderer with high quality ---
-        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.1;
-        document.body.appendChild(renderer.domElement);
-        
-        // --- CSS2DRenderer for high-quality labels ---
-        const labelRenderer = new CSS2DRenderer();
-        labelRenderer.setSize(window.innerWidth, window.innerHeight);
-        labelRenderer.domElement.style.position = 'absolute';
-        labelRenderer.domElement.style.top = '0px';
-        labelRenderer.domElement.style.left = '0px';
-        labelRenderer.domElement.style.pointerEvents = 'none';
-        document.body.appendChild(labelRenderer.domElement);
-        
-        // --- Post-processing: bloom + subtle film grain ---
-        const renderScene = new RenderPass(scene, camera);
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.85, 0.3, 0.4);
-        bloomPass.threshold = 0.12;
-        bloomPass.strength = 0.65;
-        bloomPass.radius = 0.8;
-        const filmPass = new FilmPass(0.25, 0.5, 2048, false);
-        filmPass.renderToScreen = true;
-        const effectComposer = new EffectComposer(renderer);
-        effectComposer.addPass(renderScene);
-        effectComposer.addPass(bloomPass);
-        effectComposer.addPass(filmPass);
-        
-        // --- Controls: smooth with auto-rotation and intelligent damping ---
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.07;
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.85;
-        controls.enableZoom = true;
-        controls.zoomSpeed = 1.1;
-        controls.enablePan = false;
-        controls.rotateSpeed = 1.0;
-        controls.target.set(0, 1.2, 0);
-        
-        // ========== 1. ADVANCED LIGHTING SYSTEM ==========
-        // Ambient with gradient influence
-        const ambientLight = new THREE.AmbientLight(0x19193a, 0.55);
-        scene.add(ambientLight);
-        
-        // Key light - directional with shadows
-        const keyLight = new THREE.DirectionalLight(0xffffff, 1.3);
-        keyLight.position.set(4, 7, 3);
-        keyLight.castShadow = true;
-        keyLight.receiveShadow = false;
-        keyLight.shadow.mapSize.width = 2048;
-        keyLight.shadow.mapSize.height = 2048;
-        keyLight.shadow.camera.near = 0.8;
-        keyLight.shadow.camera.far = 15;
-        keyLight.shadow.camera.left = -5;
-        keyLight.shadow.camera.right = 5;
-        keyLight.shadow.camera.top = 5;
-        keyLight.shadow.camera.bottom = -5;
-        scene.add(keyLight);
-        
-        // Fill light (cool blue)
-        const fillLight = new THREE.PointLight(0x4a6eff, 0.65);
-        fillLight.position.set(-2.5, 2, 3.2);
-        scene.add(fillLight);
-        
-        // Warm back rim
-        const rimLight = new THREE.PointLight(0xffaa66, 0.7);
-        rimLight.position.set(1.2, 2.5, -4.5);
-        scene.add(rimLight);
-        
-        // Dynamic accent lights (moving)
-        const movingLightA = new THREE.PointLight(0x6c8eff, 0.9);
-        movingLightA.position.set(3, 1.5, 2);
-        scene.add(movingLightA);
-        
-        const movingLightB = new THREE.PointLight(0xff66aa, 0.7);
-        movingLightB.position.set(-2.8, 1.2, 2.5);
-        scene.add(movingLightB);
-        
-        // Central core pulse light
-        const corePulseLight = new THREE.PointLight(0x88aaff, 1.1, 12);
-        corePulseLight.position.set(0, 0.6, 0);
-        scene.add(corePulseLight);
-        
-        // ========== 2. ENVIRONMENT & DECORATIVE MESHES ==========
-        // Reflective ground disc (shadow catcher)
-        const groundDisc = new THREE.Mesh(
-            new THREE.CircleGeometry(7.5, 32),
-            new THREE.ShadowMaterial({ opacity: 0.45, color: 0x000000, transparent: true, side: THREE.DoubleSide })
-        );
-        groundDisc.rotation.x = -Math.PI / 2;
-        groundDisc.position.y = -1.3;
-        groundDisc.receiveShadow = true;
-        scene.add(groundDisc);
-        
-        // Elegant grid helper with depth
-        const gridMain = new THREE.GridHelper(18, 40, 0x6a7cbf, 0x2a3466);
-        gridMain.position.y = -1.2;
-        gridMain.material.transparent = true;
-        gridMain.material.opacity = 0.3;
-        scene.add(gridMain);
-        
-        // Secondary ring structure
-        const outerRingGeo = new THREE.TorusGeometry(3.1, 0.07, 128, 360);
-        const outerRingMat = new THREE.MeshStandardMaterial({ color: 0x8a9eff, metalness: 0.85, roughness: 0.25, emissive: 0x112244, emissiveIntensity: 0.2 });
-        const outerRing = new THREE.Mesh(outerRingGeo, outerRingMat);
-        outerRing.rotation.x = Math.PI / 2;
-        outerRing.position.y = -1.05;
-        scene.add(outerRing);
-        
-        const midRingGeo = new THREE.TorusGeometry(2.1, 0.05, 96, 300);
-        const midRingMat = new THREE.MeshStandardMaterial({ color: 0xaab5ff, metalness: 0.9, roughness: 0.2 });
-        const midRing = new THREE.Mesh(midRingGeo, midRingMat);
-        midRing.rotation.x = Math.PI / 2 + 0.2;
-        midRing.rotation.z = 0.3;
-        midRing.position.y = -0.9;
-        scene.add(midRing);
-        
-        // ========== 3. CENTRAL ARTIFACT: HYPERDIMENSIONAL CORE ==========
-        const coreGroup = new THREE.Group();
-        // Complex geometry: Icosahedron + wireframe + floating fragments
-        const centralMat = new THREE.MeshStandardMaterial({ color: 0xccd6ff, metalness: 0.95, roughness: 0.18, emissive: 0x3355aa, emissiveIntensity: 0.25 });
-        const centralIcosa = new THREE.Mesh(new THREE.IcosahedronGeometry(0.85, 0), centralMat);
-        centralIcosa.castShadow = true;
-        coreGroup.add(centralIcosa);
-        
-        const wireframeMat = new THREE.MeshBasicMaterial({ color: 0x88aaff, wireframe: true, transparent: true, opacity: 0.35 });
-        const outerWire = new THREE.Mesh(new THREE.IcosahedronGeometry(1.02, 0), wireframeMat);
-        coreGroup.add(outerWire);
-        
-        // Floating orbiting tetrahedrons around core
-        const floaters = [];
-        const floaterCount = 24;
-        for (let i = 0; i < floaterCount; i++) {
-            const tetraGeo = new THREE.TetrahedronGeometry(0.12);
-            const tetraMat = new THREE.MeshStandardMaterial({ color: 0x88aaff, metalness: 0.8, emissive: 0x2266aa, emissiveIntensity: 0.4 });
-            const tetra = new THREE.Mesh(tetraGeo, tetraMat);
-            tetra.castShadow = true;
-            coreGroup.add(tetra);
-            floaters.push({ mesh: tetra, angle: (i / floaterCount) * Math.PI * 2, radius: 1.35, yOffset: 0 });
-        }
-        scene.add(coreGroup);
-        coreGroup.position.y = 0.25;
-        
-        // Energy rings around core
-        const coreRing1 = new THREE.Mesh(new THREE.TorusGeometry(1.22, 0.04, 64, 200), new THREE.MeshStandardMaterial({ color: 0x6a8eff, emissive: 0x3366cc, emissiveIntensity: 0.5 }));
-        coreRing1.rotation.x = Math.PI / 2;
-        coreGroup.add(coreRing1);
-        
-        const coreRing2 = new THREE.Mesh(new THREE.TorusGeometry(1.42, 0.03, 64, 200), new THREE.MeshStandardMaterial({ color: 0x9aaeff, emissive: 0x4488ff, emissiveIntensity: 0.4 }));
-        coreRing2.rotation.z = Math.PI / 3;
-        coreGroup.add(coreRing2);
-        
-        // ========== 4. TEAM MEMBERS: ORBITING PODS WITH ADVANCED DETAIL ==========
-        const memberOrbitGroup = new THREE.Group();
-        scene.add(memberOrbitGroup);
-        
-        const membersData = [
-            { name: "Ritesh", role: "Lead Architect · Reverse Engineering", color: 0x5a7cef, accent: "#5a7cef", iconColor: 0x5a7cef },
-            { name: "Nidhi", role: "Cryptography · Web Exploitation", color: 0x7a5cef, accent: "#9a6eff", iconColor: 0x8a6eff },
-            { name: "Mujahid", role: "Pwn · Forensics · Binary Ninja", color: 0x4a8eff, accent: "#4a8eff", iconColor: 0x4a8eff }
-        ];
-        
-        const orbitRadius = 3.8;
-        const memberGroups = [];
-        
-        membersData.forEach((member, idx) => {
-            const angle = (idx / membersData.length) * Math.PI * 2;
-            const x = Math.cos(angle) * orbitRadius;
-            const z = Math.sin(angle) * orbitRadius;
-            
-            const group = new THREE.Group();
-            group.position.set(x, 0, z);
-            
-            // Main sphere with layered material
-            const sphereGeo = new THREE.SphereGeometry(0.72, 128, 128);
-            const sphereMat = new THREE.MeshStandardMaterial({
-                color: member.color,
-                metalness: 0.88,
-                roughness: 0.22,
-                emissive: 0x112244,
-                emissiveIntensity: 0.18
-            });
-            const sphere = new THREE.Mesh(sphereGeo, sphereMat);
-            sphere.castShadow = true;
-            group.add(sphere);
-            
-            // Outer halo ring
-            const haloRing = new THREE.Mesh(new THREE.TorusGeometry(0.86, 0.045, 64, 140), new THREE.MeshStandardMaterial({ color: member.color, metalness: 0.95, emissive: member.color, emissiveIntensity: 0.3 }));
-            haloRing.rotation.x = Math.PI / 2;
-            group.add(haloRing);
-            
-            // Secondary ring (tilted)
-            const tiltRing = new THREE.Mesh(new THREE.TorusGeometry(0.96, 0.03, 64, 140), new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.7 }));
-            tiltRing.rotation.z = Math.PI / 3;
-            tiltRing.rotation.x = 0.8;
-            group.add(tiltRing);
-            
-            // Small floating particles around each member (dynamic)
-            const particleCloud = new THREE.Group();
-            const cloudCount = 80;
-            for (let i = 0; i < cloudCount; i++) {
-                const pGeo = new THREE.SphereGeometry(0.025, 6, 6);
-                const pMat = new THREE.MeshStandardMaterial({ color: member.color, emissive: member.color, emissiveIntensity: 0.5 });
-                const particle = new THREE.Mesh(pGeo, pMat);
-                const rad = 0.95;
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos(2 * Math.random() - 1);
-                particle.position.set(rad * Math.sin(phi) * Math.cos(theta), rad * Math.sin(phi) * Math.sin(theta), rad * Math.cos(phi));
-                particleCloud.add(particle);
-            }
-            group.add(particleCloud);
-            
-            // CSS2D Label - premium glass card
-            const div = document.createElement('div');
-            div.style.background = 'linear-gradient(135deg, rgba(16, 20, 40, 0.85), rgba(8, 12, 28, 0.95))';
-            div.style.backdropFilter = 'blur(18px)';
-            div.style.borderRadius = '32px';
-            div.style.padding = '12px 28px';
-            div.style.border = `1px solid ${member.accent}aa`;
-            div.style.boxShadow = '0 15px 35px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05)';
-            div.style.textAlign = 'center';
-            div.style.fontFamily = "'Inter', system-ui, sans-serif";
-            div.style.transition = 'transform 0.2s ease';
-            div.innerHTML = `
-                <div style="font-size: 1.6rem; font-weight: 600; letter-spacing: -0.3px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.3);">${member.name}</div>
-                <div style="font-size: 0.75rem; font-weight: 500; color: #b8c7ff; margin-top: 6px; letter-spacing: 0.3px;">${member.role}</div>
-                <div style="font-size: 0.6rem; color: ${member.accent}; margin-top: 8px; font-family: monospace;">⚡ GENZCTF CORE ⚡</div>
-            `;
-            const label = new CSS2DObject(div);
-            label.position.set(0, 1.25, 0);
-            group.add(label);
-            
-            memberOrbitGroup.add(group);
-            memberGroups.push({
-                group, sphere, haloRing, tiltRing, particleCloud,
-                floatSpeed: 0.9 + idx * 0.2,
-                baseY: 0,
-                cloudRotationSpeed: 0.01
-            });
-        });
-        
-        // ========== 5. MASSIVE PARTICLE FIELD & NEBULA EFFECT ==========
-        const particleFieldCount = 4500;
-        const particleFieldGeo = new THREE.BufferGeometry();
-        const particlePositionsField = new Float32Array(particleFieldCount * 3);
-        const particleColorsField = new Float32Array(particleFieldCount * 3);
-        for (let i = 0; i < particleFieldCount; i++) {
-            // spherical distribution with radius 7-13
-            const r = 5 + Math.random() * 7;
-            const theta = Math.random() * Math.PI * 2;
-            const phi = Math.acos(2 * Math.random() - 1);
-            particlePositionsField[i*3] = r * Math.sin(phi) * Math.cos(theta);
-            particlePositionsField[i*3+1] = r * Math.sin(phi) * Math.sin(theta) * 0.7 + 0.5;
-            particlePositionsField[i*3+2] = r * Math.cos(phi);
-            const colorVal = new THREE.Color().setHSL(0.55 + Math.random() * 0.15, 0.7, 0.5);
-            particleColorsField[i*3] = colorVal.r;
-            particleColorsField[i*3+1] = colorVal.g;
-            particleColorsField[i*3+2] = colorVal.b;
-        }
-        particleFieldGeo.setAttribute('position', new THREE.BufferAttribute(particlePositionsField, 3));
-        particleFieldGeo.setAttribute('color', new THREE.BufferAttribute(particleColorsField, 3));
-        const particleFieldMat = new THREE.PointsMaterial({ size: 0.055, vertexColors: true, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending });
-        const particleField = new THREE.Points(particleFieldGeo, particleFieldMat);
-        scene.add(particleField);
-        
-        // ========== 6. DYNAMIC STARFIELD BACKGROUND (DEEP SPACE) ==========
-        const starCountBg = 3500;
-        const starBgGeo = new THREE.BufferGeometry();
-        const starBgPos = new Float32Array(starCountBg * 3);
-        for (let i = 0; i < starCountBg; i++) {
-            starBgPos[i*3] = (Math.random() - 0.5) * 280;
-            starBgPos[i*3+1] = (Math.random() - 0.5) * 140;
-            starBgPos[i*3+2] = (Math.random() - 0.5) * 120 - 60;
-        }
-        starBgGeo.setAttribute('position', new THREE.BufferAttribute(starBgPos, 3));
-        const starBgMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.12, transparent: true, opacity: 0.55 });
-        const starfieldBg = new THREE.Points(starBgGeo, starBgMat);
-        scene.add(starfieldBg);
-        
-        // ========== 7. FLOATING ENERGY ORBS & DATA STREAMS ==========
-        const dataOrbs = [];
-        const orbCount = 48;
-        for (let i = 0; i < orbCount; i++) {
-            const orbGeo = new THREE.SphereGeometry(0.065, 12, 12);
-            const orbMat = new THREE.MeshStandardMaterial({ color: 0x77aaff, emissive: 0x3377ff, emissiveIntensity: 0.7 });
-            const orb = new THREE.Mesh(orbGeo, orbMat);
-            scene.add(orb);
-            dataOrbs.push(orb);
-        }
-        
-        // Additional flowing ribbons / particles (trail effect)
-        const trailParticles = [];
-        const trailCount = 600;
-        for (let i = 0; i < trailCount; i++) {
-            const trailGeo = new THREE.SphereGeometry(0.035, 6, 6);
-            const trailMat = new THREE.MeshStandardMaterial({ color: 0x88aaff, emissive: 0x4488ff });
-            const trail = new THREE.Mesh(trailGeo, trailMat);
-            scene.add(trail);
-            trailParticles.push(trail);
-        }
-        
-        // ========== 8. SHADER MATERIAL FOR CENTRAL CORE PULSE ==========
-        // (Using standard materials but add custom pulse via animation)
-        
-        // ========== 9. ADVANCED ANIMATION LOOP (COMPLEX, 200+ VARIABLES) ==========
-        let time = 0;
-        let lastFrame = performance.now();
-        
-        function animate() {
-            const now = performance.now();
-            let delta = Math.min(0.033, (now - lastFrame) / 1000);
-            lastFrame = now;
-            time += delta;
-            
-            // Rotate central core group
-            coreGroup.rotation.y += 0.004;
-            coreGroup.rotation.x = Math.sin(time * 0.35) * 0.05;
-            coreGroup.rotation.z = Math.cos(time * 0.4) * 0.03;
-            
-            coreRing1.rotation.z += 0.01;
-            coreRing2.rotation.x += 0.008;
-            coreRing2.rotation.y += 0.007;
-            
-            // Floating tetrahedrons around core
-            floaters.forEach((floater, idx) => {
-                const ang = floater.angle + time * 1.2;
-                const x = Math.cos(ang) * floater.radius;
-                const z = Math.sin(ang) * floater.radius;
-                const y = Math.sin(ang * 2) * 0.25;
-                floater.mesh.position.set(x, y, z);
-                floater.mesh.rotation.x += 0.02;
-                floater.mesh.rotation.y += 0.03;
-            });
-            
-            // Member animations: floating, halo rotation, particle cloud rotation
-            memberGroups.forEach((member, idx) => {
-                const floatY = Math.sin(time * 1.3 + idx) * 0.06;
-                member.group.position.y = floatY;
-                member.haloRing.rotation.z += 0.015;
-                member.tiltRing.rotation.x += 0.01;
-                member.tiltRing.rotation.y += 0.008;
-                if (member.particleCloud) {
-                    member.particleCloud.rotation.y += 0.01;
-                    member.particleCloud.rotation.x += 0.007;
-                }
-            });
-            
-            // Rotate entire member orbit group slowly
-            memberOrbitGroup.rotation.y += 0.0012;
-            memberOrbitGroup.rotation.x = Math.sin(time * 0.2) * 0.02;
-            
-            // Animate dynamic lights
-            movingLightA.intensity = 0.7 + Math.sin(time * 1.5) * 0.25;
-            movingLightB.intensity = 0.6 + Math.cos(time * 1.2) * 0.3;
-            corePulseLight.intensity = 0.9 + Math.sin(time * 2.4) * 0.5;
-            rimLight.intensity = 0.65 + Math.sin(time * 1.1) * 0.15;
-            fillLight.intensity = 0.6 + Math.cos(time * 0.9) * 0.1;
-            
-            // Orbiting energy orbs around the whole scene
-            dataOrbs.forEach((orb, i) => {
-                const angleOrb = time * 0.8 + i * 0.2;
-                const radOrb = 4.2 + Math.sin(i) * 0.5;
-                const xOrb = Math.cos(angleOrb) * radOrb;
-                const zOrb = Math.sin(angleOrb) * radOrb;
-                const yOrb = Math.sin(angleOrb * 1.5) * 1.2 + 0.4;
-                orb.position.set(xOrb, yOrb, zOrb);
-            });
-            
-            // Trail particles: dynamic paths between members
-            const memberPositions = memberGroups.map(m => m.group.position.clone());
-            for (let i = 0; i < trailParticles.length; i++) {
-                const t = (time * 0.45 + i * 0.015) % 1;
-                const seg = Math.floor(t * 3) % 3;
-                const segT = (t * 3) % 1;
-                let p1, p2;
-                if (seg === 0) { p1 = memberPositions[0]; p2 = memberPositions[1]; }
-                else if (seg === 1) { p1 = memberPositions[1]; p2 = memberPositions[2]; }
-                else { p1 = memberPositions[2]; p2 = memberPositions[0]; }
-                const x = p1.x * (1 - segT) + p2.x * segT;
-                const z = p1.z * (1 - segT) + p2.z * segT;
-                const y = (p1.y + p2.y) / 2 + Math.sin(time * 3 + i) * 0.15;
-                trailParticles[i].position.set(x, y + 0.2, z);
-            }
-            
-            // Rotate particle field and starfield
-            particleField.rotation.y += 0.0008;
-            particleField.rotation.x += 0.0004;
-            starfieldBg.rotation.x += 0.0002;
-            starfieldBg.rotation.y -= 0.0003;
-            
-            // Outer rings rotation
-            outerRing.rotation.z += 0.003;
-            midRing.rotation.x += 0.002;
-            midRing.rotation.y += 0.004;
-            
-            // Update controls and render via effect composer
-            controls.update();
-            effectComposer.render();
-            labelRenderer.render(scene, camera);
-            
-            requestAnimationFrame(animate);
-        }
-        
-        // Start animation
-        animate();
-        
-        // Resize handler
-        window.addEventListener('resize', onWindowResize);
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            effectComposer.setSize(window.innerWidth, window.innerHeight);
-            labelRenderer.setSize(window.innerWidth, window.innerHeight);
-        }
-        
-        // Console output for flair
-        console.log("%c✨ GENZCTF // HYPERDIMENSIONAL CORE ACTIVE // RITESH | NIDHI | MUJAHID ✨", "color: #8a9eff; font-size: 14px; font-family: monospace;");
-        console.log("Advanced 3D Engine Loaded — 10,000+ procedural elements | Neural Shaders | Dynamic Constellation");
-    </script>
+<nav>
+  <div class="nav-logo">RE://PORTFOLIO</div>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#ctf">CTF</a>
+    <a href="#bounty">Bounty</a>
+    <a href="#skills">Skills</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <div class="nav-status">
+    <div class="sdot"></div>
+    <span>AVAILABLE FOR WORK</span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="about">
+  <div class="hex-bg"></div>
+  <div class="hero-grid">
+    <div>
+      <div class="hero-badge"><div class="sdot"></div> Security Researcher · Maharashtra, India</div>
+      <h1 class="hero-name glitch">RITESH <span class="accent">EKBOTE_</span></h1>
+      <p class="hero-sub">
+        Bug Hunter · Offensive Security Researcher · CTF Player<br>
+        <span>#5 India · #21 Global</span> — OffSec Arctic Howl 2025<br>
+        Securing <span>Zerodha · Nykaa · DTDC</span> and beyond.
+      </p>
+      <div class="tw-line" id="tw"><span class="cursor">█</span></div>
+      <div class="hero-btns">
+        <a href="#bounty" class="btn-p">View Disclosures</a>
+        <a href="#contact" class="btn-o">Get In Touch</a>
+      </div>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="hc" width="500" height="380"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-in">
+    <div class="stat"><span class="sv" id="s1">0</span><div class="sl">Bug Bounties Earned</div></div>
+    <div class="stat"><span class="sv" id="s2">0</span><div class="sl">CTFs Competed</div></div>
+    <div class="stat"><span class="sv" id="s3">0</span><div class="sl">Best Global Rank</div></div>
+    <div class="stat"><span class="sv" id="s4">0</span><div class="sl">Flags Captured (HTB)</div></div>
+  </div>
+</div>
+
+<!-- CTF -->
+<section id="ctf">
+  <div class="si">
+    <div class="sh rev"><span class="snum">01.</span><h2 class="stit">CTF ACHIEVEMENTS</h2><div class="sline"></div></div>
+    <div class="ctf-grid rev">
+      <div class="ctf-card gold">
+        <div class="cr">#5 🇮🇳 · #21 🌍</div>
+        <div class="ce">OffSec Arctic Howl 2025</div>
+        <div class="cd">331 pts · 36 flags · 3,400+ players<br>4-week threat hunting narrative CTF</div>
+      </div>
+      <div class="ctf-card cyan">
+        <div class="cr">#14 🌍 · #2 🇮🇳</div>
+        <div class="ce">AI vs Human CTF — HackTheBox</div>
+        <div class="cd">2-member team · Reverse Eng + Crypto<br>Dominated global leaderboard</div>
+      </div>
+      <div class="ctf-card">
+        <div class="cr">#22 🌍</div>
+        <div class="ce">Black Hat USA CTF 2025</div>
+        <div class="cd">Bugcrowd · Team CyberXoX<br>Elite global-level competition</div>
+      </div>
+      <div class="ctf-card">
+        <div class="cr">#42 🌍</div>
+        <div class="ce">NahamCon 2025</div>
+        <div class="cd">8,127 pts · Team CyberXoX<br>Representing India on global stage</div>
+      </div>
+      <div class="ctf-card cyan">
+        <div class="cr">#140 🌍</div>
+        <div class="ce">HTB Cyber Apocalypse 2025</div>
+        <div class="cd">64/77 challenges · 46,775 pts<br>8,130+ competing teams worldwide</div>
+      </div>
+      <div class="ctf-card gold">
+        <div class="cr">#19 🌍</div>
+        <div class="ce">Hackorn CTF 2025 Qualifiers</div>
+        <div class="cd">1,940 pts · BSides Noida<br>Web / Forensics / Crypto / PWN</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOUNTY -->
+<section id="bounty" style="background:var(--bg2);">
+  <div class="si">
+    <div class="sh rev"><span class="snum">02.</span><h2 class="stit">BUG BOUNTY DISCLOSURES</h2><div class="sline"></div></div>
+    <div class="tbox rev">
+      <div class="tbar">
+        <span class="td tr"></span><span class="td ty"></span><span class="td tg"></span>
+        <span style="margin-left:8px;">ritesh@kali:~/disclosures — bash</span>
+      </div>
+      <table class="bt">
+        <thead>
+          <tr>
+            <th>Target</th><th>Vulnerability</th><th>Severity</th><th>Platform</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:#fff;font-weight:700;">Zerodha</td>
+            <td>OSINT — Information Disclosure</td>
+            <td><span class="sev sp3">P3</span></td>
+            <td>Com Olho</td>
+            <td><span class="sb spaid">Rewarded</span></td>
+          </tr>
+          <tr>
+            <td style="color:#fff;font-weight:700;">Nykaa</td>
+            <td>Admin Login Exposure + API Key Leak</td>
+            <td><span class="sev sp3">P3</span></td>
+            <td>Com Olho</td>
+            <td><span class="sb scert">Certificate</span></td>
+          </tr>
+          <tr>
+            <td style="color:#fff;font-weight:700;">BrandMuscle</td>
+            <td>Information Disclosure (3-digit bounty)</td>
+            <td><span class="sev sp4">P4</span></td>
+            <td>Com Olho</td>
+            <td><span class="sb spaid">Rewarded</span></td>
+          </tr>
+          <tr>
+            <td style="color:#fff;font-weight:700;">DTDC</td>
+            <td>LinkedIn Slug Impersonation / Brand Risk</td>
+            <td><span class="sev sp4">P4</span></td>
+            <td>Direct</td>
+            <td><span class="sb sfixed">Fixed</span></td>
+          </tr>
+          <tr>
+            <td style="color:#fff;font-weight:700;">Com Olho (Multiple)</td>
+            <td>OSINT · Web Vulnerabilities</td>
+            <td><span class="sev si2">Multi</span></td>
+            <td>Com Olho</td>
+            <td><span class="sb spaid">Rewarded</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="si">
+    <div class="sh rev"><span class="snum">03.</span><h2 class="stit">ARSENAL</h2><div class="sline"></div></div>
+    <div class="sk-grid rev">
+      <div>
+        <div class="sk-head">Offensive Skills</div>
+        <div class="sk-tags">
+          <span class="sk-tag">Web Exploitation</span>
+          <span class="sk-tag">API Pentesting</span>
+          <span class="sk-tag">OSINT</span>
+          <span class="sk-tag">Privilege Escalation</span>
+          <span class="sk-tag">Reverse Engineering</span>
+          <span class="sk-tag">Binary Exploitation</span>
+          <span class="sk-tag">Social Engineering</span>
+        </div>
+      </div>
+      <div>
+        <div class="sk-head">Tools & Frameworks</div>
+        <div class="sk-tags">
+          <span class="sk-tag">Burp Suite</span>
+          <span class="sk-tag">Metasploit</span>
+          <span class="sk-tag">Nmap</span>
+          <span class="sk-tag">Postman</span>
+          <span class="sk-tag">Ghidra</span>
+          <span class="sk-tag">Wireshark</span>
+          <span class="sk-tag">Python</span>
+          <span class="sk-tag">YARA</span>
+        </div>
+      </div>
+      <div>
+        <div class="sk-head">Defence & Analysis</div>
+        <div class="sk-tags">
+          <span class="sk-tag">Threat Hunting</span>
+          <span class="sk-tag">Malware Analysis</span>
+          <span class="sk-tag">Digital Forensics</span>
+          <span class="sk-tag">Incident Response</span>
+          <span class="sk-tag">Log Analysis</span>
+          <span class="sk-tag">SIEM</span>
+        </div>
+      </div>
+      <div>
+        <div class="sk-head">CTF Domains</div>
+        <div class="sk-tags">
+          <span class="sk-tag">Cryptography</span>
+          <span class="sk-tag">Steganography</span>
+          <span class="sk-tag">PWN / Binary</span>
+          <span class="sk-tag">Web</span>
+          <span class="sk-tag">Forensics</span>
+          <span class="sk-tag">Misc</span>
+          <span class="sk-tag">OSINT Challenges</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:56px;">
+      <div class="sh rev" style="margin-bottom:24px;"><span class="snum">04.</span><h2 class="stit">CERTIFICATIONS</h2><div class="sline"></div></div>
+      <div class="cert-list rev">
+        <div class="ci">
+          <div class="cicon">ACP</div>
+          <div><div class="cn">API Certified Professional (ACP)</div><div class="cis">APIsec University · API Penetration Testing Badge · 12hr Labs</div></div>
+          <div class="cy">2024</div>
+        </div>
+        <div class="ci">
+          <div class="cicon">CNSP</div>
+          <div><div class="cn">Certified Network Security Professional</div><div class="cis">The SecOps Group · PentestingExams.com</div></div>
+          <div class="cy">2024</div>
+        </div>
+        <div class="ci">
+          <div class="cicon">CIS</div>
+          <div><div class="cn">Introduction to Cybersecurity</div><div class="cis">Cisco Networking Academy</div></div>
+          <div class="cy">2024</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<div class="contact-s" id="contact">
+  <div class="contact-in">
+    <div class="ct rev">
+      <h2>LET'S<br><span>CONNECT_</span></h2>
+      <p>Open to bug bounty collabs, penetration testing contracts, security research roles, and CTF team-ups. If you're building something that needs stress-testing — I'm your person.</p>
+      <div class="clinks">
+        <a class="clink" href="https://www.linkedin.com/in/ritesh-ekbote" target="_blank"><em>[LI]</em> linkedin.com/in/ritesh-ekbote</a>
+        <a class="clink" href="#"><em>[HN]</em> HackerOne Profile</a>
+        <a class="clink" href="https://tryhackme.com/p/ritesh8975" target="_blank"><em>[TH]</em> TryHackMe — ritesh8975</a>
+        <a class="clink" href="#"><em>[HB]</em> HackTheBox — CyberXoX / ANONDGR</a>
+      </div>
+    </div>
+    <div class="tbox rev">
+      <div class="tbar">
+        <span class="td tr"></span><span class="td ty"></span><span class="td tg"></span>
+        <span style="margin-left:8px;">contact.sh — bash</span>
+      </div>
+      <div class="cterm-body">
+        <span class="pr">$ </span><span class="cm">whoami</span><br>
+        <span class="out">ritesh_ekbote — bug hunter &amp; security researcher</span><br>
+        <span class="pr">$ </span><span class="cm">cat profile.json</span><br>
+        <span class="out">{ "name": <span class="val">"Ritesh Ekbote"</span>,</span>
+        <span class="out">&nbsp;&nbsp;"role": <span class="val">"Offensive Security Researcher"</span>,</span>
+        <span class="out">&nbsp;&nbsp;"location": <span class="val">"Maharashtra, India"</span>,</span>
+        <span class="out">&nbsp;&nbsp;"top_rank": <span class="val">"#5 India — OffSec Arctic Howl"</span> }</span><br>
+        <span class="pr">$ </span><span class="cm">cat status.txt</span><br>
+        <span class="out" style="color:var(--green);">STATUS: OPEN TO OPPORTUNITIES ✓</span><br>
+        <span class="pr">$ </span><span class="cursor">█</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>© 2025 RITESH EKBOTE — SECURITY RESEARCHER</span>
+  <span style="color:var(--green-dim);">THINK LIKE AN ATTACKER. DEFEND LIKE A FORTRESS.</span>
+</footer>
+
+<script>
+/* MATRIX */
+(function(){
+  const c=document.getElementById('matrix'),x=c.getContext('2d');
+  function rs(){c.width=window.innerWidth;c.height=window.innerHeight;}
+  rs(); window.addEventListener('resize',rs);
+  const ch='01アイウエオカキクケコサシスセソタチツ'.split('');
+  let drops=[];
+  function init(){drops=Array(Math.floor(c.width/16)).fill(1);}
+  init(); window.addEventListener('resize',init);
+  setInterval(()=>{
+    x.fillStyle='rgba(2,13,5,0.05)';x.fillRect(0,0,c.width,c.height);
+    x.fillStyle='#00ff41';x.font='14px Share Tech Mono';
+    drops.forEach((y,i)=>{
+      x.fillText(ch[Math.floor(Math.random()*ch.length)],i*16,y*16);
+      if(y*16>c.height&&Math.random()>.975)drops[i]=0;
+      drops[i]++;
+    });
+  },50);
+})();
+
+/* TYPEWRITER */
+(function(){
+  const lines=['nmap -sV -sC target.com','sqlmap -u target/login --dbs','python3 exploit.py --shell','grep -r "api_key" ./source/','curl -X POST /admin --data "id=1 OR 1=1"','hydra -L users.txt -P pass.txt ssh://target'];
+  let li=0,ci=0,del=false;
+  const el=document.getElementById('tw');
+  function run(){
+    const cur=lines[li];
+    if(!del){ci++;el.innerHTML=cur.slice(0,ci)+'<span class="cursor">█</span>';if(ci===cur.length){del=true;setTimeout(run,1600);return;}}
+    else{ci--;el.innerHTML=cur.slice(0,ci)+'<span class="cursor">█</span>';if(ci===0){del=false;li=(li+1)%lines.length;}}
+    setTimeout(run,del?38:75);
+  }
+  run();
+})();
+
+/* COUNTER */
+(function(){
+  function anim(id,target,suf){
+    const el=document.getElementById(id);let v=0;
+    const t=setInterval(()=>{v+=Math.ceil(target/50);if(v>=target){el.textContent=target+suf;clearInterval(t);}else el.textContent=v+suf;},20);
+  }
+  const obs=new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting){
+      anim('s1',8,'+');anim('s2',15,'+');anim('s3',14,'');anim('s4',64,'');
+      obs.disconnect();
+    }
+  },{threshold:.4});
+  obs.observe(document.querySelector('.stats'));
+})();
+
+/* SCROLL REVEAL */
+(function(){
+  const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('on');}),{threshold:.1});
+  document.querySelectorAll('.rev').forEach(el=>obs.observe(el));
+})();
+
+/* WEBGL 3D */
+(function(){
+  const canvas=document.getElementById('hc');
+  const gl=canvas.getContext('webgl');
+  if(!gl)return;
+
+  const vs=`attribute vec3 a;attribute vec3 c;uniform mat4 u;varying vec3 v;void main(){v=c;gl_Position=u*vec4(a,1.);gl_PointSize=2.5;}`;
+  const fs=`precision mediump float;varying vec3 v;void main(){gl_FragColor=vec4(v,1.);}`;
+
+  function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);return x;}
+  const p=gl.createProgram();
+  gl.attachShader(p,sh(gl.VERTEX_SHADER,vs));
+  gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(p);gl.useProgram(p);
+
+  /* Points on sphere */
+  const N=1200,vp=[],vc=[];
+  for(let i=0;i<N;i++){
+    const th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1),r=1.4+Math.random()*.6;
+    vp.push(r*Math.sin(ph)*Math.cos(th),r*Math.sin(ph)*Math.sin(th),r*Math.cos(ph));
+    vc.push(0,.2+Math.random()*.8,.1+Math.random()*.3);
+  }
+  /* Inner icosahedron wireframe */
+  const phi=(1+Math.sqrt(5))/2,ico=[-1,phi,0,1,phi,0,-1,-phi,0,1,-phi,0,0,-1,phi,0,1,phi,0,-1,-phi,0,1,-phi,phi,0,-1,phi,0,1,-phi,0,-1,-phi,0,1];
+  const icoIdx=[0,11,5,0,5,1,0,1,7,0,7,10,0,10,11,1,5,9,5,11,4,11,10,2,10,7,6,7,1,8,3,9,4,3,4,2,3,2,6,3,6,8,3,8,9,4,9,5,2,4,11,6,2,10,8,6,7,9,8,1];
+  const lv=[],lc=[];
+  icoIdx.forEach((idx,i)=>{
+    const base=idx*3;
+    lv.push(ico[base]*0.9,ico[base+1]*0.9,ico[base+2]*0.9);
+    lc.push(0,.4+.2*(i%3),.2);
+  });
+
+  function buf(d){const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(d),gl.STATIC_DRAW);return b;}
+  const pb=buf(vp),cb=buf(vc),lb=buf(lv),lcb=buf(lc);
+
+  const aLoc=gl.getAttribLocation(p,'a'),cLoc=gl.getAttribLocation(p,'c'),uLoc=gl.getUniformLocation(p,'u');
+
+  function mm(a,b){const r=new Float32Array(16);for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;for(let k=0;k<4;k++)s+=a[i*4+k]*b[k*4+j];r[i*4+j]=s;}return r;}
+  function persp(fov,asp,n,f){const t=1/Math.tan(fov/2),m=new Float32Array(16);m[0]=t/asp;m[5]=t;m[10]=(f+n)/(n-f);m[11]=-1;m[14]=2*f*n/(n-f);return m;}
+  function ry(a){const c=Math.cos(a),s=Math.sin(a),m=new Float32Array(16);m[0]=c;m[2]=s;m[5]=1;m[8]=-s;m[10]=c;m[15]=1;return m;}
+  function rx(a){const c=Math.cos(a),s=Math.sin(a),m=new Float32Array(16);m[0]=1;m[5]=c;m[6]=-s;m[9]=s;m[10]=c;m[15]=1;return m;}
+  function tr(x,y,z){const m=new Float32Array(16);m[0]=m[5]=m[10]=m[15]=1;m[12]=x;m[13]=y;m[14]=z;return m;}
+
+  gl.viewport(0,0,canvas.width,canvas.height);
+  gl.clearColor(0.008,0.051,0.02,1);
+  gl.enable(gl.DEPTH_TEST);
+
+  let t=0;
+  function draw(){
+    requestAnimationFrame(draw);t+=0.007;
+    gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    const proj=persp(Math.PI/3.5,canvas.width/canvas.height,.1,100);
+    const view=tr(0,0,-5);
+    const model=mm(ry(t),rx(t*.35));
+    const mvp=mm(proj,mm(view,model));
+    gl.uniformMatrix4fv(uLoc,false,mvp);
+
+    /* Sphere points */
+    gl.bindBuffer(gl.ARRAY_BUFFER,pb);gl.vertexAttribPointer(aLoc,3,gl.FLOAT,false,0,0);gl.enableVertexAttribArray(aLoc);
+    gl.bindBuffer(gl.ARRAY_BUFFER,cb);gl.vertexAttribPointer(cLoc,3,gl.FLOAT,false,0,0);gl.enableVertexAttribArray(cLoc);
+    gl.drawArrays(gl.POINTS,0,N);
+
+    /* Icosahedron */
+    gl.bindBuffer(gl.ARRAY_BUFFER,lb);gl.vertexAttribPointer(aLoc,3,gl.FLOAT,false,0,0);gl.enableVertexAttribArray(aLoc);
+    gl.bindBuffer(gl.ARRAY_BUFFER,lcb);gl.vertexAttribPointer(cLoc,3,gl.FLOAT,false,0,0);gl.enableVertexAttribArray(cLoc);
+    gl.drawArrays(gl.TRIANGLES,0,lv.length/3);
+  }
+  draw();
+})();
+</script>
 </body>
 </html>
