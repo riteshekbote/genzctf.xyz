@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>3D IDOR Testing Checklist</title>
+<style>body{margin:0;overflow:hidden;background:#000;} canvas{display:block;}</style>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script>
+// Simple 3D phases viewer - copy to .html file
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const phases = ["Phase1 Setup","Phase2 Substitution","Phase3 Path","Phase4 Logic","Phase5 Params","Phase6 Encoding","Phase7 Protocol","Phase8 Injection","Phase9 Advanced","Phase10 Automation","Phase11 False Neg","Phase12 Priority"];
+
+const boxes = [];
+phases.forEach((p,i) => {
+  const geo = new THREE.BoxGeometry(2,1,0.5);
+  const mat = new THREE.MeshPhongMaterial({color:0x00ff88});
+  const box = new THREE.Mesh(geo, mat);
+  box.position.set((i%4)*3-5, Math.floor(i/4)*2-4, 0);
+  box.userData = p;
+  scene.add(box);
+  boxes.push(box);
+});
+
+const light = new THREE.DirectionalLight(0xffffff,1);
+light.position.set(5,5,5);
+scene.add(light);
+camera.position.z = 15;
+
+let hovered = null;
+renderer.domElement.addEventListener('click', (e) => {
+  // Raycast to select phase (implement in full version)
+  alert("Added methods: Mass Assignment, JWT sub claim swap, GraphQL alias abuse, Firebase Realtime DB path traversal");
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+  boxes.forEach(b => b.rotation.y += 0.005);
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
