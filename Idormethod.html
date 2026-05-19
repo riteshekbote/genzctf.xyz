@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>3D Ultimate IDOR Testing Checklist</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    #info {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      pointer-events: none;
+    }
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.7);
+      color: #ccc;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+    .legend span {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .instructions {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.7);
+      color: #ddd;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+    .extras-panel {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(10,20,40,0.85);
+      color: #aaccff;
+      padding: 15px;
+      border-radius: 12px;
+      max-width: 300px;
+      font-size: 13px;
+      backdrop-filter: blur(5px);
+      border: 1px solid #446688;
+    }
+    .extras-panel h3 {
+      margin: 0 0 8px;
+      color: #ffcc80;
+    }
+    .extras-panel ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .extras-panel li {
+      margin-bottom: 4px;
+    }
+    .node-label {
+      color: white;
+      font-weight: bold;
+      text-shadow: 1px 1px 3px black;
+      font-size: 14px;
+      background: rgba(20,20,40,0.8);
+      padding: 2px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .phase-label {
+      font-size: 16px;
+      background: rgba(0,20,40,0.9);
+      border: 1px solid #88aadd;
+    }
+    .root-label {
+      font-size: 20px;
+      background: rgba(80,0,80,0.9);
+      border: 2px solid #ffaa00;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">🌀 <strong>Ultimate IDOR Testing Checklist</strong> – Click spheres to expand phases</div>
+  <div class="legend">
+    <div><span style="background:#ffaa00;"></span> Root / Core</div>
+    <div><span style="background:#4cafaf;"></span> Phase Nodes</div>
+    <div><span style="background:#ff6b6b;"></span> Technique Nodes</div>
+    <div><span style="background:#22aa44;"></span> ✨ New Extra Methods (expanded)</div>
+  </div>
+  <div class="instructions">
+    🖱️ Drag to rotate | Scroll to zoom<br>
+    👆 Click on phase sphere to show/hide techniques
+  </div>
+  <div class="extras-panel">
+    <h3>🆕 Added Advanced Methods</h3>
+    <ul>
+      <li>JWT kid/spoof ID substitution</li>
+      <li>OAuth token swap for resource</li>
+      <li>GraphQL batching & aliases</li>
+      <li>SSE / WebRTC signaling IDOR</li>
+      <li>Prototype pollution in ID params</li>
+      <li>UUID version mix (v1 timestamp leak)</li>
+      <li>Webhook IDOR via callback URLs</li>
+      <li>Email unsubscribe token replay</li>
+      <li>Content Security Policy bypass</li>
+      <li>Cross-tenant ID in multi-tenant APIs</li>
+      <li>...and many more (hover/click sub-nodes)</li>
+    </ul>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.126.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.126.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+    // ---------- DATA STRUCTURE: Phases and Techniques ----------
+    const data = {
+      root: {
+        name: "Ultimate IDOR Testing",
+        color: 0xffaa00,
+        children: []
+      }
+    };
+
+    // Phase definitions (original 12 phases)
+    const phases = [
+      {
+        id: "phase1",
+        name: "1. Setup & Target Identification",
+        color: 0x4cafaf,
+        techniques: [
+          "Create Test Accounts (Attacker/Victim)",
+          "API Identification (JSON > HTML)",
+          "Sensitivity Analysis (critical functions first)",
+          "ID Audit (private vs public params)",
+          "ID Leakage (public pages, listings)",
+          "Map Clients (web, mobile, Swagger, jadx/apktool)"
+        ]
+      },
+      {
+        id: "phase2",
+        name: "2. Direct ID Substitution & Enumeration",
+        color: 0x4cafaf,
+        techniques: [
+          "Basic ID Flip (10->9)",
+          "Incremental Numeric Brute Force",
+          "Non-Numeric Substitution (email/username/UUID)",
+          "Complex ID Brute Force (1-4 chars)",
+          "Predictable/Combined IDs (/user/id/data/id)",
+          "Hashed/Derived IDs (MD5/SHA1 mapping)"
+        ]
+      },
+      {
+        id: "phase3",
+        name: "3. Path & URL Manipulation Bypasses",
+        color: 0x4cafaf,
+        techniques: [
+          "Trailing Slash (/9/)",
+          "Double Slashes / Obfuscated Path",
+          "Case Variation / Key Swapping",
+          "Path Traversal (.. / victim_id)",
+          "Wildcard Substitution (*)",
+          "Fuzz Keywords (all, list, me)",
+          "SQLi Quick Check (')"
+        ]
+      },
+      {
+        id: "phase4",
+        name: "4. Logic & Endpoint Bypasses",
+        color: 0x4cafaf,
+        techniques: [
+          "Version Downgrading (v3→v1)",
+          "Sub-Endpoint Variant (profile vs detail)",
+          "Missing Function Level Access (Admin vs admin)",
+          "Owner Flag / Role Field Toggle",
+          "Token / Authorization Swap",
+          "Cached Role Check / Session Race",
+          "Token Binding Flaws (unsubscribe token reuse)",
+          "Frontend–Backend Desync / Logic Mismatch"
+        ]
+      },
+      {
+        id: "phase5",
+        name: "5. Parameter & Body Abuse",
+        color: 0x4cafaf,
+        techniques: [
+          "Add Parameter Bypass (?user_id=victim)",
+          "Multi-ID / Comma Separation",
+          "Alternate Separators (; | .)",
+          "HTTP Parameter Pollution (HPP)",
+          "JSON Array Wrap",
+          "JSON Object Wrap (Nested)",
+          "JSON Parameter Pollution",
+          "Null Termination (%00)",
+          "Control Char Encoding (%0d%0a)",
+          "Replace Parameter Name",
+          "Multi-ID Injection (batch IDs)",
+          "Deserialization / Object Injection"
+        ]
+      },
+      {
+        id: "phase6",
+        name: "6. Encoding, Hashing & Obfuscation",
+        color: 0x4cafaf,
+        techniques: [
+          "Leading Zeros (009)",
+          "%20 Bypass",
+          "Type Confusion (string vs int)",
+          "Decode & Re-encode (Base64/Base64url)",
+          "Hashed ID Analysis (map patterns)",
+          "Hex / MD5 / SHA hashes manipulation"
+        ]
+      },
+      {
+        id: "phase7",
+        name: "7. Protocol & Data Format Change",
+        color: 0x4cafaf,
+        techniques: [
+          "Change HTTP Method",
+          "GET ↔ POST/PUT/DELETE",
+          "Change File Type (.json/.xml/.txt)",
+          "Change Content-Type",
+          "X-HTTP-Method-Override header",
+          "gRPC / Protobuf IDOR testing"
+        ]
+      },
+      {
+        id: "phase8",
+        name: "8. Encoding & Injection Payloads",
+        color: 0x4cafaf,
+        techniques: [
+          "%0d%0a, %0a, %0d",
+          "%00 null byte",
+          "; , | & # separators",
+          "%0a%0dcc: combo"
+        ]
+      },
+      {
+        id: "phase9",
+        name: "9. Advanced Techniques & Monitoring",
+        color: 0x4cafaf,
+        techniques: [
+          "Header/Proxy Bypass (X-Original-URL)",
+          "X-Forwarded-For / IP-based bypass",
+          "Blind IDOR Monitoring (exfiltration)",
+          "GraphQL IDOR (query/mutation IDs)",
+          "Combination Tests (version+slash+%20)",
+          "Owner/Role Enumeration",
+          "Weak UUID Patterns / Partial Brute",
+          "Mobile/API Discovery",
+          "WebSocket / SSE channel subscription",
+          "TOCTOU / Race Conditions"
+        ]
+      },
+      {
+        id: "phase10",
+        name: "10. Enumeration & Automation",
+        color: 0x4cafaf,
+        techniques: [
+          "ffuf sequential IDs",
+          "Turbo Intruder / Intruder",
+          "Arjun / ParamMiner hidden params"
+        ]
+      },
+      {
+        id: "phase11",
+        name: "11. Detection of False Negatives",
+        color: 0x4cafaf,
+        techniques: [
+          "Compare content-length & body",
+          "Retry after logout/login",
+          "Test same object with multiple methods",
+          "Test via web + mobile + API clients",
+          "Check frontend-only role checks",
+          "Batch endpoints & multi-ID arrays",
+          "Include real-time channels (WS, gRPC, SSE)"
+        ]
+      },
+      {
+        id: "phase12",
+        name: "12. Quick Prioritization Guide",
+        color: 0x4cafaf,
+        techniques: [
+          "Exposed PII / financial endpoints",
+          "Export / download / file endpoints",
+          "Write operations (PUT/PATCH/DELETE)",
+          "Batch / multi-ID endpoints",
+          "GraphQL / mobile private APIs / gRPC/WS",
+          "Predictable ID patterns / weak UUIDs"
+        ]
+      }
+    ];
+
+    // ---- ADDITIONAL NEW METHODS (beyond original checklist) ----
+    const extraMethods = [
+      "JWT kid injection / JWK spoof for ID substitution",
+      "OAuth token swap: reuse access_token across resources",
+      "GraphQL batching & aliases (multiple queries in one request)",
+      "SSE (Server-Sent Events) stream subscription with victim ID",
+      "WebRTC signaling IDOR (offer/answer hijack)",
+      "Prototype pollution via __proto__ in JSON ID fields",
+      "UUID version confusion (v1 timestamp leak to predict v4)",
+      "Webhook callback URL manipulation (replace resource ID in callback)",
+      "Email unsubscribe token replay on different page_id",
+      "CSP bypass: inject script that reads victim data via ID parameter",
+      "Cross-tenant ID in multi-tenant APIs (tenant header mismatch)",
+      "IDOR via file upload metadata (exif / filename injection)",
+      "Cache poisoning + IDOR (poison cache key with victim ID)",
+      "Rate-limit bypass combined with ID enumeration (slow brute)",
+      "API key scoping flaw: limited key can access full resources",
+      "IDOR in password reset flow (reset token for different user)",
+      "Bulk action IDOR (export all users by injecting IDs)",
+      "IDOR via DNS rebinding (internal endpoints)",
+      "Server-side request forgery (SSRF) to internal IDOR endpoints",
+      "IDOR through 3rd-party integrations (Slack bot, Zapier)",
+      "Mobile deep link IDOR (intent:// with victim ID)",
+      "WebView JavaScript interface IDOR",
+      "GraphQL introspection leak of IDs then IDOR",
+      "IDOR in server-side caching (Varnish, Redis key prediction)",
+      "Bypass using HEAD method to confirm existence",
+      "IDOR via SAML / OIDC claim manipulation",
+      "Time-based blind IDOR (response timing differences)",
+      "IDOR in notification settings (subscribe victim to attacker alerts)"
+    ];
+
+    // Merge extra methods as a new special phase node
+    phases.push({
+      id: "phaseExtra",
+      name: "✨ NEW Extra Methods",
+      color: 0x22aa44, // green
+      techniques: extraMethods
+    });
+
+    // Attach phases to root children
+    data.root.children = phases.map(p => p.id);
+
+    // ---------- Three.js Setup ----------
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a1a);
+    
+    // Add stars background effect
+    const starsGeometry = new THREE.BufferGeometry();
+    const starsCount = 800;
+    const starsPositions = new Float32Array(starsCount * 3);
+    for (let i = 0; i < starsCount * 3; i += 3) {
+      starsPositions[i] = (Math.random() - 0.5) * 200;
+      starsPositions[i+1] = (Math.random() - 0.5) * 100;
+      starsPositions[i+2] = (Math.random() - 0.5) * 150;
+    }
+    starsGeometry.setAttribute('position', new THREE.BufferAttribute(starsPositions, 3));
+    const starsMaterial = new THREE.PointsMaterial({color: 0xaaaaff, size: 0.2});
+    const stars = new THREE.Points(starsGeometry, starsMaterial);
+    scene.add(stars);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500);
+    camera.position.set(12, 10, 18);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
+
+    const labelRenderer = new CSS2DRenderer();
+    labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.domElement.style.position = 'absolute';
+    labelRenderer.domElement.style.top = '0px';
+    labelRenderer.domElement.style.pointerEvents = 'none'; // allow clicking through to canvas
+    document.body.appendChild(labelRenderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.rotateSpeed = 0.8;
+    controls.zoomSpeed = 1.2;
+    controls.target.set(0, 0.5, 0);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0x404066);
+    scene.add(ambientLight);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(10, 20, 5);
+    dirLight.castShadow = true;
+    dirLight.receiveShadow = true;
+    dirLight.shadow.mapSize.width = 512;
+    dirLight.shadow.mapSize.height = 512;
+    scene.add(dirLight);
+    
+    // ---------- Node Management ----------
+    const nodesMap = new Map(); // id -> { mesh, label, data }
+    const phaseRadius = 9;
+    const techniqueRadius = 3.5;
+    const rootPos = new THREE.Vector3(0, 0.5, 0);
+
+    // Store expanded state
+    const expandedPhases = new Set();
+
+    // Create sphere mesh
+    function createSphere(color, pos, radius = 0.5) {
+      const geometry = new THREE.SphereGeometry(radius, 32, 16);
+      const material = new THREE.MeshStandardMaterial({ color, roughness: 0.3, metalness: 0.4 });
+      const sphere = new THREE.Mesh(geometry, material);
+      sphere.position.copy(pos);
+      sphere.castShadow = true;
+      sphere.receiveShadow = true;
+      return sphere;
+    }
+
+    // Create label
+    function createLabel(text, className = 'node-label') {
+      const div = document.createElement('div');
+      div.className = className;
+      div.textContent = text;
+      return new CSS2DObject(div);
+    }
+
+    // Build scene tree
+    function buildScene() {
+      // Remove existing nodes except stars (keep background stars)
+      // Actually we'll clear and rebuild. To preserve stars, we only remove nodes from nodesMap.
+      for (let [id, obj] of nodesMap.entries()) {
+        scene.remove(obj.mesh);
+        scene.remove(obj.label);
+      }
+      nodesMap.clear();
+
+      // Create root
+      const rootSphere = createSphere(data.root.color, rootPos, 0.8);
+      scene.add(rootSphere);
+      const rootLabel = createLabel(data.root.name, 'root-label');
+      rootLabel.position.copy(rootPos.clone().add(new THREE.Vector3(0, 1.1, 0)));
+      scene.add(rootLabel);
+      nodesMap.set('root', { mesh: rootSphere, label: rootLabel, data: data.root });
+
+      // Phase nodes placed in a circle around root
+      const phaseCount = phases.length;
+      const angleStep = (Math.PI * 2) / phaseCount;
+      phases.forEach((phase, i) => {
+        const angle = i * angleStep;
+        const pos = new THREE.Vector3(
+          Math.cos(angle) * phaseRadius,
+          0.5,
+          Math.sin(angle) * phaseRadius
+        );
+        const sphere = createSphere(phase.color, pos, 0.6);
+        scene.add(sphere);
+        const label = createLabel(phase.name, 'phase-label');
+        label.position.copy(pos.clone().add(new THREE.Vector3(0, 0.9, 0)));
+        scene.add(label);
+        nodesMap.set(phase.id, { mesh: sphere, label: label, data: phase });
+
+        // Connect root to phase with a line
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([rootPos, pos]);
+        const lineMat = new THREE.LineBasicMaterial({ color: 0x446688 });
+        const line = new THREE.Line(lineGeo, lineMat);
+        scene.add(line);
+        // store line with phase? We'll just add to scene, not interactive.
+
+        // If phase is expanded, show its techniques
+        if (expandedPhases.has(phase.id)) {
+          showTechniques(phase, pos);
+        }
+      });
+    }
+
+    function showTechniques(phase, phasePos) {
+      const techniques = phase.techniques;
+      const count = techniques.length;
+      if (count === 0) return;
+      const angleStep = (Math.PI * 2) / count;
+      // Technique nodes spread around the phase position
+      techniques.forEach((tech, idx) => {
+        const angle = idx * angleStep;
+        const pos = new THREE.Vector3(
+          phasePos.x + Math.cos(angle) * techniqueRadius,
+          phasePos.y + 0.2,
+          phasePos.z + Math.sin(angle) * techniqueRadius
+        );
+        const techColor = phase.id === "phaseExtra" ? 0x22aa44 : 0xff6b6b;
+        const sphere = createSphere(techColor, pos, 0.35);
+        scene.add(sphere);
+        const label = createLabel(tech, 'node-label');
+        label.position.copy(pos.clone().add(new THREE.Vector3(0, 0.55, 0)));
+        scene.add(label);
+        // Connect to phase
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([phasePos, pos]);
+        const lineMat = new THREE.LineBasicMaterial({ color: 0x335577 });
+        const line = new THREE.Line(lineGeo, lineMat);
+        scene.add(line);
+        // Store technique nodes with id like phaseId_tech_index
+        const techId = `${phase.id}_tech_${idx}`;
+        nodesMap.set(techId, { mesh: sphere, label: label, data: { name: tech, isTechnique: true } });
+      });
+    }
+
+    function togglePhase(phaseId) {
+      if (expandedPhases.has(phaseId)) {
+        expandedPhases.delete(phaseId);
+      } else {
+        expandedPhases.add(phaseId);
+      }
+      // Rebuild whole scene (simple approach, not optimal but fine for this dataset)
+      buildScene();
+    }
+
+    // Raycaster for interaction
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    function onClick(event) {
+      // Calculate mouse position in normalized device coordinates (-1 to +1)
+      mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+      mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+
+      // Collect all meshes from nodesMap
+      const meshes = [];
+      nodesMap.forEach((obj, id) => {
+        meshes.push(obj.mesh);
+      });
+
+      const intersects = raycaster.intersectObjects(meshes);
+      if (intersects.length > 0) {
+        // Find the node id from the intersected mesh
+        const clickedMesh = intersects[0].object;
+        for (let [id, obj] of nodesMap.entries()) {
+          if (obj.mesh === clickedMesh) {
+            // Handle click
+            if (id === 'root') {
+              // maybe do nothing or collapse all?
+              return;
+            }
+            // Check if it's a phase node (id starts with 'phase' and doesn't contain '_tech_')
+            if (id.startsWith('phase') && !id.includes('_tech_')) {
+              togglePhase(id);
+              return;
+            }
+            // If technique node, could show tooltip, but for now ignore or expand info
+            break;
+          }
+        }
+      }
+    }
+
+    renderer.domElement.addEventListener('click', onClick);
+
+    // Handle window resize
+    window.addEventListener('resize', onWindowResize, false);
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+      
+      // Rotate stars slowly
+      stars.rotation.y += 0.0001;
+      
+      controls.update();
+      
+      // Render
+      renderer.render(scene, camera);
+      labelRenderer.render(scene, camera);
+    }
+
+    // Initial build
+    buildScene();
+    animate();
+
+    console.log('🌐 3D IDOR Checklist ready. Click on phase spheres to expand techniques.');
+  </script>
+</body>
+</html>
