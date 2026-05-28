@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>⚠️ Phishing Simulation • Credential Harvester Demo</title>
+  <!-- Font Awesome 6 (free icons for realistic look) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Google Fonts: clean but modern type -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(145deg, #e9eef3 0%, #d4dce6 100%);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      position: relative;
+    }
+
+    /* DECEPTIVE BROWSER-LIKE TOP BAR — enhances "phishing appearance" */
+    .fake-browser-bar {
+      background: #f1f3f6;
+      border-radius: 14px 14px 0 0;
+      padding: 0.7rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      border-bottom: 1px solid #cbd5e1;
+      box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(0,0,0,0.02);
+    }
+
+    .browser-dots {
+      display: flex;
+      gap: 0.45rem;
+    }
+    .browser-dots span {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #dfe3e9;
+      transition: 0.1s;
+    }
+    .browser-dots span:nth-child(1) { background: #ed6a5e; }
+    .browser-dots span:nth-child(2) { background: #f5bd4f; }
+    .browser-dots span:nth-child(3) { background: #61c354; }
+
+    .fake-url {
+      background: white;
+      flex: 1;
+      border-radius: 30px;
+      padding: 0.4rem 1rem;
+      font-size: 0.75rem;
+      font-family: monospace;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05), 0 0 0 1px #e2e8f0;
+    }
+    .fake-url i {
+      color: #2c7da0;
+      font-size: 0.7rem;
+    }
+    .fake-url span {
+      color: #334155;
+      letter-spacing: 0.2px;
+      word-break: break-all;
+    }
+    .lock-icon {
+      margin-left: auto;
+      font-size: 0.7rem;
+      color: #2b9348;
+    }
+
+    /* MAIN CARD — looks like a real authentication panel */
+    .phish-card {
+      max-width: 460px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 28px;
+      box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: all 0.2s;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+
+    /* RED WARNING BANNER (educational & ethical) */
+    .ethics-alert {
+      background: #fef2f0;
+      border-left: 5px solid #dc2626;
+      padding: 0.9rem 1.2rem;
+      margin: 1.2rem 1.5rem 0.5rem 1.5rem;
+      border-radius: 14px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #991b1b;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .ethics-alert i {
+      font-size: 1.2rem;
+    }
+
+    .phish-card-inner {
+      padding: 1.8rem 1.8rem 2rem 1.8rem;
+    }
+
+    .logo-area {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .logo-icon {
+      background: #1e3a5f;
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 12px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 30px;
+      box-shadow: 0 8px 14px -8px rgba(0, 0, 0, 0.2);
+      background: linear-gradient(135deg, #0f2b3d, #1b4a6e);
+    }
+    .logo-icon i {
+      font-size: 28px;
+      color: white;
+    }
+    h2 {
+      font-weight: 700;
+      font-size: 1.8rem;
+      letter-spacing: -0.3px;
+      color: #0a1927;
+    }
+    .subhead {
+      color: #4b5563;
+      font-size: 0.85rem;
+      margin-top: 6px;
+      border-bottom: 1px solid #e2e8f0;
+      display: inline-block;
+      padding-bottom: 4px;
+    }
+    .urgency-message {
+      background: #fffbeb;
+      padding: 0.7rem 1rem;
+      border-radius: 14px;
+      margin: 1.2rem 0 1rem 0;
+      font-size: 0.75rem;
+      color: #b45309;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid #fde68a;
+    }
+    .urgency-message i {
+      font-size: 1rem;
+    }
+
+    /* FORM STYLES (realistic, clean deceptive) */
+    .input-group {
+      margin-bottom: 1.2rem;
+      position: relative;
+    }
+    .input-group label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+      color: #1f2a3e;
+    }
+    .input-group label i {
+      width: 18px;
+      color: #5c6e8c;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 0.85rem 1rem 0.85rem 2.6rem;
+      font-size: 0.95rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 18px;
+      background: #ffffff;
+      transition: all 0.2s;
+      font-family: 'Inter', monospace;
+      outline: none;
+    }
+    .input-group input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+    }
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      color: #94a3b8;
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    /* checkbox row */
+    .checkbox-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 0.5rem 0 1.4rem;
+      font-size: 0.8rem;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #2d3a4b;
+    }
+    .forgot-link {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.8rem;
+    }
+    .forgot-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Primary CTA button — looks legitimate */
+    .phish-btn {
+      background: #1e3a5f;
+      width: 100%;
+      padding: 0.9rem;
+      border: none;
+      border-radius: 40px;
+      font-weight: 700;
+      font-size: 1rem;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+      margin-top: 4px;
+    }
+    .phish-btn:hover {
+      background: #0f2b3f;
+      transform: scale(0.98);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* extra fake links */
+    .extra-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 1.8rem;
+      font-size: 0.75rem;
+    }
+    .extra-links a {
+      color: #5b6e8c;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .extra-links a:hover {
+      color: #1e3a5f;
+      text-decoration: underline;
+    }
+
+    /* footer PHISHING NAME & awareness */
+    .phishing-footer {
+      margin-top: 1.8rem;
+      padding-top: 1rem;
+      text-align: center;
+      font-size: 0.7rem;
+      border-top: 1px solid #edf2f7;
+      color: #5a6e8a;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.8rem;
+    }
+    .phishing-footer span {
+      background: #f1f5f9;
+      padding: 0.2rem 0.8rem;
+      border-radius: 40px;
+      font-weight: 500;
+    }
+    .badge-phish {
+      background: #fee2e2 !important;
+      color: #b91c1c;
+      font-weight: 600;
+    }
+    .demo-note {
+      background: #f8fafc;
+      padding: 0.5rem;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      margin-top: 0.8rem;
+    }
+
+    /* mobile */
+    @media (max-width: 480px) {
+      .phish-card-inner {
+        padding: 1.2rem;
+      }
+      .ethics-alert {
+        margin: 1rem 1rem 0.2rem 1rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="phish-card">
+  <!-- Fake browser chrome: increases deceptive "phishing vibe" -->
+  <div class="fake-browser-bar">
+    <div class="browser-dots">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="fake-url">
+      <i class="fas fa-lock"></i>
+      <span>https://secure-portal-verification.com</span>
+      <div class="lock-icon"><i class="fas fa-shield-alt"></i> secure</div>
+    </div>
+    <i class="fas fa-ellipsis-h" style="color:#8c9bb0; font-size:0.8rem;"></i>
+  </div>
+
+  <!-- ⚠️ Clear educational red alert — so it's ethical and warns user -->
+  <div class="ethics-alert">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span><strong>⚠️ PHISHING AWARENESS DEMO</strong> — This form replicates a real phishing page for educational training. Never enter real credentials.</span>
+  </div>
+
+  <div class="phish-card-inner">
+    <!-- Logo / brand illusion -->
+    <div class="logo-area">
+      <div class="logo-icon">
+        <i class="fas fa-cloud-upload-alt"></i>
+      </div>
+      <h2>SecureAccess <span style="font-weight:400; font-size:1rem;">• Portal</span></h2>
+      <div class="subhead">Verify your identity</div>
+    </div>
+
+    <!-- urgency trick (common phishing tactic) -->
+    <div class="urgency-message">
+      <i class="fas fa-clock"></i>
+      <span><strong>Action required:</strong> Session expired due to inactivity. Please re-authenticate to avoid service interruption.</span>
+    </div>
+
+    <!-- PHISHING FORM — captures name, email, password exactly like real credential harvester -->
+    <form id="phishForm" action="#" method="post">
+      <!-- Name field — "name phishing" included explicitly -->
+      <div class="input-group">
+        <label><i class="fas fa-user-circle"></i> Full name (phishing target)</label>
+        <i class="fas fa-user input-icon"></i>
+        <input type="text" id="fullname" name="fullname" placeholder="e.g., James R. Miller" autocomplete="off" required>
+        <div style="font-size: 0.65rem; margin-top: 5px; color:#a94442; padding-left: 12px;">
+          <i class="fas fa-skull-crossbones"></i> <span style="font-weight:500;">Phishers steal your name + credentials</span>
+        </div>
+      </div>
+
+      <!-- Email field (standard) -->
+      <div class="input-group">
+        <label><i class="fas fa-envelope"></i> Email address</label>
+        <i class="fas fa-envelope input-icon"></i>
+        <input type="email" id="email" name="email" placeholder="your@email.com" autocomplete="off" required>
+      </div>
+
+      <!-- Password field - high value target -->
+      <div class="input-group">
+        <label><i class="fas fa-key"></i> Password</label>
+        <i class="fas fa-lock input-icon"></i>
+        <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="off" required>
+      </div>
+
+      <!-- extra deceptive elements -->
+      <div class="checkbox-row">
+        <label class="checkbox-label">
+          <input type="checkbox" checked> Keep me signed in
+        </label>
+        <a href="#" class="forgot-link">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="phish-btn">
+        <i class="fas fa-arrow-right-to-bracket"></i> Verify & Sign In
+      </button>
+    </form>
+
+    <!-- fake help links (tactics used in phishing) -->
+    <div class="extra-links">
+      <a href="#"><i class="far fa-question-circle"></i> Help Center</a>
+      <a href="#"><i class="fas fa-shield-alt"></i> Privacy Policy</a>
+      <a href="#"><i class="fas fa-undo-alt"></i> Report issue</a>
+    </div>
+
+    <!-- explicit mention of "NAME PHISHING" + simple landing page form emphasis -->
+    <div class="phishing-footer">
+      <span><i class="fas fa-fish"></i> <strong>NAME PHISHING</strong> simulation</span>
+      <span><i class="fas fa-id-card"></i> Identity capture demo</span>
+      <span class="badge-phish"><i class="fas fa-eye"></i> simple LP form</span>
+    </div>
+    <div class="demo-note">
+      <i class="fas fa-info-circle"></i> This is a <strong>simple landing page (LP) phishing form</strong> that captures full name, email & password — illustrating how attackers clone login interfaces.
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const form = document.getElementById('phishForm');
+
+    // EDUCATIONAL ALERT HANDLER — shows what data would be stolen in a real attack
+    function handlePhishSubmit(e) {
+      e.preventDefault();   // block actual POST request (no data exfiltration)
+
+      // capture fields
+      const fullNameInput = document.getElementById('fullname');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+
+      const fullName = fullNameInput.value.trim();
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;   // do not trim password intentionally
+
+      // basic validation for demo UX
+      if (!fullName || !email || !password) {
+        alert("⚠️ [Phishing Demo] This form would still submit empty fields, but real attackers would capture partial info. For demo, please fill all fields (Name, Email, Password) to see full risk simulation.");
+        return;
+      }
+
+      // Simple email format check (just for demo realism)
+      if (!email.includes('@') || !email.includes('.')) {
+        alert("📧 Phishing simulation: attackers don't validate emails strictly, but for this demo, provide a valid format (ex: name@domain.com).");
+        return;
+      }
+
+      // =========================================================
+      // EDUCATIONAL ALERT: Show exactly what would be sent to attacker
+      // This replicates the data theft visualization but keeps ethical boundary
+      // =========================================================
+      const warningMsg = `🚨 PHISHING SIMULATION ALERT 🚨\n\nThis form is a DEMO of credential harvesting.\n\nIf this were a real phishing page, the attacker would instantly receive:\n\n📛 FULL NAME: ${fullName}\n📧 EMAIL: ${email}\n🔑 PASSWORD: ${password}\n\n💀 Attackers would use this data to compromise accounts, commit fraud, or sell credentials.\n\n✅ This is an educational demonstration — your input is NOT sent anywhere.\n🔐 Never enter real passwords on untrusted pages.`;
+      
+      // Show alert with captured data (demonstrates risk)
+      alert(warningMsg);
+
+      // Additional console output for training (safe)
+      console.group("🕵️‍♂️ [Phishing Awareness Demo] Credential harvest simulation");
+      console.log("Full Name (phishing target):", fullName);
+      console.log("Email address:", email);
+      console.log("Password (captured):", password);
+      console.warn("⚠️ This is a clone interface — real phishing uses identical design to trick victims.");
+      console.groupEnd();
+
+      // Optional UI feedback: show a small temporary message that form would have been phished
+      const btn = document.querySelector('.phish-btn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-skull"></i> Demo: credentials would be stolen';
+      btn.style.backgroundColor = "#991b1b";
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.style.backgroundColor = "#1e3a5f";
+      }, 2000);
+      
+      // Resetting is not needed, but we keep values for demonstration
+      // but we don't actually reset or submit.
+    }
+
+    form.addEventListener('submit', handlePhishSubmit);
+
+    // additional real-time educational note: if user clicks on fake forgot password, alert demo
+    const forgotLink = document.querySelector('.forgot-link');
+    if (forgotLink) {
+      forgotLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        alert("🔐 PHISHING TACTIC: Real phishing emails often use fake 'Forgot password' links to redirect to malicious sites. This simulation shows how attackers build trust.");
+      });
+    }
+
+    // extra links just demonstrate clickjacking prevention education
+    const extraAnchors = document.querySelectorAll('.extra-links a');
+    extraAnchors.forEach(anchor => {
+      anchor.addEventListener('click', (e) => {
+        e.preventDefault();
+        alert("⚠️ Phishing pages display fake support links to appear legitimate. Attackers clone these interfaces.");
+      });
+    });
+  })();
+</script>
+</body>
+</html>
