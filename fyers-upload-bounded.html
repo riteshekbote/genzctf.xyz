@@ -26,12 +26,12 @@ td,th{border:1px solid #30363d;padding:.4rem .6rem;text-align:left;font-size:13p
 <tr><td>null fields</td><td class="dim">500</td><td class="dim">"Something went wrong" (501)</td></tr>
 <tr><td><b>Control:</b> none — no 401 / token check observed at any stage</td><td>—</td><td class="bad">microservice returns app-level errors, never auth errors</td></tr>
 </table>
-<pre class="dim">#"No token was ever sent for any of the above. Every response is a validation/whitelist error,
+<pre class="dim"># No token was ever sent for any of the above. Every response is a validation/whitelist error,
 # never an authentication error. This is the finding: auth middleware absent on the upload API family.
 # The file_url "server-side fetch" exists but is bounded by a strict host allowlist (webhook.site,
 # public CDNs, 127.0.0.1, and all *.fyers.in candidates tested → 403). No OOB request was observed
 # (webhook.site token query: 0 hits). SSRF as reported is NOT independently exploitable to
-# attacker-chosen hosts; the fetch primitive is real but constrained.</p>
+# attacker-chosen hosts; the fetch primitive is real but constrained.</pre>
 
 <h2>PoC</h2>
 <pre>curl -s -w "code=%{http_code}\n" -X POST \
