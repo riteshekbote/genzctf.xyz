@@ -34,10 +34,10 @@ function read(label,path,bearer){
   }
 }
 log("== cross-origin reads from this page (Origin: "+location.origin+") ==");
-var s1=read("/v1/global/regions","Bearer garbage-token");
-var s2=read("/v1/global/organizations",null);
+var s1=read("/v1/global/regions  (garbage bearer)","/v1/global/regions","Bearer garbage-token");
+var s2=read("/v1/global/organizations  (no token)","/v1/global/organizations",null);
 log("-- control: route with proper auth gate --");
-var s3=read("/v1/journeys",null);
+var s3=read("control /v1/journeys  (no token)","/v1/journeys",null);
 log("== verdict ==");
 log(s1===200 && s2===200 ? "BROWSER ALLOWED BOTH READS (CORS bypass + missing auth confirmed)":"browser blocked (policy working)");
 </script>
