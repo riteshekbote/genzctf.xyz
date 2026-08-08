@@ -22,9 +22,8 @@ function read(label,path,bearer){
     x.open("GET", API+path, false);
     if(bearer) x.setRequestHeader("Authorization", bearer);
     x.send(null);
-    var acao=x.getResponseHeader("Access-Control-Allow-Origin");
     log("+ "+label);
-    log("  HTTP "+x.status+"  Access-Control-Allow-Origin: "+(acao||"(blocked: header absent)"));
+    log("  HTTP "+x.status+"  -> browser completed the cross-origin read (CORS policy allowed it)");
     if(x.status==200) log("  body: "+x.responseText.slice(0,180));
     return x.status;
   }catch(e){
