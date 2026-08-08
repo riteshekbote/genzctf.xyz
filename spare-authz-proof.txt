@@ -1,0 +1,175 @@
+$ curl -i -s 'https://api.sparelabs.com/v1/global/organizations'
+HTTP/2 200 
+spare-correlation-id: 76d62a65-912e-407f-9768-adf5c253452e
+vary: Origin
+access-control-allow-credentials: true
+content-security-policy: default-src none;upgrade-insecure-requests
+x-dns-prefetch-control: off
+expect-ct: max-age=0
+x-frame-options: SAMEORIGIN
+strict-transport-security: max-age=31536000; includeSubDomains
+x-download-options: noopen
+x-content-type-options: nosniff
+x-permitted-cross-domain-policies: none
+referrer-policy: no-referrer
+x-xss-protection: 0
+surrogate-control: no-store
+cache-control: no-store, no-cache, must-revalidate, proxy-revalidate
+pragma: no-cache
+expires: 0
+content-type: application/json; charset=utf-8
+content-length: 11
+etag: W/"b-EFAlOux7Kcr/ZEgGkn2r+oFAbu4"
+date: Sat, 08 Aug 2026 08:34:22 GMT
+x-envoy-upstream-service-time: 656
+server: envoy
+via: 1.1 google
+alt-svc: h3=":443"; ma=2592000
+
+{"data":[]}
+$ curl -i -s 'https://api.sparelabs.com/v1/global/organizations' -H 'Origin: https://genzctf.xyz'
+HTTP/2 200 
+spare-correlation-id: 6349777d-5f97-4720-807c-74c654f2b662
+access-control-allow-origin: https://genzctf.xyz
+vary: Origin
+access-control-allow-credentials: true
+content-security-policy: default-src none;upgrade-insecure-requests
+x-dns-prefetch-control: off
+expect-ct: max-age=0
+x-frame-options: SAMEORIGIN
+strict-transport-security: max-age=31536000; includeSubDomains
+x-download-options: noopen
+x-content-type-options: nosniff
+x-permitted-cross-domain-policies: none
+referrer-policy: no-referrer
+x-xss-protection: 0
+surrogate-control: no-store
+cache-control: no-store, no-cache, must-revalidate, proxy-revalidate
+pragma: no-cache
+expires: 0
+content-type: application/json; charset=utf-8
+content-length: 11
+etag: W/"b-EFAlOux7Kcr/ZEgGkn2r+oFAbu4"
+date: Sat, 08 Aug 2026 08:34:24 GMT
+x-envoy-upstream-service-time: 740
+server: envoy
+via: 1.1 google
+alt-svc: h3=":443"; ma=2592000
+
+{"data":[]}
+$ curl -i -s 'https://api.sparelabs.com/v1/global/organizations' -H 'Authorization: Bearer x'
+HTTP/2 200 
+spare-correlation-id: 00f876d8-79be-4d32-befc-a09e94034e8f
+vary: Origin
+access-control-allow-credentials: true
+content-security-policy: default-src none;upgrade-insecure-requests
+x-dns-prefetch-control: off
+expect-ct: max-age=0
+x-frame-options: SAMEORIGIN
+strict-transport-security: max-age=31536000; includeSubDomains
+x-download-options: noopen
+x-content-type-options: nosniff
+x-permitted-cross-domain-policies: none
+referrer-policy: no-referrer
+x-xss-protection: 0
+surrogate-control: no-store
+cache-control: no-store, no-cache, must-revalidate, proxy-revalidate
+pragma: no-cache
+expires: 0
+content-type: application/json; charset=utf-8
+content-length: 11
+etag: W/"b-EFAlOux7Kcr/ZEgGkn2r+oFAbu4"
+date: Sat, 08 Aug 2026 08:34:26 GMT
+x-envoy-upstream-service-time: 847
+server: envoy
+via: 1.1 google
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+{"data":[]}
+$ curl -i -s 'https://api.sparelabs.com/v1/public/organization?organizationId=not-a-uuid'
+HTTP/2 400 
+spare-correlation-id: 89d566ac-553e-4f00-9cd8-254ea2f8d4d6
+vary: Origin, Accept-Encoding
+access-control-allow-credentials: true
+content-security-policy: default-src none;upgrade-insecure-requests
+x-dns-prefetch-control: off
+expect-ct: max-age=0
+x-frame-options: SAMEORIGIN
+strict-transport-security: max-age=31536000; includeSubDomains
+x-download-options: noopen
+x-content-type-options: nosniff
+x-permitted-cross-domain-policies: none
+referrer-policy: no-referrer
+x-xss-protection: 0
+surrogate-control: no-store
+cache-control: no-store, no-cache, must-revalidate, proxy-revalidate
+pragma: no-cache
+expires: 0
+content-type: application/json; charset=utf-8
+content-length: 285
+etag: W/"11d-S16f0CM6OqdTuKIh+oSwPS0opLg"
+date: Sat, 08 Aug 2026 08:34:28 GMT
+x-envoy-upstream-service-time: 20
+server: envoy
+via: 1.1 google
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+{"name":"ValidationError","message":"request/query/organizationId must match format \"uuid\"","metadata":{"errors":[{"path":"/query/organizationId","message":"must match format \"uuid\"","errorCode":"format.openapi.validation"}],"correlationId":"89d566ac-553e-4f00-9cd8-254ea2f8d4d6"}}
+$ curl -i -s 'https://api.sparelabs.com/v1/public/organization?organizationId=00000000-0000-0000-0000-000000000000'
+HTTP/2 404 
+spare-correlation-id: 60c708a0-f6f5-4e9e-bdd5-27121fd846ae
+vary: Origin, Accept-Encoding
+access-control-allow-credentials: true
+content-security-policy: default-src none;upgrade-insecure-requests
+x-dns-prefetch-control: off
+expect-ct: max-age=0
+x-frame-options: SAMEORIGIN
+strict-transport-security: max-age=31536000; includeSubDomains
+x-download-options: noopen
+x-content-type-options: nosniff
+x-permitted-cross-domain-policies: none
+referrer-policy: no-referrer
+x-xss-protection: 0
+surrogate-control: no-store
+cache-control: no-store, no-cache, must-revalidate, proxy-revalidate
+pragma: no-cache
+expires: 0
+content-type: application/json; charset=utf-8
+content-length: 131
+etag: W/"83-7MKXEq5E4bYG6xuBO/xn6WYJ4ls"
+date: Sat, 08 Aug 2026 08:34:28 GMT
+x-envoy-upstream-service-time: 8
+server: envoy
+via: 1.1 google
+alt-svc: h3=":443"; ma=2592000
+
+{"name":"NotFoundError","message":"Organization was not found","metadata":{"correlationId":"60c708a0-f6f5-4e9e-bdd5-27121fd846ae"}}
+$ curl -i -s 'https://api.sparelabs.com/v1/journeys'
+HTTP/2 401 
+spare-correlation-id: b0e73f79-1755-4156-9920-3c2c3f006eb8
+vary: Origin, Accept-Encoding
+access-control-allow-credentials: true
+content-security-policy: default-src none;upgrade-insecure-requests
+x-dns-prefetch-control: off
+expect-ct: max-age=0
+x-frame-options: SAMEORIGIN
+strict-transport-security: max-age=31536000; includeSubDomains
+x-download-options: noopen
+x-content-type-options: nosniff
+x-permitted-cross-domain-policies: none
+referrer-policy: no-referrer
+x-xss-protection: 0
+surrogate-control: no-store
+cache-control: no-store, no-cache, must-revalidate, proxy-revalidate
+pragma: no-cache
+expires: 0
+content-type: application/json; charset=utf-8
+content-length: 143
+etag: W/"8f-k2LeEkQ+eUXtEJ9ivUxXUWk2VCY"
+date: Sat, 08 Aug 2026 08:34:30 GMT
+x-envoy-upstream-service-time: 4
+server: envoy
+via: 1.1 google
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+{"name":"InvalidTokenError","message":"Request lacks Authorization header","metadata":{"correlationId":"b0e73f79-1755-4156-9920-3c2c3f006eb8"}}
