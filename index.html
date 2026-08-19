@@ -1,1338 +1,541 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ritesh Ekbote — 黒 · 紅 · 白</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fira+Code:wght@300;400;500;700&family=Poppins:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #050505;
-            --bg2: #0e0e0e;
-            --bg3: #1a1a1a;
-            --red: #e60000;
-            --red-bright: #ff1a1a;
-            --red-dim: #990000;
-            --red-glow: 0 0 20px rgba(230, 0, 0, 0.6);
-            --red-glow-strong: 0 0 40px rgba(255, 26, 26, 0.9);
-            --white: #f0f0f0;
-            --white-dim: #aaa;
-            --grey: #666;
-            --border: #2a2a2a;
-            --border-red: #660000;
-            --font-mono: 'Fira Code', monospace;
-            --font-heading: 'Bebas Neue', cursive;
-            --font-body: 'Poppins', sans-serif;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--white);
-            font-family: var(--font-body);
-            overflow-x: hidden;
-            cursor: crosshair;
-        }
-
-        /* RED RAIN CANVAS BACKGROUND */
-        #rainCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0.15;
-        }
-
-        /* NAVIGATION */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            padding: 16px 48px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            background: rgba(5, 5, 5, 0.96);
-            backdrop-filter: blur(12px);
-            font-family: var(--font-mono);
-        }
-        .nav-logo {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--red-bright);
-            letter-spacing: 0.2em;
-            text-shadow: var(--red-glow);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .nav-logo span {
-            font-family: var(--font-heading);
-            font-size: 1.4rem;
-            letter-spacing: 0.05em;
-            color: #fff;
-        }
-        .nav-links {
-            display: flex;
-            gap: 40px;
-        }
-        .nav-links a {
-            color: var(--white-dim);
-            text-decoration: none;
-            font-size: 12px;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            transition: 0.2s;
-            position: relative;
-        }
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 100%;
-            height: 1px;
-            background: var(--red-bright);
-            transform: scaleX(0);
-            transition: transform 0.2s;
-        }
-        .nav-links a:hover {
-            color: var(--red-bright);
-        }
-        .nav-links a:hover::after {
-            transform: scaleX(1);
-        }
-        .nav-status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 11px;
-            color: var(--red-dim);
-        }
-        .pulse-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--red-bright);
-            box-shadow: 0 0 12px var(--red-bright);
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.2;
-            }
-        }
-
-        /* HERO SECTION */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding: 120px 48px 60px;
-            position: relative;
-            z-index: 2;
-        }
-        .hero-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 80px;
-            max-width: 1300px;
-            margin: 0 auto;
-        }
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            font-family: var(--font-mono);
-            font-size: 11px;
-            letter-spacing: 0.2em;
-            color: var(--red-bright);
-            border: 1px solid var(--border-red);
-            padding: 8px 20px;
-            margin-bottom: 24px;
-            text-transform: uppercase;
-            position: relative;
-            background: rgba(10, 0, 0, 0.5);
-        }
-        .badge::before,
-        .badge::after {
-            content: '';
-            position: absolute;
-            width: 8px;
-            height: 8px;
-        }
-        .badge::before {
-            top: -1px;
-            left: -1px;
-            border-top: 2px solid var(--red-bright);
-            border-left: 2px solid var(--red-bright);
-        }
-        .badge::after {
-            bottom: -1px;
-            right: -1px;
-            border-bottom: 2px solid var(--red-bright);
-            border-right: 2px solid var(--red-bright);
-        }
-        h1.hero-name {
-            font-family: var(--font-heading);
-            font-size: clamp(4rem, 8vw, 7rem);
-            font-weight: 900;
-            line-height: 0.9;
-            letter-spacing: 0.03em;
-            color: #fff;
-            position: relative;
-            margin-bottom: 16px;
-        }
-        h1.hero-name .accent {
-            color: var(--red-bright);
-            text-shadow: var(--red-glow-strong);
-            display: block;
-        }
-        .hero-name::after {
-            content: '';
-            position: absolute;
-            left: -5px;
-            bottom: 5px;
-            width: 130%;
-            height: 6px;
-            background: var(--red-bright);
-            transform: skewX(-25deg);
-            opacity: 0.3;
-            z-index: -1;
-        }
-        .hero-sub {
-            font-family: var(--font-mono);
-            font-size: 13px;
-            color: var(--white-dim);
-            line-height: 2;
-            margin: 24px 0 32px;
-            max-width: 500px;
-        }
-        .hero-sub span {
-            color: var(--red-bright);
-            font-weight: 600;
-        }
-        .command-line {
-            font-family: var(--font-mono);
-            font-size: 14px;
-            color: var(--red-bright);
-            margin-bottom: 36px;
-            min-height: 24px;
-            display: flex;
-            align-items: center;
-        }
-        .command-line::before {
-            content: '> ';
-            color: var(--white-dim);
-        }
-        .cursor {
-            animation: blink 0.8s step-end infinite;
-            font-weight: bold;
-        }
-        @keyframes blink {
-            50% {
-                opacity: 0;
-            }
-        }
-        .hero-buttons {
-            display: flex;
-            gap: 18px;
-            flex-wrap: wrap;
-        }
-        .btn-primary {
-            font-family: var(--font-mono);
-            font-size: 12px;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            padding: 14px 32px;
-            background: var(--red-bright);
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
-            transition: 0.25s;
-            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-            box-shadow: var(--red-glow);
-        }
-        .btn-primary:hover {
-            background: #fff;
-            color: #000;
-            box-shadow: 0 0 30px #fff;
-        }
-        .btn-outline {
-            font-family: var(--font-mono);
-            font-size: 12px;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            padding: 14px 32px;
-            border: 1px solid var(--border-red);
-            color: var(--white-dim);
-            background: transparent;
-            cursor: pointer;
-            text-decoration: none;
-            transition: 0.25s;
-            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-        }
-        .btn-outline:hover {
-            border-color: var(--red-bright);
-            color: var(--red-bright);
-            box-shadow: var(--red-glow);
-        }
-
-        /* CANVAS CHARACTER */
-        .character-wrap {
-            position: relative;
-            border: 1px solid var(--border);
-            background: #0a0a0a;
-            box-shadow: inset 0 0 60px rgba(230, 0, 0, 0.1);
-        }
-        .character-wrap::before {
-            content: '[ 忍 ]';
-            position: absolute;
-            top: 15px;
-            left: 18px;
-            font-family: var(--font-mono);
-            font-size: 11px;
-            color: var(--red-dim);
-            letter-spacing: 0.2em;
-            z-index: 5;
-        }
-        .character-wrap::after {
-            content: '● TARGET ACQUIRED';
-            position: absolute;
-            top: 15px;
-            right: 18px;
-            font-family: var(--font-mono);
-            font-size: 11px;
-            color: var(--red-bright);
-            z-index: 5;
-        }
-        #heroCanvas {
-            display: block;
-            width: 100%;
-            height: auto;
-        }
-
-        /* STATS BAR */
-        .stats-bar {
-            background: var(--bg2);
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-            padding: 28px 48px;
-            z-index: 2;
-            position: relative;
-        }
-        .stats-inner {
-            max-width: 1300px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-        }
-        .stat-item {
-            padding: 0 32px;
-            border-right: 1px solid var(--border);
-            text-align: center;
-        }
-        .stat-item:last-child {
-            border-right: none;
-        }
-        .stat-number {
-            font-family: var(--font-heading);
-            font-size: 3rem;
-            font-weight: 900;
-            color: var(--red-bright);
-            text-shadow: var(--red-glow-strong);
-            display: block;
-            line-height: 1;
-        }
-        .stat-label {
-            font-family: var(--font-mono);
-            font-size: 10px;
-            color: var(--white-dim);
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            margin-top: 6px;
-        }
-
-        /* SECTION TEMPLATE */
-        section {
-            padding: 80px 48px;
-            position: relative;
-            z-index: 2;
-        }
-        .section-inner {
-            max-width: 1300px;
-            margin: 0 auto;
-        }
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 56px;
-        }
-        .section-num {
-            font-family: var(--font-heading);
-            font-size: 18px;
-            color: var(--red-dim);
-            letter-spacing: 0.2em;
-        }
-        .section-title {
-            font-family: var(--font-heading);
-            font-size: 2.2rem;
-            font-weight: 900;
-            color: #fff;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-        .section-line {
-            flex: 1;
-            height: 2px;
-            background: linear-gradient(to right, var(--border-red), transparent);
-        }
-
-        /* CTF GRID */
-        .ctf-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1px;
-            background: var(--border);
-            border: 1px solid var(--border);
-        }
-        .ctf-card {
-            background: var(--bg);
-            padding: 32px;
-            position: relative;
-            overflow: hidden;
-            transition: 0.3s;
-        }
-        .ctf-card:hover {
-            background: #111;
-        }
-        .ctf-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--red-bright);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.4s;
-        }
-        .ctf-card:hover::before {
-            transform: scaleX(1);
-        }
-        .ctf-rank {
-            font-family: var(--font-heading);
-            font-size: 2.2rem;
-            font-weight: 900;
-            color: var(--red-bright);
-            text-shadow: var(--red-glow);
-            margin-bottom: 8px;
-        }
-        .ctf-card.gold .ctf-rank {
-            color: #ffd700;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
-        }
-        .ctf-card.cyan .ctf-rank {
-            color: #00e5ff;
-            text-shadow: 0 0 20px rgba(0, 229, 255, 0.7);
-        }
-        .ctf-card.gold::before {
-            background: #ffd700;
-        }
-        .ctf-card.cyan::before {
-            background: #00e5ff;
-        }
-        .ctf-event {
-            font-size: 14px;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 6px;
-            font-family: var(--font-body);
-        }
-        .ctf-details {
-            font-size: 11px;
-            color: var(--white-dim);
-            line-height: 1.8;
-            font-family: var(--font-mono);
-        }
-
-        /* TERMINAL TABLE */
-        .terminal-box {
-            background: var(--bg2);
-            border: 1px solid var(--border);
-        }
-        .terminal-bar {
-            padding: 10px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-family: var(--font-mono);
-            font-size: 11px;
-            color: var(--white-dim);
-        }
-        .term-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-        .term-dot.red {
-            background: #ff5f57;
-        }
-        .term-dot.yellow {
-            background: #febc2e;
-        }
-        .term-dot.green {
-            background: #28c840;
-        }
-        table.bounty {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table.bounty th {
-            text-align: left;
-            padding: 14px 24px;
-            font-family: var(--font-mono);
-            font-size: 10px;
-            letter-spacing: 0.15em;
-            color: var(--white-dim);
-            text-transform: uppercase;
-            border-bottom: 1px solid var(--border);
-        }
-        table.bounty td {
-            padding: 16px 24px;
-            font-size: 13px;
-            border-bottom: 1px solid rgba(102, 0, 0, 0.3);
-            vertical-align: middle;
-            font-family: var(--font-body);
-        }
-        table.bounty tr:last-child td {
-            border-bottom: none;
-        }
-        table.bounty tr:hover td {
-            background: rgba(230, 0, 0, 0.03);
-        }
-        .severity {
-            display: inline-block;
-            font-family: var(--font-mono);
-            font-size: 10px;
-            letter-spacing: 0.1em;
-            padding: 3px 12px;
-            text-transform: uppercase;
-            border: 1px solid;
-        }
-        .sev-p3 {
-            border-color: #00e5ff;
-            color: #00e5ff;
-        }
-        .sev-p4 {
-            border-color: var(--red-dim);
-            color: var(--red-dim);
-        }
-        .sev-multi {
-            border-color: var(--white-dim);
-            color: var(--white-dim);
-        }
-        .status {
-            font-family: var(--font-mono);
-            font-size: 10px;
-            letter-spacing: 0.1em;
-            padding: 3px 12px;
-            text-transform: uppercase;
-            border: 1px solid;
-        }
-        .status-rewarded {
-            color: var(--red-bright);
-            border-color: var(--red-bright);
-        }
-        .status-cert {
-            color: #00e5ff;
-            border-color: #00e5ff;
-        }
-        .status-fixed {
-            color: #a8ff78;
-            border-color: #a8ff78;
-        }
-
-        /* SKILLS & CERT */
-        .skills-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 36px;
-        }
-        .skill-category {
-            margin-bottom: 32px;
-        }
-        .skill-head {
-            font-family: var(--font-mono);
-            font-size: 11px;
-            letter-spacing: 0.2em;
-            color: var(--red-bright);
-            text-transform: uppercase;
-            margin-bottom: 14px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
-        }
-        .skill-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .skill-tag {
-            font-family: var(--font-mono);
-            font-size: 11px;
-            letter-spacing: 0.04em;
-            padding: 6px 16px;
-            border: 1px solid var(--border);
-            color: var(--white-dim);
-            transition: 0.2s;
-            background: var(--bg2);
-        }
-        .skill-tag:hover {
-            border-color: var(--red-bright);
-            color: #fff;
-            background: rgba(230, 0, 0, 0.1);
-            box-shadow: var(--red-glow);
-        }
-
-        .cert-list {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-        .cert-item {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            padding: 20px 24px;
-            border: 1px solid var(--border);
-            background: var(--bg2);
-            transition: 0.2s;
-        }
-        .cert-item:hover {
-            border-color: var(--red-dim);
-            box-shadow: var(--red-glow);
-        }
-        .cert-icon {
-            width: 48px;
-            height: 48px;
-            border: 1px solid var(--border-red);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: var(--font-heading);
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--red-bright);
-            background: #0a0000;
-        }
-        .cert-name {
-            font-size: 15px;
-            font-weight: 700;
-            color: #fff;
-        }
-        .cert-desc {
-            font-size: 11px;
-            color: var(--white-dim);
-            margin-top: 3px;
-        }
-        .cert-year {
-            margin-left: auto;
-            font-family: var(--font-mono);
-            font-size: 12px;
-            color: var(--white-dim);
-        }
-
-        /* CONTACT */
-        .contact-section {
-            background: var(--bg2);
-            border-top: 1px solid var(--border);
-        }
-        .contact-inner {
-            max-width: 1300px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 80px;
-            align-items: center;
-            padding: 80px 48px;
-        }
-        .contact-text h2 {
-            font-family: var(--font-heading);
-            font-size: 3.5rem;
-            font-weight: 900;
-            color: #fff;
-            line-height: 0.9;
-            margin-bottom: 20px;
-        }
-        .contact-text h2 span {
-            color: var(--red-bright);
-            text-shadow: var(--red-glow-strong);
-        }
-        .contact-text p {
-            font-family: var(--font-mono);
-            font-size: 12px;
-            color: var(--white-dim);
-            line-height: 2;
-            margin-bottom: 32px;
-        }
-        .contact-links {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-        .contact-link {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            font-family: var(--font-mono);
-            font-size: 12px;
-            color: var(--white-dim);
-            text-decoration: none;
-            transition: 0.2s;
-        }
-        .contact-link:hover {
-            color: var(--red-bright);
-        }
-        .contact-link em {
-            color: var(--red-dim);
-            font-style: normal;
-            font-weight: 700;
-        }
-
-        .contact-terminal .terminal-body {
-            padding: 24px;
-            font-family: var(--font-mono);
-            font-size: 13px;
-            line-height: 2.4;
-        }
-        .prompt {
-            color: var(--red-dim);
-        }
-        .command {
-            color: var(--red-bright);
-        }
-        .output {
-            color: var(--white-dim);
-            padding-left: 20px;
-            display: block;
-        }
-        .output .value {
-            color: #00e5ff;
-        }
-        .cursor-terminal {
-            animation: blink 0.8s step-end infinite;
-            font-weight: bold;
-        }
-
-        footer {
-            padding: 20px 48px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            font-family: var(--font-mono);
-            font-size: 11px;
-            color: var(--white-dim);
-            letter-spacing: 0.1em;
-            background: var(--bg);
-            position: relative;
-            z-index: 2;
-        }
-
-        /* REVEAL ANIMATION */
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: 0.7s ease;
-        }
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 900px) {
-            .hero-grid,
-            .contact-inner {
-                grid-template-columns: 1fr;
-            }
-            .ctf-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-            .skills-grid {
-                grid-template-columns: 1fr;
-            }
-            .stats-inner {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Third Eye Scanner — Recon & Dorking Toolkit</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  :root{
+    --bg:#070b0f; --panel:#0d141c; --panel2:#111b25; --line:#1e2c3a;
+    --acc:#22ff88; --acc2:#ff3b5c; --txt:#c9d8e2; --dim:#6b7f8f;
+    --mono:'JetBrains Mono','Fira Code',Consolas,monospace;
+  }
+  *{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+  body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif;padding-top:118px;
+    background-image:radial-gradient(ellipse at 20% -10%,rgba(34,255,136,.06),transparent 55%),radial-gradient(ellipse at 90% 0%,rgba(255,59,92,.05),transparent 50%);}
+  .mono{font-family:var(--mono)}
+  /* ===== top bar ===== */
+  .topbar{position:fixed;inset:0 0 auto 0;z-index:1030;background:rgba(7,11,15,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .brand{font-family:var(--mono);font-weight:700;letter-spacing:.5px;color:var(--acc);text-decoration:none;font-size:1.05rem;white-space:nowrap}
+  .brand .eye{color:var(--acc2)}
+  .brand small{color:var(--dim);font-weight:400}
+  .target-input{background:#0a1218;border:1px solid var(--line);color:var(--acc);font-family:var(--mono)}
+  .target-input:focus{background:#0a1218;color:var(--acc);border-color:var(--acc);box-shadow:0 0 0 .2rem rgba(34,255,136,.15)}
+  .target-input::placeholder{color:#3d5261}
+  .input-label{font-family:var(--mono);font-size:.72rem;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+  .nav-quick a{font-family:var(--mono);font-size:.75rem;color:var(--dim);text-decoration:none;padding:.25rem .55rem;border:1px solid transparent;border-radius:6px;transition:.15s}
+  .nav-quick a:hover{color:var(--acc);border-color:var(--line);background:var(--panel)}
+  /* ===== hero stats ===== */
+  .stat-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:.7rem 1rem;text-align:center}
+  .stat-card .num{font-family:var(--mono);font-size:1.5rem;font-weight:700;color:var(--acc)}
+  .stat-card .lbl{font-size:.7rem;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+  /* ===== filter ===== */
+  .filter-wrap{position:sticky;top:118px;z-index:1020}
+  .filter-input{background:var(--panel);border:1px solid var(--line);color:var(--txt);font-family:var(--mono)}
+  .filter-input:focus{background:var(--panel);color:var(--txt);border-color:var(--acc);box-shadow:0 0 0 .2rem rgba(34,255,136,.12)}
+  /* ===== section cards ===== */
+  .sec-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:1.4rem;overflow:hidden}
+  .sec-head{display:flex;align-items:center;gap:.7rem;padding:.85rem 1.1rem;background:var(--panel2);border-bottom:1px solid var(--line);cursor:pointer;user-select:none}
+  .sec-head:hover{background:#15212d}
+  .sec-head .ico{font-size:1.15rem}
+  .sec-head h4{margin:0;font-family:var(--mono);font-size:1rem;color:var(--txt);flex:1}
+  .sec-head .badge-count{font-family:var(--mono);font-size:.72rem;background:#0a1218;border:1px solid var(--line);color:var(--acc);border-radius:20px;padding:.15rem .6rem}
+  .sec-head .chev{transition:.25s;color:var(--dim)}
+  .sec-card.open .chev{transform:rotate(180deg)}
+  .sec-body{padding:1rem 1.1rem;display:none}
+  .sec-card.open .sec-body{display:block}
+  .btn-open-all{font-family:var(--mono);font-size:.7rem;color:var(--acc2);border:1px solid var(--acc2);border-radius:6px;padding:.15rem .55rem;background:transparent;white-space:nowrap}
+  .btn-open-all:hover{background:var(--acc2);color:#fff}
+  /* ===== dork chips ===== */
+  .dork-chip{display:inline-flex;align-items:stretch;margin:.25rem;border:1px solid #4a2030;border-radius:8px;overflow:hidden;background:#140e13;transition:.15s;vertical-align:top}
+  .dork-chip:hover{border-color:var(--acc2);box-shadow:0 0 12px rgba(255,59,92,.18);transform:translateY(-1px)}
+  .dork-chip .run{background:transparent;border:0;color:#ff8ba0;font-size:.8rem;padding:.4rem .7rem;font-family:var(--mono)}
+  .dork-chip .run:hover{color:#fff;background:rgba(255,59,92,.15)}
+  .dork-chip .cp{background:transparent;border:0;border-left:1px solid #4a2030;color:var(--dim);padding:0 .55rem;font-size:.75rem}
+  .dork-chip .cp:hover{color:var(--acc)}
+  .dork-chip.hidden-chip{display:none}
+  /* ===== github advanced ===== */
+  .adv-panel{background:#0a1218;border:1px solid var(--line);border-radius:10px}
+  .adv-panel textarea,.adv-panel input{background:#070d12;border:1px solid var(--line);color:var(--acc);font-family:var(--mono);font-size:.8rem}
+  .adv-panel textarea:focus,.adv-panel input:focus{background:#070d12;color:var(--acc);border-color:var(--acc);box-shadow:none}
+  .gen-link{display:block;font-family:var(--mono);font-size:.72rem;color:#7fd7ff;text-decoration:none;padding:.3rem .5rem;border-bottom:1px dashed #17222d;word-break:break-all}
+  .gen-link:hover{color:var(--acc);background:#0e1620}
+  .btn-acc{background:var(--acc);color:#04140b;font-weight:700;border:0}
+  .btn-acc:hover{background:#4bff9f;color:#04140b}
+  .btn-danger-outline{border:1px solid var(--acc2);color:var(--acc2);background:transparent}
+  .btn-danger-outline:hover{background:var(--acc2);color:#fff}
+  /* ===== toast ===== */
+  .toast-box{position:fixed;bottom:1.2rem;right:1.2rem;z-index:2000;display:flex;flex-direction:column;gap:.5rem}
+  .toast-msg{background:var(--panel2);border:1px solid var(--acc);color:var(--acc);font-family:var(--mono);font-size:.8rem;border-radius:8px;padding:.55rem .9rem;box-shadow:0 4px 18px rgba(0,0,0,.5);animation:tin .2s ease}
+  @keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .kbd-hint{font-family:var(--mono);font-size:.68rem;color:var(--dim)}
+  kbd{background:#0a1218;border:1px solid var(--line);border-radius:4px;color:var(--acc);font-size:.68rem;padding:.05rem .35rem}
+  .foot-link{color:var(--dim);text-decoration:none;font-family:var(--mono);font-size:.78rem;padding:.2rem .5rem}
+  .foot-link:hover{color:var(--acc)}
+  .no-results{display:none;text-align:center;color:var(--dim);font-family:var(--mono);padding:2.5rem 0}
+  .mark-hit{background:rgba(34,255,136,.25);color:#d8ffe9;border-radius:3px}
+</style>
 </head>
 <body>
-    <canvas id="rainCanvas"></canvas>
 
-    <nav>
-        <div class="nav-logo">
-            <span>影</span> RE://PORTFOLIO
-        </div>
-        <div class="nav-links">
-            <a href="#about">About</a>
-            <a href="#ctf">CTF</a>
-            <a href="#bounty">Bounty</a>
-            <a href="#skills">Skills</a>
-            <a href="#contact">Contact</a>
-        </div>
-        <div class="nav-status">
-            <div class="pulse-dot"></div>
-            <span>OPERATIONAL</span>
-        </div>
-    </nav>
-
-    <!-- HERO -->
-    <section class="hero" id="about">
-        <div class="hero-grid">
-            <div>
-                <div class="badge">
-                    <div class="pulse-dot"></div> Security Researcher · Maharashtra, India
-                </div>
-                <h1 class="hero-name">RITESH <span class="accent">EKBOTE_</span></h1>
-                <p class="hero-sub">
-                    Bug Hunter · Offensive Security Researcher · CTF Player<br>
-                    <span>#5 India · #21 Global</span> — OffSec Arctic Howl 2025<br>
-                    Securing <span>Zerodha · Nykaa · DTDC</span> and beyond.
-                </p>
-                <div class="command-line" id="typewriter"><span class="cursor">█</span></div>
-                <div class="hero-buttons">
-                    <a href="#bounty" class="btn-primary">View Disclosures</a>
-                    <a href="#contact" class="btn-outline">Get In Touch</a>
-                </div>
-            </div>
-            <div class="character-wrap">
-                <canvas id="heroCanvas" width="500" height="400"></canvas>
-            </div>
-        </div>
-    </section>
-
-    <!-- STATS -->
-    <div class="stats-bar reveal">
-        <div class="stats-inner">
-            <div class="stat-item"><span class="stat-number" id="stat1">0</span><span class="stat-label">Bug Bounties Earned</span></div>
-            <div class="stat-item"><span class="stat-number" id="stat2">0</span><span class="stat-label">CTFs Competed</span></div>
-            <div class="stat-item"><span class="stat-number" id="stat3">0</span><span class="stat-label">Best Global Rank</span></div>
-            <div class="stat-item"><span class="stat-number" id="stat4">0</span><span class="stat-label">Flags Captured (HTB)</span></div>
-        </div>
+<!-- ============ TOP BAR ============ -->
+<div class="topbar">
+  <div class="container-fluid px-3 px-md-4 pt-2 pb-1">
+    <div class="d-flex flex-wrap align-items-center gap-3">
+      <a class="brand" href="#"><i class="bi bi-eye-fill eye"></i> THIRD_EYE <small>// recon &amp; dorking toolkit</small></a>
+      <div class="flex-grow-1" style="min-width:230px;max-width:520px">
+        <span class="input-label">Target domain</span>
+        <input type="text" id="targetDomain" class="form-control form-control-sm target-input" placeholder="vulnweb.com" autocomplete="off" spellcheck="false">
+      </div>
+      <div style="min-width:170px;max-width:240px" class="flex-grow-1">
+        <span class="input-label">CVE id</span>
+        <input type="text" id="targetCve" class="form-control form-control-sm target-input" placeholder="2021-41773" autocomplete="off" spellcheck="false">
+      </div>
     </div>
-
-    <!-- CTF ACHIEVEMENTS -->
-    <section id="ctf">
-        <div class="section-inner">
-            <div class="section-header reveal">
-                <span class="section-num">01.</span>
-                <h2 class="section-title">CTF ACHIEVEMENTS</h2>
-                <div class="section-line"></div>
-            </div>
-            <div class="ctf-grid reveal">
-                <div class="ctf-card gold">
-                    <div class="ctf-rank">#5 🇮🇳 · #21 🌍</div>
-                    <div class="ctf-event">OffSec Arctic Howl 2025</div>
-                    <div class="ctf-details">331 pts · 36 flags · 3,400+ players<br>4-week threat hunting narrative CTF</div>
-                </div>
-                <div class="ctf-card cyan">
-                    <div class="ctf-rank">#14 🌍 · #2 🇮🇳</div>
-                    <div class="ctf-event">AI vs Human CTF — HTB</div>
-                    <div class="ctf-details">2-member team · Reverse Eng + Crypto<br>Dominated global leaderboard</div>
-                </div>
-                <div class="ctf-card">
-                    <div class="ctf-rank">#22 🌍</div>
-                    <div class="ctf-event">Black Hat USA CTF 2025</div>
-                    <div class="ctf-details">Bugcrowd · Team CyberXoX<br>Elite global-level competition</div>
-                </div>
-                <div class="ctf-card">
-                    <div class="ctf-rank">#42 🌍</div>
-                    <div class="ctf-event">NahamCon 2025</div>
-                    <div class="ctf-details">8,127 pts · Team CyberXoX<br>Representing India on global stage</div>
-                </div>
-                <div class="ctf-card cyan">
-                    <div class="ctf-rank">#140 🌍</div>
-                    <div class="ctf-event">HTB Cyber Apocalypse 2025</div>
-                    <div class="ctf-details">64/77 challenges · 46,775 pts<br>8,130+ competing teams worldwide</div>
-                </div>
-                <div class="ctf-card gold">
-                    <div class="ctf-rank">#19 🌍</div>
-                    <div class="ctf-event">Hackorn CTF 2025 Qualifiers</div>
-                    <div class="ctf-details">1,940 pts · BSides Noida<br>Web / Forensics / Crypto / PWN</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- BUG BOUNTY DISCLOSURES -->
-    <section id="bounty" style="background: var(--bg2);">
-        <div class="section-inner">
-            <div class="section-header reveal">
-                <span class="section-num">02.</span>
-                <h2 class="section-title">DISCLOSURES</h2>
-                <div class="section-line"></div>
-            </div>
-            <div class="terminal-box reveal">
-                <div class="terminal-bar">
-                    <span class="term-dot red"></span>
-                    <span class="term-dot yellow"></span>
-                    <span class="term-dot green"></span>
-                    <span style="margin-left:12px;">ritesh@kali:~/disclosures — bash</span>
-                </div>
-                <table class="bounty">
-                    <thead>
-                        <tr>
-                            <th>Target</th><th>Vulnerability</th><th>Severity</th><th>Platform</th><th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style="color:#fff; font-weight:700;">Zerodha</td>
-                            <td>Information Disclosure</td>
-                            <td><span class="severity sev-p3">P3</span></td>
-                            <td>Com Olho</td>
-                            <td><span class="status status-rewarded">Rewarded</span></td>
-                        </tr>
-                        <tr>
-                            <td style="color:#fff; font-weight:700;">Nykaa</td>
-                            <td>Admin Login Exposure + API Key Leak</td>
-                            <td><span class="severity sev-p3">P3</span></td>
-                            <td>Com Olho</td>
-                            <td><span class="status status-cert">Certificate</span></td>
-                        </tr>
-                        <tr>
-                            <td style="color:#fff; font-weight:700;">BrandMuscle</td>
-                            <td>Information Disclosure</td>
-                            <td><span class="severity sev-p4">P4</span></td>
-                            <td>Com Olho</td>
-                            <td><span class="status status-rewarded">Rewarded</span></td>
-                        </tr>
-                        <tr>
-                            <td style="color:#fff; font-weight:700;">DTDC</td>
-                            <td>LinkedIn Broken Link</td>
-                            <td><span class="severity sev-p4">P4</span></td>
-                            <td>Direct</td>
-                            <td><span class="status status-fixed">Fixed</span></td>
-                        </tr>
-                        <tr>
-                            <td style="color:#fff; font-weight:700;">Com Olho (Multiple)</td>
-                            <td>Web Vulnerabilities</td>
-                            <td><span class="severity sev-multi">Multi</span></td>
-                            <td>Com Olho</td>
-                            <td><span class="status status-rewarded">Rewarded/Certificate</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-
-    <!-- SKILLS + CERTIFICATIONS -->
-    <section id="skills">
-        <div class="section-inner">
-            <div class="section-header reveal">
-                <span class="section-num">03.</span>
-                <h2 class="section-title">ARSENAL</h2>
-                <div class="section-line"></div>
-            </div>
-            <div class="skills-grid reveal">
-                <div>
-                    <div class="skill-category">
-                        <div class="skill-head">Offensive Skills</div>
-                        <div class="skill-tags">
-                            <span class="skill-tag">Web Exploitation</span>
-                            <span class="skill-tag">API Pentesting</span>
-                            <span class="skill-tag">OSINT</span>
-                            <span class="skill-tag">Privilege Escalation</span>
-                            <span class="skill-tag">Reverse Engineering</span>
-                            <span class="skill-tag">Binary Exploitation</span>
-                            <span class="skill-tag">Social Engineering</span>
-                        </div>
-                    </div>
-                    <div class="skill-category">
-                        <div class="skill-head">Tools & Frameworks</div>
-                        <div class="skill-tags">
-                            <span class="skill-tag">Burp Suite</span>
-                            <span class="skill-tag">Metasploit</span>
-                            <span class="skill-tag">Nmap</span>
-                            <span class="skill-tag">Postman</span>
-                            <span class="skill-tag">Ghidra</span>
-                            <span class="skill-tag">Wireshark</span>
-                            <span class="skill-tag">Python</span>
-                            <span class="skill-tag">YARA</span>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <div class="skill-category">
-                        <div class="skill-head">Defence & Analysis</div>
-                        <div class="skill-tags">
-                            <span class="skill-tag">Threat Hunting</span>
-                            <span class="skill-tag">Malware Analysis</span>
-                            <span class="skill-tag">Digital Forensics</span>
-                            <span class="skill-tag">Incident Response</span>
-                            <span class="skill-tag">Log Analysis</span>
-                            <span class="skill-tag">SIEM</span>
-                        </div>
-                    </div>
-                    <div class="skill-category">
-                        <div class="skill-head">CTF Domains</div>
-                        <div class="skill-tags">
-                            <span class="skill-tag">Cryptography</span>
-                            <span class="skill-tag">Steganography</span>
-                            <span class="skill-tag">PWN / Binary</span>
-                            <span class="skill-tag">Web</span>
-                            <span class="skill-tag">Forensics</span>
-                            <span class="skill-tag">Misc</span>
-                            <span class="skill-tag">OSINT Challenges</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div style="margin-top:80px;">
-                <div class="section-header reveal" style="margin-bottom:32px;">
-                    <span class="section-num">04.</span>
-                    <h2 class="section-title">CERTIFICATIONS</h2>
-                    <div class="section-line"></div>
-                </div>
-                <div class="cert-list reveal">
-                    <div class="cert-item">
-                        <div class="cert-icon">ACP</div>
-                        <div>
-                            <div class="cert-name">API Certified Professional (ACP)</div>
-                            <div class="cert-desc">APIsec University · Penetration Testing Badge · 12hr Labs</div>
-                        </div>
-                        <div class="cert-year">2024</div>
-                    </div>
-                    <div class="cert-item">
-                        <div class="cert-icon">CNSP</div>
-                        <div>
-                            <div class="cert-name">Certified Network Security Professional</div>
-                            <div class="cert-desc">The SecOps Group · PentestingExams.com</div>
-                        </div>
-                        <div class="cert-year">2024</div>
-                    </div>
-                    <div class="cert-item">
-                        <div class="cert-icon">CIS</div>
-                        <div>
-                            <div class="cert-name">Introduction to Cybersecurity</div>
-                            <div class="cert-desc">Cisco Networking Academy</div>
-                        </div>
-                        <div class="cert-year">2024</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CONTACT -->
-    <div class="contact-section" id="contact">
-        <div class="contact-inner">
-            <div class="contact-text reveal">
-                <h2>LET'S<br><span>CONNECT_</span></h2>
-                <p>Open to bug bounty collabs, penetration testing contracts, security research roles, and CTF team-ups. If you're building something that needs stress-testing — I'm your person.</p>
-                <div class="contact-links">
-                    <a class="contact-link" href="https://www.linkedin.com/in/uml0zxnorwtib3rl/" target="_blank"><em>[LI]</em> linkedin.com/in/ritesh-ekbote</a>
-                    <a class="contact-link" href="#"><em>[HN]</em> HackerOne Profile</a>
-                    <a class="contact-link" href="https://tryhackme.com/p/ritesh8975" target="_blank"><em>[TH]</em> TryHackMe — ritesh8975</a>
-                    <a class="contact-link" href="#"><em>[HB]</em> HackTheBox — CyberXoX </a>
-                </div>
-            </div>
-            <div class="terminal-box contact-terminal reveal">
-                <div class="terminal-bar">
-                    <span class="term-dot red"></span>
-                    <span class="term-dot yellow"></span>
-                    <span class="term-dot green"></span>
-                    <span style="margin-left:12px;">contact.sh — bash</span>
-                </div>
-                <div class="terminal-body">
-                    <span class="prompt">$ </span><span class="command">whoami</span><br>
-                    <span class="output">ritesh_ekbote — bug hunter & security researcher</span><br>
-                    <span class="prompt">$ </span><span class="command">cat profile.json</span><br>
-                    <span class="output">{ "name": <span class="value">"Ritesh Ekbote"</span>,</span>
-                    <span class="output">&nbsp;&nbsp;"role": <span class="value">"Offensive Security Researcher"</span>,</span>
-                    <span class="output">&nbsp;&nbsp;"location": <span class="value">"Maharashtra, India"</span>,</span>
-                    <span class="output">&nbsp;&nbsp;"top_rank": <span class="value">"#5 India — OffSec Arctic Howl"</span> }</span><br>
-                    <span class="prompt">$ </span><span class="command">cat status.txt</span><br>
-                    <span class="output" style="color:#e60000;">STATUS: OPEN TO OPPORTUNITIES ✓</span><br>
-                    <span class="prompt">$ </span><span class="cursor-terminal">█</span>
-                </div>
-            </div>
-        </div>
+    <div class="nav-quick d-flex flex-wrap gap-1 py-2">
+      <a href="#sec-subdomain">subdomains</a>
+      <a href="#sec-tech">tech</a>
+      <a href="#sec-origin">origin-ip</a>
+      <a href="#sec-ports">ports</a>
+      <a href="#sec-urls">urls</a>
+      <a href="#sec-infodisc">info-disclosure</a>
+      <a href="#sec-vuln">vuln-params</a>
+      <a href="#sec-github">github</a>
+      <a href="#sec-github-adv">github-adv</a>
+      <a href="#sec-cms">cms</a>
+      <a href="#sec-cve">cve</a>
+      <span class="ms-auto kbd-hint d-none d-md-inline"><kbd>/</kbd> filter &nbsp; <kbd>Enter</kbd> set target</span>
     </div>
+  </div>
+</div>
 
-    <footer>
-        <span>© 2025 RITESH EKBOTE — SECURITY RESEARCHER</span>
-        <span style="color:#e60000;">THINK LIKE AN ATTACKER. DEFEND LIKE A FORTRESS.</span>
-    </footer>
+<div class="container-fluid px-3 px-md-4" style="max-width:1400px">
 
-    <script>
-        // RED RAIN BACKGROUND
-        (function() {
-            const canvas = document.getElementById('rainCanvas');
-            const ctx = canvas.getContext('2d');
+  <!-- ============ STATS ============ -->
+  <div class="row g-2 mb-3">
+    <div class="col-6 col-md-3"><div class="stat-card"><div class="num" id="statDorks">0</div><div class="lbl">Dorks loaded</div></div></div>
+    <div class="col-6 col-md-3"><div class="stat-card"><div class="num" id="statSections">0</div><div class="lbl">Categories</div></div></div>
+    <div class="col-6 col-md-3"><div class="stat-card"><div class="num" id="statEngines">0</div><div class="lbl">Engines / services</div></div></div>
+    <div class="col-6 col-md-3"><div class="stat-card"><div class="num" id="statTarget" style="color:var(--acc2);font-size:1.05rem;line-height:2.1rem">—</div><div class="lbl">Current target</div></div></div>
+  </div>
 
-            function resize() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            }
-            resize();
-            window.addEventListener('resize', resize);
+  <!-- ============ FILTER ============ -->
+  <div class="filter-wrap mb-3">
+    <div class="input-group">
+      <span class="input-group-text" style="background:var(--panel);border:1px solid var(--line);color:var(--acc)"><i class="bi bi-funnel-fill"></i></span>
+      <input type="text" id="dorkFilter" class="form-control filter-input" placeholder="Filter dorks… e.g. sqli, xss, s3, shodan  ( / )" autocomplete="off">
+      <button class="btn btn-danger-outline" id="clearFilter" type="button"><i class="bi bi-x-lg"></i></button>
+    </div>
+  </div>
 
-            const chars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃ'.split('');
-            const drops = [];
-            const fontSize = 14;
+  <div class="no-results" id="noResults"><i class="bi bi-emoji-frown"></i> no dorks match your filter</div>
 
-            function initDrops() {
-                const columns = Math.floor(canvas.width / fontSize);
-                drops.length = 0;
-                for (let i = 0; i < columns; i++) {
-                    drops.push(Math.floor(Math.random() * canvas.height / fontSize));
-                }
-            }
-            initDrops();
-            window.addEventListener('resize', initDrops);
+  <!-- sections are rendered here by JS -->
+  <main id="sectionsHost"></main>
 
-            function drawRain() {
-                ctx.fillStyle = 'rgba(5,5,5,0.04)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#e60000';
-                ctx.font = fontSize + 'px "Fira Code", monospace';
-                for (let i = 0; i < drops.length; i++) {
-                    const text = chars[Math.floor(Math.random() * chars.length)];
-                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                        drops[i] = 0;
-                    }
-                    drops[i]++;
-                }
-            }
-            setInterval(drawRain, 40);
-        })();
+  <!-- ============ MORE ENGINES + FOOTER ============ -->
+  <div class="sec-card open">
+    <div class="sec-head"><span class="ico">🧭</span><h4>More dork engines</h4></div>
+    <div class="sec-body text-center">
+      <a class="foot-link" href="https://www.exploit-db.com" target="_blank" rel="noopener">exploit-db.com</a>
+      <a class="foot-link" href="https://dorki.attaxa.com/dashboard" target="_blank" rel="noopener">dorki.attaxa.com</a>
+      <a class="foot-link" href="https://dorksearch.com" target="_blank" rel="noopener">dorksearch.com</a>
+      <a class="foot-link" href="https://www.shodan.io" target="_blank" rel="noopener">shodan.io</a>
+      <a class="foot-link" href="https://search.censys.io" target="_blank" rel="noopener">censys.io</a>
+    </div>
+  </div>
 
-        // TYPEWRITER EFFECT
-        (function() {
-            const lines = [
-                'nmap -sV -sC target.com',
-                'sqlmap -u target/login --dbs',
-                'python3 exploit.py --shell',
-                'grep -r "api_key" ./source/',
-                'curl -X POST /admin --data "id=1 OR 1=1"',
-                'hydra -L users.txt -P pass.txt ssh://target'
-            ];
-            let lineIndex = 0,
-                charIndex = 0,
-                deleting = false;
-            const el = document.getElementById('typewriter');
+  <p class="text-center mt-4 mb-5" style="color:var(--dim);font-family:var(--mono);font-size:.75rem">
+    Third Eye Scanner · rebuilt &amp; enhanced · for authorized security testing &amp; OSINT only
+  </p>
+</div>
 
-            function run() {
-                const current = lines[lineIndex];
-                if (!deleting) {
-                    charIndex++;
-                    el.innerHTML = current.slice(0, charIndex) + '<span class="cursor">█</span>';
-                    if (charIndex === current.length) {
-                        deleting = true;
-                        setTimeout(run, 1600);
-                        return;
-                    }
-                } else {
-                    charIndex--;
-                    el.innerHTML = current.slice(0, charIndex) + '<span class="cursor">█</span>';
-                    if (charIndex === 0) {
-                        deleting = false;
-                        lineIndex = (lineIndex + 1) % lines.length;
-                    }
-                }
-                setTimeout(run, deleting ? 35 : 70);
-            }
-            run();
-        })();
+<div class="toast-box" id="toastBox"></div>
+<script>
+/* ================================================================
+   DORK DATABASE — engine: url | google | github | cve
+   {domain} and {cve} are replaced at click time with live inputs.
+   ================================================================ */
+const SECTIONS = [
+{
+  id:"sec-subdomain", icon:"🌐", title:"Subdomain Finding",
+  items:[
+    {l:"crt.sh", e:"url", q:"https://crt.sh/?q=%25.{domain}"},
+    {l:"dorki.attaxa.com", e:"url", q:"https://dorki.attaxa.com/search?q=site:{domain}"},
+    {l:"searchdns.netcraft.com", e:"url", q:"https://searchdns.netcraft.com/?restriction=site+contains&host={domain}&position=limited"},
+    {l:"securitytrails.com", e:"url", q:"https://securitytrails.com/list/apex_domain/{domain}"},
+    {l:"vedbex.com", e:"url", q:"https://www.vedbex.com/subdomain-finder/{domain}"},
+    {l:"viewdns.info (reverse IP)", e:"url", q:"https://viewdns.info/reverseip/?host={domain}&t=1"},
+    {l:"*.Google", e:"google", q:"site:*.{domain}"},
+    {l:"*.Google.*", e:"google", q:"site:*.{domain}.*"},
+    {l:"*.*.Google.*", e:"google", q:"site:*.*.{domain}.*"},
+    {l:"*.*.*.Google", e:"google", q:"site:*.*.*.{domain}"},
+    {l:"*.*.*.*.Google", e:"google", q:"site:*.*.*.*.{domain}"},
+    {l:"*.*.*.*.*.Google", e:"google", q:"site:*.*.*.*.*.{domain}"},
+    {l:"*.*.*.*.*.*.*.Google", e:"google", q:"site:*.*.*.*.*.*.*.{domain}"},
+    {l:"hunter.how", e:"url", q:"https://hunter.how/list?searchValue=domain%3D%22{domain}%22"},
+    {l:"search.censys.io", e:"url", q:"https://search.censys.io/search?resource=hosts&sort=RELEVANCE&per_page=25&virtual_hosts=EXCLUDE&q={domain}"},
+    {l:"shodan.io", e:"url", q:"https://www.shodan.io/search?query={domain}"},
+    {l:"Bing domain:", e:"url", q:"https://www.bing.com/search?q=domain%3A{domain}"}
+  ]
+},
+{
+  id:"sec-tech", icon:"🛠️", title:"Technology Detector",
+  items:[
+    {l:"builtwith.com", e:"url", q:"https://builtwith.com/{domain}"},
+    {l:"webtechsurvey.com", e:"url", q:"https://webtechsurvey.com/website/{domain}"},
+    {l:"w3techs.com", e:"url", q:"https://w3techs.com/sites/info/{domain}"},
+    {l:"whatcms.org", e:"url", q:"https://whatcms.org/?s={domain}"}
+  ]
+},
+{
+  id:"sec-origin", icon:"🎯", title:"Origin IP Finding",
+  items:[
+    {l:"shodan.io (cert CN)", e:"url", q:"https://www.shodan.io/search?query=Ssl.cert.subject.CN%3A%22{domain}%22+200"},
+    {l:"shodan.io (ssl)", e:"url", q:"https://www.shodan.io/search?query=ssl%3A%22{domain}%22+200"},
+    {l:"search.censys.io", e:"url", q:"https://search.censys.io/search?resource=hosts&sort=RELEVANCE&per_page=25&virtual_hosts=EXCLUDE&q={domain}"},
+    {l:"viewdns.info (IP history)", e:"url", q:"https://viewdns.info/iphistory/?domain={domain}"},
+    {l:"mxtoolbox.com (SPF)", e:"url", q:"https://mxtoolbox.com/SuperTool.aspx?action=spf%3a{domain}&run=toolpage"},
+    {l:"securitytrails.com (A history)", e:"url", q:"https://securitytrails.com/domain/{domain}/history/a"}
+  ]
+},
+{
+  id:"sec-ports", icon:"🔌", title:"Port Scanning",
+  items:[
+    {l:"viewdns.info", e:"url", q:"https://viewdns.info/portscan/?host={domain}"},
+    {l:"dnschecker.org", e:"url", q:"https://dnschecker.org/port-scanner.php?query={domain}&ptype=server"},
+    {l:"web-check.xyz", e:"url", q:"https://web-check.xyz/check/{domain}"}
+  ]
+},
+{
+  id:"sec-urls", icon:"🔗", title:"URL Collecting",
+  items:[
+    {l:"web.archive.org", e:"url", q:"https://web.archive.org/cdx/search/cdx?url={domain}/*&output=txt&collapse=urlkey&fl=original&page=/"},
+    {l:"web.archive.org (wildcard)", e:"url", q:"https://web.archive.org/cdx/search/cdx?url=*.{domain}/*&output=txt&collapse=urlkey&fl=original&page=/"},
+    {l:"urlscan.io (API)", e:"url", q:"https://urlscan.io/api/v1/search/?q={domain}&size=10000"},
+    {l:"otx.alienvault.com", e:"url", q:"https://otx.alienvault.com/api/v1/indicators/hostname/{domain}/url_list?limit=500&page=1"},
+    {l:"otx.alienvault.com (wildcard)", e:"url", q:"https://otx.alienvault.com/api/v1/indicators/domain/{domain}/url_list?limit=500&page=1"},
+    {l:"virustotal.com (GUI)", e:"url", q:"https://www.virustotal.com/gui/domain/{domain}"}
+  ]
+},
+{
+  id:"sec-infodisc", icon:"📂", title:"Information Disclosure",
+  items:[
+    {l:"Directory listing vulnerabilities", e:"google", q:"site:{domain} intitle:index.of"},
+    {l:"Exposed FTP", e:"google", q:"site:{domain} intitle:index of inurl:ftp"},
+    {l:"Find PDFs", e:"google", q:"site:{domain} filetype:pdf"},
+    {l:"Exposed configuration files", e:"google", q:"site:{domain} ext:xml | ext:conf | ext:cnf | ext:reg | ext:inf | ext:rdp | ext:cfg | ext:txt | ext:ora | ext:ini"},
+    {l:"File upload endpoints", e:"google", q:"site:{domain} intext:uploadimage | intext:Upload File"},
+    {l:"Exposed database", e:"google", q:"site:{domain} ext:sql | ext:dbf | ext:mdb"},
+    {l:"Exposed log", e:"google", q:"site:{domain} ext:log"},
+    {l:"Backup & old files", e:"google", q:"site:{domain} ext:bkf | ext:bkp | ext:bak | ext:old | ext:backup"},
+    {l:"Publicly exposed documents", e:"google", q:"site:{domain} ext:doc | ext:docx | ext:odt | ext:pdf | ext:rtf | ext:sxw | ext:psw | ext:ppt | ext:pptx | ext:pps | ext:csv"},
+    {l:"Find emails", e:"google", q:"site:{domain} inurl:email | inurl:emails ext:txt | ext:xlsx | ext:doc | ext:docx"},
+    {l:"Find password 1", e:"google", q:"site:{domain} intext:admin.password"},
+    {l:"Find password 2", e:"google", q:"site:{domain} admin_password ext:txt | ext:log | ext:cfg"},
+    {l:"Find password emails", e:"google", q:"site:{domain} filetype:log intext:password after:2016 intext:@gmail.com | @yahoo.com | @hotmail.com"},
+    {l:"Sensitive documents #1", e:"google", q:"site:{domain} ext:txt | ext:pdf | ext:xml | ext:xls | ext:xlsx | ext:ppt | ext:pptx | ext:doc | ext:docx intext:confidential | intext:Not for Public Release | intext:internal use only | intext:do not distribute | ext:rtf | ext:csv | ext:json | ext:zip | ext:rar | ext:log | ext:conf | ext:sql | ext:cnf | ext:ini | ext:env | ext:sh | ext:swp | ext:git | ext:svn | ext:htpasswd | ext:htaccess"},
+    {l:"Apache config files", e:"google", q:"site:{domain} filetype:config apache"},
+    {l:"Apache Struts RCE", e:"google", q:"site:{domain} ext:action | ext:struts | ext:do"},
+    {l:"Robots.txt", e:"url", q:"https://{domain}/robots.txt"},
+    {l:"phpinfo", e:"google", q:"site:{domain} ext:php intitle:phpinfo published"},
+    {l:"Apache server status", e:"google", q:"site:{domain} inurl:/server-status apache"},
+    {l:".htaccess sensitive files", e:"google", q:"site:{domain} inurl:/phpinfo.php | inurl:.htaccess"},
+    {l:"Install / setup files", e:"google", q:"site:{domain} inurl:readme | inurl:license | inurl:install | inurl:setup | inurl:config"},
+    {l:"3rd party exposure", e:"google", q:"site:ideone.com | site:codebeautify.org | site:codeshare.io | site:codepen.io | site:repl.it | site:justpaste.it | site:pastebin.com | site:jsfiddle.net | site:trello.com | site:*.atlassian.net | site:bitbucket.org {domain}"},
+    {l:"Exposed cloud credentials", e:"google", q:"site:{domain} (intext:aws_access_key_id OR intext:aws_secret_access_key) (filetype:json OR filetype:yaml)"},
+    {l:"DigitalOcean Spaces", e:"google", q:"site:digitaloceanspaces.com {domain}"},
+    {l:"Firebase", e:"google", q:"site:firebaseio.com \"{domain}\""},
+    {l:"S3 buckets", e:"google", q:"site:.s3.amazonaws.com {domain}"},
+    {l:"Google APIs", e:"google", q:"site:googleapis.com \"{domain}\""},
+    {l:"Google Drive", e:"google", q:"site:drive.google.com \"{domain}\""},
+    {l:"Azure", e:"google", q:"site:dev.azure.com \"{domain}\""},
+    {l:"OneDrive", e:"google", q:"site:onedrive.live.com \"{domain}\""},
+    {l:"Dropbox", e:"google", q:"site:dropbox.com/s \"{domain}\""},
+    {l:"Google Docs", e:"google", q:"site:docs.google.com inurl:\"/d/\" \"{domain}\""},
+    {l:"Reverse IP lookup", e:"url", q:"https://viewdns.info/reverseip/?host={domain}&t=1"},
+    {l:"Source code — PublicWWW", e:"url", q:"https://publicwww.com/websites/{domain}"},
+    {l:"securityheaders.com", e:"url", q:"https://securityheaders.com/?q={domain}"},
+    {l:"Check website OS", e:"url", q:"https://iplocation.io/website-server-software/{domain}"},
+    {l:"Login / admin finder", e:"google", q:"site:{domain} inurl:login | inurl:admin | inurl:logon | inurl:sign-in | inurl:signin | inurl:signup | inurl:sign-up | inurl:dash | inurl:portal | inurl:panel | inurl:register | inurl:administrator"},
+    {l:"Finding backdoors", e:"google", q:"site:{domain} inurl:shell | inurl:backdoor | inurl:wso | inurl:cmd | shadow | passwd | boot.ini | intitle:Mini Shell"},
+    {l:"Employees on LinkedIn", e:"google", q:"site:linkedin.com employees {domain}"},
+    {l:"Employees on Facebook", e:"google", q:"site:facebook.com employees {domain}"},
+    {l:"Employees on Twitter / X", e:"google", q:"site:twitter.com employees {domain}"}
+  ]
+},
+{
+  id:"sec-vuln", icon:"💉", title:"Vulnerability Parameters",
+  items:[
+    {l:"SQLi parameters (51)", e:"google", q:"site:{domain} inurl:cat= | inurl:search= | inurl:action= | inurl:module= | inurl:rep= | inurl:review= | inurl:total= | inurl:selectID= | inurl:page= | inurl:recherche= | inurl:term= | inurl:misc= | inurl:idProduct= | inurl:num= | inurl:idCategory= | inurl:no= | inurl:table= | inurl:bbs= | inurl:bookPageNo= | inurl:proj_nr= | inurl:card= | inurl:category= | inurl:LAN= | inurl:cid= | inurl:class= | inurl:column= | inurl:p= | inurl:mode= | inurl:date= | inurl:cPath= | inurl:delete= | inurl:dir= | inurl:chnum= | inurl:code= | inurl:email= | inurl:fetch= | inurl:file= | inurl:field= | inurl:form= | inurl:from= | inurl:filter= | inurl:pr= | inurl:gubun="},
+    {l:"SQLi parameters (68)", e:"google", q:"site:{domain} inurl:doc= | inurl:code= | inurl:data= | inurl:id= | inurl:view= | inurl:i= | inurl:modus= | inurl:section= | inurl:site= | inurl:url= | inurl:w= | inurl:item= | inurl:join= | inurl:board= | inurl:keyword= | inurl:lang= | inurl:login= | inurl:ps_db= | inurl:main= | inurl:menu= | inurl:typeboard= | inurl:name= | inurl:nav= | inurl:t= | inurl:news= | inurl:number= | inurl:show= | inurl:order= | inurl:orm= | inurl:ref= | inurl:modul= | inurl:params= | inurl:pass= | inurl:password= | inurl:PageID= | inurl:pid= | inurl:process= | inurl:shop= | inurl:q= | inurl:query= | inurl:region= | inurl:register= | inurl:report= | inurl:reset= | inurl:results= | inurl:role= | inurl:row= | inurl:search= | inurl:sel= | inurl:select= | inurl:sleep= | inurl:sort= | inurl:string= | inurl:table= | inurl:thread= | inurl:time= | inurl:title= | inurl:topic= | inurl:type= | inurl:update= | inurl:user= | inurl:username= | inurl:users= | inurl:where="},
+    {l:"Error-based SQLi (71)", e:"google", q:"site:{domain} intext:Syntax error | intext:Fatal error | intext:MariaDB | intext:corresponds | intext:Database Error | intext:syntax | intext:/usr/www | intext:public_html | intext:database error | intext:on line | intext:RuntimeException | intext:mysql_ | intext:MySQL | intext:PSQLException | intext:at line | intext:You have an error in your SQL syntax | intext:mysql_query() | intext:pg_connect() | intext:SQLiteException | intext:ORA- | intext:invalid input syntax for type | intext:unterminated quoted string | intext:PostgreSQL query failed: | intext:unrecognized token: | intext:binding parameter | intext:undeclared variable: | intext:SQLSTATE | intext:constraint failed | intext:ORA-00936: missing expression | intext:ORA-06512: | intext:PLS- | intext:SP2- | intext:dynamic SQL error | intext:SQL command not properly ended | intext:T-SQL Error | intext:Unclosed quotation mark after the character string | intext:quoted string not properly terminated | intext:Incorrect syntax near | intext:An expression of non-boolean type specified in a context where a condition is expected | intext:Conversion failed when converting | intext:Unclosed quotation mark before the character string | intext:SQL Server | intext:OLE DB | intext:Unknown column | intext:Access violation | intext:No such host is known | intext:server error | intext:syntax error at or near | intext:column does not exist | intext:could not prepare statement | intext:no such table: | intext:unknown error | intext:unexpected end of statement | intext:ambiguous column name | intext:database is locked | intext:permission denied | intext:attempt to write a readonly database | intext:out of memory | intext:disk I/O error | intext:cannot attach the file | intext:operation is not allowed in this state | intext:data type mismatch | intext:cannot open database | intext:table or view does not exist | intext:index already exists | intext:index not found | intext:division by zero | intext:value too large for column"},
+    {l:"Error-based SQLi (16)", e:"google", q:"site:{domain} intext:deadlock detected | intext:invalid operator | intext:sequence does not exist | intext:duplicate key value violates unique constraint | intext:string data, right truncated | intext:insufficient privileges | intext:missing keyword | intext:too many connections | intext:configuration limit exceeded | intext:network error while attempting to read from the file | intext:cannot rollback - no transaction is active | intext:feature not supported | intext:system error | intext:object not in prerequisite state | intext:login failed for user | intext:remote server is not known"},
+    {l:"POST parameters (3)", e:"google", q:"site:{domain} inurl:search.php | inurl:process.php | inurl:admin-post.php"},
+    {l:"Open redirects (41)", e:"google", q:"site:{domain} inurl:redir= | inurl:url= | inurl:redirect= | inurl:return= | inurl:src=http | inurl:r=http | inurl:goto= | inurl:Lmge_url= | inurl:Open= | inurl:cgi-bin/redirect.cgi | inurl:checkout= | inurl:data= | inurl:dir= | inurl:domain= | inurl:feed= | inurl:file= | inurl:file_name= | inurl:file_url= | inurl:folder= | inurl:forward= | inurl:from_uri= | inurl:host= | inurl:html= | inurl:img_url= | inurl:load_file= | inurl:load_url= | inurl:login?to= | inurl:login_url= | inurl:logout= | inurl:navigation= | inurl:next_page= | inurl:page= | inurl:page_url= | inurl:redirect_to= | inurl:redirect_uri= | inurl:reference= | inurl:return_url= | inurl:rt= | inurl:ret= | inurl:r2="},
+    {l:"Open redirects (18)", e:"google", q:"site:{domain} inurl:show= | inurl:site= | inurl:uri= | inurl:val= | inurl:next= | inurl:url= | inurl:target= | inurl:rurl= | inurl:dest= | inurl:redir= | inurl:out= | inurl:image_url= | inurl:returnTo= | inurl:checkout_url= | inurl:continue= | inurl:=http | inurl:?next="},
+    {l:"SSRF params (24)", e:"google", q:"site:{domain} inurl:redir | inurl:url= | inurl:redirect= | inurl:return= | inurl:dest= | inurl:uri= | inurl:path= | inurl:continue= | inurl:window= | inurl:next= | inurl:data= | inurl:reference= | inurl:site= | inurl:html= | inurl:val= | inurl:validate= | inurl:domain= | inurl:callback= | inurl:feed= | inurl:host= | inurl:port= | inurl:to= | inurl:out= | inurl:view= | inurl:dir="},
+    {l:"RCE params (23)", e:"google", q:"site:{domain} inurl:cmd= | inurl:exec= | inurl:command= | inurl:execute= | inurl:ping= | inurl:query= | inurl:jump= | inurl:code= | inurl:reg= | inurl:do= | inurl:func= | inurl:arg= | inurl:option= | inurl:load= | inurl:process= | inurl:step= | inurl:read= | inurl:feature= | inurl:exe= | inurl:module= | inurl:payload= | inurl:run= | inurl:print="},
+    {l:"XSS params (27)", e:"google", q:"site:{domain} inurl:q= | inurl:s= | inurl:username= | inurl:search= | inurl:id= | inurl:lang= | inurl:keyword= | inurl:query= | inurl:page= | inurl:year= | inurl:view= | inurl:email= | inurl:type= | inurl:name= | inurl:p= | inurl:month= | inurl:image= | inurl:list_type= | inurl:url= | inurl:terms= | inurl:categoryid= | inurl:key= | inurl:l= | inurl:begindate= | inurl:enddate= | inurl:inviteby= | inurl:utm_source="},
+    {l:"XSS params (22)", e:"google", q:"site:{domain} inurl:errmsg= | inurl:option= | inurl:Itemid= | inurl:faq= | inurl:key= | inurl:news_type= | inurl:sid= | inurl:msg= | inurl:msg1= | inurl:session= | inurl:search_keywords= | inurl:sfunction= | inurl:order_direction= | inurl:author= | inurl:feedback= | inurl:max= | inurl:searchstring= | inurl:tag= | inurl:txt= | inurl:vote= | inurl:catid= | inurl:redirectUrl="},
+    {l:"IDOR params (12)", e:"google", q:"site:{domain} inurl:user= | inurl:id= | inurl:email= | inurl:account= | inurl:number= | inurl:order= | inurl:no= | inurl:doc= | inurl:key= | inurl:group= | inurl:profile= | inurl:edit= | inurl:report="},
+    {l:"LFI params (24)", e:"google", q:"site:{domain} inurl:cat= | inurl:dir= | inurl:action= | inurl:board= | inurl:date= | inurl:file= | inurl:download= | inurl:path= | inurl:folder= | inurl:prefix= | inurl:include= | inurl:page= | inurl:inc= | inurl:locate= | inurl:show= | inurl:doc= | inurl:site= | inurl:type= | inurl:view= | inurl:content= | inurl:document= | inurl:layout= | inurl:mod= | inurl:conf="},
+    {l:"Info disclosure extensions (58)", e:"google", q:"site:{domain} ext:xls | ext:xml | ext:xlsx | ext:json | ext:pdf | ext:sql | ext:doc | ext:docx | ext:pptx | ext:txt | ext:zip | ext:tar.gz | ext:tgz | ext:bak | ext:7z | ext:rar | ext:log | ext:cache | ext:secret | ext:db | ext:backup | ext:yml | ext:gz | ext:config | ext:csv | ext:yaml | ext:md | ext:md5 | ext:tar | ext:xz | ext:7zip | ext:p12 | ext:pem | ext:key | ext:crt | ext:csr | ext:sh | ext:pl | ext:py | ext:java | ext:class | ext:jar | ext:war | ext:ear | ext:sqlitedb | ext:sqlite3 | ext:dbf | ext:db3 | ext:accdb | ext:mdb | ext:sqlcipher | ext:gitignore | ext:env | ext:ini | ext:conf | ext:properties | ext:plist | ext:cfg"}
+  ]
+},
+{
+  id:"sec-github", icon:"🐙", title:"GitHub Dorking",
+  items:[
+    {l:"GitLab mentions", e:"google", q:"inurl:gitlab {domain}"},
+    {l:"Exposed .git", e:"google", q:"site:{domain}/.git/"},
+    {l:"API_KEY / api_secret", e:"github", q:"'API_KEY' OR 'api_key' OR 'API_SECRET' OR 'api_secret' {domain}"},
+    {l:"filename:.env", e:"github", q:"filename:.env {domain}"},
+    {l:"password / secret / credential", e:"github", q:"'password' OR 'secret' OR 'credential' {domain}"},
+    {l:"confidential / sensitive", e:"github", q:"\"confidential\" OR \"sensitive\" {domain}"},
+    {l:"fatal / error / exception", e:"github", q:"\"fatal\" OR \"error\" OR \"exception\" {domain}"},
+    {l:"password in:file branch.*", e:"github", q:"\"password\" OR \"secret\" OR \"credential\" in:file branch.* {domain}"},
+    {l:"extension:json/yml/xml/config", e:"github", q:"extension:json OR extension:yml OR extension:xml OR extension:config {domain}"},
+    {l:"token / access_token", e:"github", q:"\"token\" OR \"access_token\" {domain}"},
+    {l:"filename:config/settings", e:"github", q:"filename:config OR filename:settings {domain}"},
+    {l:"secrets.", e:"github", q:"secrets. {domain}"}
+  ]
+},
+{
+  id:"sec-cms", icon:"🧩", title:"CMS Dorking",
+  items:[
+    {l:"WordPress juicy paths (19)", e:"google", q:"site:{domain} inurl:/wp-content | inurl:/wp-includes | inurl:wp-admin.php | inurl:wp-config.php | wp-content/uploads | inurl:wp-load | inurl:wp-signup.php | inurl:wp-json | inurl:index.php | inurl:wp-login.php | inurl:wp-links-opml.php | inurl:wp-activate.php | inurl:wp-blog-header.php | inurl:wp-cron.php | inurl:wp-links.php | inurl:wp-mail.php | inurl:xmlrpc.php | inurl:wp-settings.php | inurl:wp-trackback.php"},
+    {l:"wp_users dump", e:"google", q:"site:{domain} filetype:sql intext:wp_users phpmyadmin"},
+    {l:"Joomla extensions", e:"google", q:"site:{domain} inurl:index.php?option=com_"},
+    {l:"Drupal install files", e:"google", q:"site:{domain} inurl:CHANGELOG.txt | inurl:update.php | inurl:install.php intext:drupal"}
+  ]
+},
+{
+  id:"sec-cve", icon:"🚨", title:"CVE Search",
+  items:[
+    {l:"0day.today", e:"cve", q:"https://0day.today/search?search_request={cve}"},
+    {l:"cve.mitre.org", e:"cve", q:"https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword={cve}"},
+    {l:"NVD (nist.gov)", e:"cve", q:"https://nvd.nist.gov/vuln/search/results?query={cve}"},
+    {l:"access.redhat.com", e:"cve", q:"https://access.redhat.com/security/security-updates/cve?q={cve}&p=1&sort=cve_publicDate+desc,allTitle+desc&rows=10&documentKind=Cve"},
+    {l:"exploit-db.com", e:"cve", q:"https://www.exploit-db.com/search?cve={cve}"},
+    {l:"vulnerability-lab.com", e:"cve", q:"https://www.vulnerability-lab.com/search.php?cve={cve}&submit=Search"},
+    {l:"packetstormsecurity.com", e:"cve", q:"https://packetstormsecurity.com/search/?q={cve}"},
+    {l:"cisa.gov", e:"cve", q:"https://www.cisa.gov/search?g={cve}"},
+    {l:"CVE on GitHub", e:"cve", q:"https://github.com/search?q=cve+{cve}&type=code"},
+    {l:"CVE exploit (Google, filtered)", e:"cve", q:"https://www.google.com/search?q=cve+{cve}+exploit+-github.com+-packetstormsecurity.com+-cxsecurity.com+-cvedetails.com+-access.redhat.com+-exploit-db.com+-rapid7.com+-vulnerability-lab.com+-0day.today+-cisa.gov"}
+  ]
+}
+];
+</script>
+<script>
+/* ================= CORE LOGIC ================= */
+const $ = s => document.querySelector(s);
+const host = $("#sectionsHost");
+const DEFAULT_GIT_DORKS = "https://raw.githubusercontent.com/freelancermijan/githubreconengine/refs/heads/main/git-dorks.txt";
 
-        // ANIMATED COUNTERS
-        (function() {
-            function animateValue(id, target, suffix) {
-                const el = document.getElementById(id);
-                let current = 0;
-                const step = Math.ceil(target / 50);
-                const timer = setInterval(() => {
-                    current += step;
-                    if (current >= target) {
-                        el.textContent = target + suffix;
-                        clearInterval(timer);
-                    } else {
-                        el.textContent = current + suffix;
-                    }
-                }, 20);
-            }
-            const observer = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting) {
-                    animateValue('stat1', 8, '+');
-                    animateValue('stat2', 15, '+');
-                    animateValue('stat3', 14, '');
-                    animateValue('stat4', 64, '');
-                    observer.disconnect();
-                }
-            }, { threshold: 0.5 });
-            observer.observe(document.querySelector('.stats-bar'));
-        })();
+function getDomain(){
+  const d = $("#targetDomain").value.trim().replace(/^https?:\/\//,"").replace(/\/.*$/,"");
+  return d || "example.com";
+}
+function getCve(){
+  let c = $("#targetCve").value.trim().toUpperCase().replace(/^CVE-/,"");
+  return c || "2021-41773";
+}
+function buildUrl(item){
+  if(item.e === "url")   return item.q.replaceAll("{domain}", getDomain());
+  if(item.e === "cve")   return item.q.replaceAll("{cve}", encodeURIComponent(getCve()));
+  if(item.e === "github")return "https://github.com/search?q=" + encodeURIComponent(item.q.replaceAll("{domain}", getDomain())) + "&type=code";
+  return "https://www.google.com/search?q=" + encodeURIComponent(item.q.replaceAll("{domain}", getDomain()));
+}
+function rawQuery(item){
+  return item.q.replaceAll("{domain}", getDomain()).replaceAll("{cve}", getCve());
+}
+function toast(msg){
+  const t = document.createElement("div");
+  t.className = "toast-msg"; t.textContent = msg;
+  $("#toastBox").appendChild(t);
+  setTimeout(()=>{ t.style.opacity="0"; t.style.transition=".3s"; setTimeout(()=>t.remove(),300); }, 1800);
+}
+function copyText(txt, label){
+  navigator.clipboard.writeText(txt)
+    .then(()=>toast("copied: " + label))
+    .catch(()=>toast("copy failed"));
+}
+function runDork(item){ window.open(buildUrl(item), "_blank", "noopener"); toast("▶ " + item.l + " → " + (item.e==="cve" ? "CVE-"+getCve() : getDomain())); }
 
-        // SCROLL REVEAL
-        (function() {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) entry.target.classList.add('active');
-                });
-            }, { threshold: 0.1 });
-            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-        })();
+/* ---------- render sections ---------- */
+let totalDorks = 0;
+SECTIONS.forEach(sec=>{
+  totalDorks += sec.items.length;
+  const card = document.createElement("div");
+  card.className = "sec-card open"; card.id = sec.id;
+  const chips = sec.items.map((it,i)=>`
+    <span class="dork-chip" data-label="${it.l.toLowerCase()} ${it.q.toLowerCase().slice(0,300)}">
+      <button class="run" data-s="${sec.id}" data-i="${i}" title="${it.q.replace(/"/g,"&quot;").slice(0,180)}…">${it.l}</button>
+      <button class="cp"  data-s="${sec.id}" data-i="${i}" title="Copy dork"><i class="bi bi-clipboard"></i></button>
+    </span>`).join("");
+  card.innerHTML = `
+    <div class="sec-head">
+      <span class="ico">${sec.icon}</span><h4>${sec.title}</h4>
+      <span class="badge-count">${sec.items.length} dorks</span>
+      <button class="btn-open-all" data-openall="${sec.id}"><i class="bi bi-box-arrow-up-right"></i> open all</button>
+      <i class="bi bi-chevron-down chev"></i>
+    </div>
+    <div class="sec-body">${chips}</div>`;
+  host.appendChild(card);
+  if(sec.id === "sec-github") host.appendChild(buildGithubAdvanced());
+});
 
-        // HERO CANVAS – ANIME CHARACTER + MOON
-        (function() {
-            const canvas = document.getElementById('heroCanvas');
-            const ctx = canvas.getContext('2d');
-            const w = canvas.width,
-                h = canvas.height;
-            let time = 0;
+/* ---------- GitHub advanced generator ---------- */
+function buildGithubAdvanced(){
+  const card = document.createElement("div");
+  card.className = "sec-card open"; card.id = "sec-github-adv";
+  card.innerHTML = `
+    <div class="sec-head"><span class="ico">⚡</span><h4>GitHub Advanced Dorking — batch generator</h4><i class="bi bi-chevron-down chev"></i></div>
+    <div class="sec-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="adv-panel p-3 h-100">
+            <div class="input-group input-group-sm mb-2">
+              <span class="input-group-text" style="background:#070d12;border-color:var(--line);color:var(--dim);font-family:var(--mono);font-size:.72rem">payloads URL</span>
+              <input type="text" id="payloadUrl" class="form-control" value="${DEFAULT_GIT_DORKS}">
+              <button class="btn btn-acc" id="btnFetchPayloads" type="button">Get list</button>
+            </div>
+            <textarea id="payloadList" class="form-control" style="height:340px" placeholder="one dork per line — or click 'Get list'&#10;filename:.env&#10;API_KEY&#10;password"></textarea>
+            <div class="d-flex justify-content-between mt-1">
+              <span class="kbd-hint"><span id="payloadCount">0</span> payloads loaded</span>
+              <button class="btn btn-sm btn-danger-outline py-0" id="btnSamplePayloads" type="button">load samples</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="adv-panel p-3 h-100 d-flex flex-column">
+            <div class="input-group input-group-sm mb-2">
+              <span class="input-group-text" style="background:#070d12;border-color:var(--line);color:var(--dim);font-family:var(--mono);font-size:.72rem">target</span>
+              <input type="text" id="advTarget" class="form-control" placeholder='"vulnweb.com" OR org:vulnweb.com'>
+              <button class="btn btn-acc" id="btnGenerate" type="button">Generate</button>
+            </div>
+            <div id="genResults" class="flex-grow-1" style="height:320px;overflow-y:auto;border:1px dashed var(--line);border-radius:8px">
+              <p class="text-center p-4" style="color:var(--dim);font-family:var(--mono);font-size:.75rem">generated GitHub search links appear here</p>
+            </div>
+            <div class="d-flex gap-2 mt-2">
+              <button class="btn btn-sm btn-acc flex-fill" id="btnGenOpenAll" type="button"><i class="bi bi-box-arrow-up-right"></i> open all</button>
+              <button class="btn btn-sm btn-danger-outline flex-fill" id="btnGenCopyAll" type="button"><i class="bi bi-clipboard"></i> copy all links</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  return card;
+}
 
-            function draw() {
-                time += 0.02;
-                // Sky gradient
-                const grad = ctx.createLinearGradient(0, 0, 0, h);
-                grad.addColorStop(0, '#1a0000');
-                grad.addColorStop(0.7, '#0a0a0a');
-                grad.addColorStop(1, '#000000');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, w, h);
+/* ---------- stats ---------- */
+function refreshStats(){
+  $("#statDorks").textContent = totalDorks;
+  $("#statSections").textContent = SECTIONS.length + 1;
+  const engines = new Set();
+  SECTIONS.forEach(s=>s.items.forEach(it=>{
+    try{ if(it.e==="url"||it.e==="cve") engines.add(new URL(it.q.replaceAll("{domain}","x.com").replaceAll("{cve}","x")).hostname); }catch(_){}
+    if(it.e==="google") engines.add("google.com");
+    if(it.e==="github") engines.add("github.com");
+  }));
+  $("#statEngines").textContent = engines.size;
+  $("#statTarget").textContent = $("#targetDomain").value.trim() || "—";
+}
+refreshStats();
 
-                // Red moon
-                const moonX = w * 0.78,
-                    moonY = h * 0.15;
-                ctx.beginPath();
-                ctx.arc(moonX, moonY, 50, 0, Math.PI * 2);
-                const moonGrad = ctx.createRadialGradient(moonX - 8, moonY - 8, 8, moonX, moonY, 50);
-                moonGrad.addColorStop(0, '#ff3333');
-                moonGrad.addColorStop(0.8, '#990000');
-                ctx.fillStyle = moonGrad;
-                ctx.fill();
-                ctx.shadowColor = '#e60000';
-                ctx.shadowBlur = 40;
-                ctx.fill();
-                ctx.shadowBlur = 0;
+/* ---------- events (delegated) ---------- */
+document.addEventListener("click", e=>{
+  const run = e.target.closest(".run");
+  if(run){ const sec = SECTIONS.find(s=>s.id===run.dataset.s); runDork(sec.items[+run.dataset.i]); return; }
+  const cp = e.target.closest(".cp");
+  if(cp){ const sec = SECTIONS.find(s=>s.id===cp.dataset.s); const it = sec.items[+cp.dataset.i]; copyText(rawQuery(it), it.l); return; }
+  const all = e.target.closest("[data-openall]");
+  if(all){
+    const sec = SECTIONS.find(s=>s.id===all.dataset.openall);
+    sec.items.forEach((it,i)=>setTimeout(()=>window.open(buildUrl(it),"_blank","noopener"), i*250));
+    toast("opening " + sec.items.length + " tabs — allow pop-ups!");
+    return;
+  }
+  const head = e.target.closest(".sec-head");
+  if(head && !e.target.closest("[data-openall]")) head.parentElement.classList.toggle("open");
+});
 
-                // City skyline
-                ctx.fillStyle = '#0a0a0a';
-                const buildings = [
-                    { x: 0, w: 70, h: 130 },
-                    { x: 80, w: 50, h: 180 },
-                    { x: 140, w: 65, h: 220 },
-                    { x: 215, w: 80, h: 280 },
-                    { x: 305, w: 55, h: 190 },
-                    { x: 370, w: 60, h: 240 },
-                    { x: 440, w: 60, h: 150 }
-                ];
-                buildings.forEach(b => {
-                    ctx.fillRect(b.x, h - b.h, b.w, b.h);
-                    ctx.fillStyle = '#150000';
-                    for (let wy = h - b.h + 15; wy < h - 10; wy += 25) {
-                        for (let wx = b.x + 8; wx < b.x + b.w - 8; wx += 14) {
-                            if (Math.sin(wx + wy) > 0.2) ctx.fillRect(wx, wy, 5, 8);
-                        }
-                    }
-                    ctx.fillStyle = '#0a0a0a';
-                });
+$("#targetDomain").addEventListener("input", ()=>{ localStorage.setItem("tes_domain", $("#targetDomain").value.trim()); refreshStats(); });
+$("#targetDomain").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); toast("target locked: " + getDomain()); }});
+$("#targetCve").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); toast("CVE locked: CVE-" + getCve()); }});
+const saved = localStorage.getItem("tes_domain");
+if(saved){ $("#targetDomain").value = saved; refreshStats(); }
 
-                // Character on tallest building (index 3: x=215, w=80, h=280)
-                const roofX = 215 + 40;
-                const roofY = h - 280 - 110;
-                // Cloak
-                ctx.fillStyle = '#0a0a0a';
-                ctx.beginPath();
-                ctx.moveTo(roofX - 22, roofY + 15);
-                ctx.lineTo(roofX - 28, roofY + 70);
-                ctx.lineTo(roofX + 28, roofY + 70);
-                ctx.lineTo(roofX + 22, roofY + 15);
-                ctx.closePath();
-                ctx.fill();
-                ctx.strokeStyle = '#e60000';
-                ctx.lineWidth = 1.8;
-                ctx.stroke();
-                // Head
-                ctx.beginPath();
-                ctx.arc(roofX, roofY - 5, 14, 0, Math.PI * 2);
-                ctx.fillStyle = '#111';
-                ctx.fill();
-                ctx.strokeStyle = '#e60000';
-                ctx.stroke();
-                // Glowing eyes
-                ctx.fillStyle = '#ff0000';
-                ctx.shadowColor = '#ff0000';
-                ctx.shadowBlur = 14;
-                ctx.beginPath();
-                ctx.arc(roofX - 5, roofY - 10, 2.6, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.beginPath();
-                ctx.arc(roofX + 5, roofY - 10, 2.6, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-                // Laptop
-                ctx.fillStyle = '#222';
-                ctx.fillRect(roofX - 22, roofY + 70, 44, 5);
-                ctx.fillStyle = '#1c0000';
-                ctx.fillRect(roofX - 20, roofY + 48, 40, 22);
-                ctx.strokeStyle = '#e60000';
-                ctx.beginPath();
-                ctx.moveTo(roofX - 12, roofY + 55);
-                ctx.lineTo(roofX + 8, roofY + 60);
-                ctx.stroke();
-                ctx.font = '5px monospace';
-                ctx.fillStyle = '#e60000';
-                for (let i = 0; i < 5; i++) {
-                    const txt = Math.random() > 0.5 ? '01' : '10';
-                    ctx.fillText(txt, roofX - 15 + i * 10, roofY + 58);
-                }
-                // Red particles around character
-                for (let j = 0; j < 12; j++) {
-                    const angle = time * 3 + j * Math.PI / 6;
-                    const px = roofX + Math.cos(angle) * 45;
-                    const py = roofY + 40 + Math.sin(angle * 2) * 25;
-                    ctx.fillStyle = '#ff1a1a';
-                    ctx.beginPath();
-                    ctx.arc(px, py, 1.3, 0, 2 * Math.PI);
-                    ctx.fill();
-                }
-            }
+/* ---------- filter ---------- */
+const filterInput = $("#dorkFilter");
+function applyFilter(){
+  const q = filterInput.value.trim().toLowerCase();
+  let visible = 0;
+  document.querySelectorAll(".dork-chip").forEach(chip=>{
+    const hit = !q || chip.dataset.label.includes(q);
+    chip.classList.toggle("hidden-chip", !hit);
+    if(hit) visible++;
+  });
+  document.querySelectorAll("#sectionsHost .sec-card").forEach(card=>{
+    if(!card.querySelector(".dork-chip")) return;
+    const any = card.querySelector(".dork-chip:not(.hidden-chip)");
+    card.style.display = any ? "" : "none";
+    if(q && any) card.classList.add("open");
+  });
+  $("#noResults").style.display = visible ? "none" : "block";
+}
+filterInput.addEventListener("input", applyFilter);
+$("#clearFilter").addEventListener("click", ()=>{ filterInput.value=""; applyFilter(); filterInput.focus(); });
+document.addEventListener("keydown", e=>{
+  if(e.key==="/" && !/input|textarea/i.test(document.activeElement.tagName)){ e.preventDefault(); filterInput.focus(); }
+  if(e.key==="Escape" && document.activeElement===filterInput){ filterInput.value=""; applyFilter(); }
+});
 
-            function animate() {
-                draw();
-                requestAnimationFrame(animate);
-            }
-            animate();
-        })();
-    </script>
+/* ---------- GitHub advanced events ---------- */
+document.addEventListener("click", e=>{
+  if(e.target.id==="btnFetchPayloads"){
+    const url = $("#payloadUrl").value.trim();
+    toast("fetching payload list…");
+    fetch(url).then(r=>{ if(!r.ok) throw new Error(r.status); return r.text(); })
+      .then(txt=>{ $("#payloadList").value = txt.trim(); updatePayloadCount(); toast("payloads loaded ✔"); })
+      .catch(()=>toast("fetch failed — paste payloads manually"));
+  }
+  if(e.target.id==="btnSamplePayloads"){
+    $("#payloadList").value = ["filename:.env","filename:config","API_KEY","api_secret","\"password\" in:file","extension:json","token","secrets.","filename:id_rsa","AWS_SECRET_ACCESS_KEY"].join("\n");
+    updatePayloadCount(); toast("sample payloads loaded");
+  }
+  if(e.target.id==="btnGenerate") generateLinks();
+  if(e.target.id==="btnGenOpenAll"){
+    const links = [...document.querySelectorAll("#genResults a")];
+    if(!links.length) return toast("generate links first");
+    links.forEach((a,i)=>setTimeout(()=>window.open(a.href,"_blank","noopener"), i*250));
+    toast("opening " + links.length + " tabs — allow pop-ups!");
+  }
+  if(e.target.id==="btnGenCopyAll"){
+    const links = [...document.querySelectorAll("#genResults a")].map(a=>a.href);
+    if(!links.length) return toast("generate links first");
+    copyText(links.join("\n"), links.length + " links");
+  }
+});
+document.addEventListener("input", e=>{ if(e.target.id==="payloadList") updatePayloadCount(); });
+function updatePayloadCount(){
+  $("#payloadCount").textContent = $("#payloadList").value.split("\n").filter(l=>l.trim()).length;
+}
+function generateLinks(){
+  const target = $("#advTarget").value.trim() || ('"' + getDomain() + '" OR org:' + getDomain());
+  const payloads = $("#payloadList").value.split("\n").map(l=>l.trim()).filter(Boolean);
+  const box = $("#genResults");
+  if(!payloads.length){ toast("no payloads — fetch or paste some"); return; }
+  box.innerHTML = payloads.map(p=>{
+    const href = "https://github.com/search?q=" + encodeURIComponent(p + " " + target) + "&type=code";
+    return `<a class="gen-link" href="${href}" target="_blank" rel="noopener"><i class="bi bi-github"></i> ${p.replace(/</g,"&lt;")}</a>`;
+  }).join("");
+  toast(payloads.length + " GitHub links generated");
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
